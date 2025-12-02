@@ -1,7 +1,7 @@
 // --- CONFIGURATION ---
 const CONFIG = {
     // ID Kota (1638 = Yogyakarta). Cari ID kota lain di: https://api.myquran.com/v2/sholat/kota/cari/{nama_kota}
-    cityId: '1638', 
+    cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
     
     masjidName: "MASJID JAMI' MU'ALLIMIN",
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
