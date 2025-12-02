@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Masjid - Final Fix</title>
+    <title>Smart Masjid - Ultimate V2</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -12,8 +12,8 @@
             theme: {
                 extend: {
                     fontFamily: { sans: ['"Inter"', 'sans-serif'], display: ['"Oswald"', 'sans-serif'], serif: ['"Amiri"', 'serif'], epic: ['"Cinzel"', 'serif'] },
-                    colors: { gold: { 400: '#FBBF24', 500: '#D97706' }, emerald: { 400: '#34d399', 500: '#10b981' }, cyan: { 400: '#22d3ee', 500: '#06b6d4' }, rose: { 400: '#fb7185', 500: '#f43f5e' } },
-                    animation: { 'marquee': 'marquee 50s linear infinite', 'enter-up': 'enterUp 0.8s ease-out forwards' },
+                    colors: { gold: { 400: '#FBBF24', 500: '#D97706', 900: '#78350f' }, emerald: { 400: '#34d399', 500: '#10b981' }, cyan: { 400: '#22d3ee', 500: '#06b6d4' }, rose: { 400: '#fb7185', 500: '#f43f5e' } },
+                    animation: { 'marquee': 'marquee 50s linear infinite', 'enter-up': 'enterUp 0.8s ease-out forwards', 'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite' },
                     keyframes: {
                         marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } },
                         enterUp: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
@@ -28,19 +28,15 @@
     <style>
         body { background-color: #000; color: #fff; overflow: hidden; }
         .glass-panel { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-        .mesh-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -10; background: radial-gradient(circle at 50% 50%, #1a202c 0%, #000 100%); opacity: 0.8; }
-        
-        /* Utility untuk menyembunyikan slide */
+        .glass-active { background: rgba(16, 185, 129, 0.2); border: 1px solid rgba(16, 185, 129, 0.5); }
+        .mesh-bg { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -10; background: radial-gradient(circle at 50% 50%, #0f172a 0%, #000 100%); opacity: 0.8; }
         .hidden-slide { display: none !important; }
-        
-        /* Debug Error Overlay */
         #error-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; color: red; padding: 2rem; overflow: auto; }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col p-6 gap-6 font-sans">
 
     <div id="error-overlay"></div>
-
     <div class="mesh-bg"></div>
 
     <header class="flex justify-between items-center h-24 px-4 z-10">
@@ -60,52 +56,125 @@
 
     <main class="flex-1 relative glass-panel rounded-[3rem] overflow-hidden p-4">
         
-        <div id="scene-clock" class="scene h-full flex flex-col items-center justify-center text-center">
-            <div class="mb-6 px-6 py-2 rounded-full glass-panel text-cyan-400 font-medium tracking-wide">
-                Yogyakarta, 28°C Cerah
+        <div id="scene-home" class="scene h-full flex flex-col relative p-8">
+            <div class="flex-1 flex flex-col items-center justify-center text-center -mt-10">
+                <div class="mb-4 px-6 py-2 rounded-full glass-panel text-cyan-400 font-medium tracking-wide">Yogyakarta, 28°C Cerah</div>
+                <div class="text-[16vh] font-display font-bold leading-none tracking-tighter text-white" id="home-clock">00:00</div>
+                <div class="text-[4vh] text-emerald-400 font-light mt-2" id="home-date">Senin, 1 Januari 2024</div>
             </div>
-            <div class="text-[18vh] font-display font-bold leading-none tracking-tighter" id="clock-main">
-                00:00
-            </div>
-            <div class="text-[6vh] text-emerald-400 font-light mt-4" id="date-main">
-                Memuat Tanggal...
+            
+            <div class="h-40 glass-panel rounded-3xl flex items-center p-6 gap-8">
+                <div class="w-1/3 bg-emerald-900/40 rounded-2xl h-full flex flex-col justify-center px-6 border border-emerald-500/30">
+                    <span class="text-emerald-400 text-sm uppercase tracking-widest mb-1">Menuju Sholat</span>
+                    <span class="text-4xl font-bold text-white mb-1" id="home-next-name">...</span>
+                    <span class="text-2xl font-mono text-emerald-200" id="home-next-time">--:--</span>
+                </div>
+                <div class="w-2/3 grid grid-cols-5 gap-4 h-full" id="home-prayer-list">
+                    </div>
             </div>
         </div>
 
-        <div id="scene-schedule" class="scene h-full flex flex-col items-center justify-center hidden-slide">
-            <h2 class="text-4xl font-epic text-emerald-400 mb-12 uppercase tracking-[0.2em] border-b-2 border-emerald-500/30 pb-4">Jadwal Sholat</h2>
-            <div class="grid grid-cols-3 gap-6 w-full max-w-7xl" id="prayer-grid"></div>
+        <div id="scene-next-detail" class="scene h-full flex flex-col items-center justify-center hidden-slide text-center">
+            <h2 class="text-3xl text-gray-400 uppercase tracking-[0.3em] mb-12">Waktu Sholat Berikutnya</h2>
+            <h1 class="text-[12vh] font-display font-bold text-emerald-400 mb-4" id="next-detail-name">DZUHUR</h1>
+            <div class="text-[8vh] font-mono text-white bg-white/5 px-12 py-4 rounded-3xl border border-white/10" id="next-detail-time">11:45</div>
+            <p class="mt-8 text-xl text-gray-400 animate-pulse">Insya Allah 15 Menit Lagi</p>
         </div>
 
-        <div id="scene-content" class="scene h-full flex flex-col items-center justify-center text-center px-12 hidden-slide">
-            <h3 id="content-title" class="text-2xl font-bold uppercase tracking-[0.3em] text-gold-400 mb-8">JUDUL</h3>
-            <p id="content-text" class="text-5xl lg:text-6xl font-serif leading-relaxed text-white drop-shadow-lg max-w-6xl">...</p>
-            <p id="content-source" class="mt-8 text-xl text-gray-400 font-medium tracking-wide">Sumber</p>
+        <div id="scene-schedule-full" class="scene h-full flex flex-col items-center justify-center hidden-slide">
+            <h2 class="text-4xl font-epic text-emerald-400 mb-10 uppercase tracking-[0.2em] border-b-2 border-emerald-500/30 pb-4">Jadwal Sholat Hari Ini</h2>
+            <div class="grid grid-cols-4 gap-6 w-full max-w-7xl px-8" id="schedule-grid-full">
+                </div>
         </div>
 
-        <div id="scene-countdown" class="scene h-full flex flex-col items-center justify-center text-center hidden-slide">
-            <h2 id="countdown-title" class="text-4xl text-rose-400 font-bold uppercase tracking-widest mb-4">MENUJU ADZAN</h2>
-            <h1 id="countdown-name" class="text-8xl font-display font-bold text-white mb-8">...</h1>
-            <div class="glass-panel rounded-3xl px-16 py-6 border border-rose-500/20">
-                <span id="countdown-timer" class="text-[15vh] font-mono font-bold text-rose-500 leading-none">00:00</span>
+        <div id="scene-ayat" class="scene h-full flex flex-col items-center justify-center text-center px-16 hidden-slide">
+            <div class="w-20 h-20 bg-gold-500/20 rounded-full flex items-center justify-center mb-8">
+                <span class="text-4xl">📖</span>
+            </div>
+            <h3 class="text-2xl font-bold uppercase tracking-[0.3em] text-gold-400 mb-8">Tadabbur Ayat</h3>
+            <p id="ayat-text" class="text-4xl lg:text-5xl font-serif leading-relaxed text-white drop-shadow-lg max-w-6xl">...</p>
+            <p id="ayat-source" class="mt-10 text-xl text-gray-400 font-medium tracking-wide">...</p>
+        </div>
+
+        <div id="scene-hadits" class="scene h-full flex flex-col items-center justify-center text-center px-16 hidden-slide bg-emerald-900/10">
+            <div class="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mb-8">
+                <span class="text-4xl">🕌</span>
+            </div>
+            <h3 class="text-2xl font-bold uppercase tracking-[0.3em] text-emerald-400 mb-8">Mutiara Hadits</h3>
+            <p id="hadits-text" class="text-3xl lg:text-4xl font-sans italic leading-relaxed text-gray-100 max-w-5xl">...</p>
+            <p id="hadits-source" class="mt-10 text-xl text-gray-400 font-bold tracking-wide">...</p>
+        </div>
+
+        <div id="scene-info" class="scene h-full flex flex-col items-center justify-center text-center px-12 hidden-slide">
+            <div class="px-6 py-2 bg-blue-600/30 rounded-full text-blue-300 mb-8 uppercase tracking-widest border border-blue-500/50">Pengumuman</div>
+            <h3 id="info-title" class="text-4xl font-bold uppercase text-white mb-6">...</h3>
+            <p id="info-text" class="text-3xl text-gray-300 max-w-4xl leading-relaxed">...</p>
+        </div>
+
+        <div id="scene-donation" class="scene h-full flex items-center justify-center gap-16 px-12 hidden-slide">
+            <div class="w-80 h-80 bg-white p-4 rounded-3xl shadow-2xl flex items-center justify-center">
+                <div class="w-full h-full bg-gray-900 flex items-center justify-center text-gray-500 text-center border-4 border-dashed border-gray-300 rounded-xl">
+                    <span class="text-xl font-bold">QRIS CODE<br>HERE</span>
+                </div>
+            </div>
+            <div class="text-left max-w-2xl">
+                <h2 class="text-5xl font-display font-bold text-gold-400 mb-6">INFAQ & SHODAQOH</h2>
+                <div class="space-y-4">
+                    <div class="glass-panel p-6 rounded-2xl flex items-center gap-6">
+                        <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-2xl">🏦</div>
+                        <div>
+                            <p class="text-gray-400 text-sm uppercase">Bank Syariah Indonesia (BSI)</p>
+                            <p class="text-3xl font-mono font-bold text-emerald-400">7123 4567 890</p>
+                            <p class="text-white text-sm mt-1">A.N. Masjid Raya Al-Falah</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="scene-countdown" class="scene h-full flex flex-col items-center justify-center text-center hidden-slide relative z-20">
+            <div id="countdown-bg" class="absolute inset-0 z-0 bg-black/50 transition-colors duration-1000"></div>
+            <div class="relative z-10 flex flex-col items-center">
+                <h2 id="countdown-title" class="text-5xl font-bold uppercase tracking-widest mb-6 animate-pulse-slow">MENUJU ADZAN</h2>
+                <h1 id="countdown-name" class="text-9xl font-display font-bold text-white mb-10 drop-shadow-[0_0_30px_rgba(255,255,255,0.3)]">ASHAR</h1>
+                <div class="glass-panel rounded-3xl px-20 py-8 border border-white/20 backdrop-blur-xl">
+                    <span id="countdown-timer" class="text-[18vh] font-mono font-bold leading-none tracking-widest">00:00</span>
+                </div>
             </div>
         </div>
 
         <div id="scene-prayer" class="scene h-full flex flex-col items-center justify-center bg-black absolute inset-0 z-50 hidden-slide">
-            <h1 class="text-6xl text-gray-700 font-display font-bold uppercase tracking-widest mb-8">Sholat Berlangsung</h1>
-            <p class="text-2xl text-gray-500 uppercase tracking-[0.5em]">Mohon Luruskan Shaf</p>
+            <div class="opacity-50 animate-pulse text-center">
+                <h1 class="text-6xl text-gray-600 font-display font-bold uppercase tracking-widest mb-8">Sholat Berlangsung</h1>
+                <p class="text-2xl text-gray-600 uppercase tracking-[0.5em]">Luruskan & Rapatkan Shaf</p>
+            </div>
+        </div>
+
+        <div id="scene-dzikir" class="scene h-full flex flex-col items-center justify-center bg-gradient-to-b from-slate-900 to-black absolute inset-0 z-40 hidden-slide text-center">
+             <h2 class="text-4xl text-cyan-400 font-serif mb-6">Waktu Dzikir</h2>
+             <p class="text-2xl text-gray-300 max-w-4xl leading-loose italic">"Ingatlah, hanya dengan mengingati Allah-lah hati menjadi tenteram." (QS. Ar-Ra'd: 28)</p>
+        </div>
+
+        <div id="scene-jumat" class="scene h-full flex flex-col items-center justify-center bg-emerald-900/20 absolute inset-0 z-40 hidden-slide text-center">
+            <h1 class="text-7xl font-epic text-emerald-400 mb-8">JUMAT MUBARAK</h1>
+            <p class="text-3xl text-white tracking-widest uppercase mb-12">Persiapan Sholat Jumat</p>
+        </div>
+
+        <div id="scene-kajian" class="scene h-full flex flex-row items-center justify-center gap-12 bg-slate-900 absolute inset-0 z-40 hidden-slide p-12">
+            <div class="w-1/3 h-full bg-gray-800 rounded-3xl flex items-center justify-center text-gray-600 border-2 border-dashed border-gray-600">POSTER</div>
+            <div class="w-2/3 text-left">
+                <div class="inline-block px-4 py-2 bg-blue-600 rounded-lg text-white font-bold tracking-widest mb-6">KAJIAN AHAD PAGI</div>
+                <h1 class="text-6xl font-bold text-white leading-tight mb-4">Tafsir Jalalain</h1>
+                <p class="text-3xl text-blue-400 font-medium">06:00 - 07:00 WIB</p>
+            </div>
         </div>
 
     </main>
 
     <footer class="h-20 glass-panel rounded-full flex items-center px-2 relative overflow-hidden shrink-0 mt-auto">
-        <div class="bg-white/10 px-8 py-3 rounded-full text-lg font-bold uppercase tracking-widest border border-white/5 z-10">
-            Info
-        </div>
+        <div class="bg-white/10 px-8 py-3 rounded-full text-lg font-bold uppercase tracking-widest border border-white/5 z-10">Info</div>
         <div class="absolute inset-0 flex items-center pl-40 w-full">
-            <marquee id="running-text" scrollamount="5" class="text-2xl font-medium text-gray-300 w-full">
-                Running text loading...
-            </marquee>
+            <marquee id="running-text" scrollamount="5" class="text-2xl font-medium text-gray-300 w-full">Loading...</marquee>
         </div>
     </footer>
 
