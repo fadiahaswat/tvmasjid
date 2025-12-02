@@ -1,31 +1,21 @@
 // --- CONFIGURATION ---
 const CONFIG = {
-    // ID KOTA YOGYAKARTA (Sesuai permintaan Anda)
+    // ID KOTA YOGYAKARTA (UUID v3)
     cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
     
     masjidName: "MASJID JAMI' MU'ALLIMIN",
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
     runningText: "Selamat Datang di Masjid Jami' Mu'allimin • Mohon luruskan shaf • Matikan HP saat sholat berlangsung",
     
-    // Durasi tiap slide (detik)
-    duration: { 
-        home: 15, nextDetail: 10, scheduleFull: 10, ayat: 15, 
-        hadits: 15, info: 10, donation: 10 
-    },
+    duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 15, hadits: 15, info: 10, donation: 10 },
+    thresholds: { preAdzan: 12, preIqamah: 10, inPrayer: 20, dzikir: 10, jumatPrep: 30 },
     
-    // Waktu tunggu (menit)
-    thresholds: { 
-        preAdzan: 12, preIqamah: 10, inPrayer: 20, 
-        dzikir: 10, jumatPrep: 30 
-    },
-    
-    // Jadwal Default (Fallback jika API Gagal/Offline)
+    // Fallback Default
     defaultPrayerTimes: {
         tahajjud: "03:00", imsak: "04:10", shubuh: "04:20", syuruq: "05:35",
         dhuha: "06:00", dzuhur: "11:45", ashar: "15:05", maghrib: "17:55", isya: "19:05"
     },
 
-    // Container jadwal
     prayerTimes: {} 
 };
 
@@ -50,83 +40,108 @@ let slideTimer = null;
 let els = {};
 let lastDateString = ""; 
 
-// --- API & LOGIC HELPERS ---
+// --- HELPER FUNCTIONS ---
 
-// Hitung Tahajjud (Subuh - 3 jam 30 menit)
 function calculateTahajjud(shubuhTime) {
     if (!shubuhTime) return "03:00";
-    // Bersihkan format waktu jika ada spasi/detik yang tidak perlu
-    const cleanTime = shubuhTime.split(':').slice(0,2).join(':'); 
-    
-    const [h, m] = cleanTime.split(':').map(Number);
+    const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210); // Kurangi 210 menit
-    
-    const hh = String(date.getHours()).padStart(2, '0');
-    const mm = String(date.getMinutes()).padStart(2, '0');
-    return `${hh}:${mm}`;
+    date.setMinutes(date.getMinutes() - 210); // -3.5 Jam
+    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-// Fetch Data API (KHUSUS VERSI 1 UNTUK ID UUID)
-// Fetch Data API (FIXED FORMAT TANGGAL)
-// Fetch Data API (FIXED - AKSES NESTED KEY TANGGAL)
-async function fetchSchedule() {
-    console.log(`Mengambil data jadwal (v3) untuk ID: ${CONFIG.cityId}...`);
-    try {
-        const now = new Date();
-        const y = now.getFullYear();
-        // Penting: padStart harus ada agar sesuai dengan Key di JSON (01, 02, dst)
-        const m = String(now.getMonth() + 1).padStart(2, '0'); 
-        const d = String(now.getDate()).padStart(2, '0');
+// --- LOGIKA "OFFLINE FIRST" (Monthly Cache) ---
 
-        // String tanggal ini dipakai untuk URL DAN untuk mengambil key JSON
-        const dateString = `${y}-${m}-${d}`; 
+async function loadSchedule() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const dateKey = `${y}-${m}-${d}`; // Key Hari Ini (YYYY-MM-DD)
+    const monthKey = `jadwal_bulan_${y}_${m}`; // Key Cache Bulanan di LocalStorage
 
-        const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${dateString}`;
-        
-        console.log("Request URL:", url);
-        
-        const res = await fetch(url);
-        if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
-        
-        const json = await res.json();
-        
-        // PERBAIKAN LOGIKA PENGAMBILAN DATA DISINI
-        if (json.status && json.data && json.data.jadwal) {
+    console.log(`[SYSTEM] Memeriksa jadwal untuk: ${dateKey}`);
+
+    // 1. CEK LOCAL STORAGE (Apakah data bulan ini sudah ada?)
+    let monthlyData = localStorage.getItem(monthKey);
+    let todaySchedule = null;
+
+    if (monthlyData) {
+        try {
+            const parsedData = JSON.parse(monthlyData);
+            if (parsedData[dateKey]) {
+                console.log("[CACHE] Data ditemukan di LocalStorage (Offline Mode).");
+                todaySchedule = parsedData[dateKey];
+            }
+        } catch (e) {
+            console.error("[CACHE] Data corrupt, akan download ulang.");
+            localStorage.removeItem(monthKey);
+        }
+    }
+
+    // 2. JIKA TIDAK ADA DI STORAGE, FETCH API (1 BULAN)
+    if (!todaySchedule) {
+        console.log("[NETWORK] Data tidak ada/expired. Mengunduh data 1 BULAN dari API...");
+        try {
+            // URL Fetch Bulanan: .../jadwal/{id}/{tahun}/{bulan}
+            const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}-${m}`;
+            console.log("Request URL:", url);
+
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("Gagal koneksi ke API");
+
+            const json = await res.json();
             
-            // Ambil objek jadwal berdasarkan KEY TANGGAL (contoh: "2025-12-03")
-            const jadwalHarian = json.data.jadwal[dateString]; 
+            if (json.status && json.data && json.data.jadwal) {
+                // Simpan data sebulan penuh ke LocalStorage
+                // API v3 bulanan biasanya mereturn array atau object full. 
+                // Kita simpan mentahannya atau diparsing dulu.
+                // Jika respon v3 bulanan berbentuk array, kita convert ke object key-date.
+                
+                let storagePayload = {};
+                
+                // Normalisasi Data (Jaga-jaga jika API return Array vs Object)
+                if (Array.isArray(json.data.jadwal)) {
+                    json.data.jadwal.forEach(day => {
+                        storagePayload[day.date] = day; // Pastikan API punya field 'date' atau 'tanggal' iso
+                    });
+                } else {
+                    // Jika bentuknya Object { "2025-12-01": {...}, ... }
+                    storagePayload = json.data.jadwal;
+                }
 
-            if (!jadwalHarian) {
-                throw new Error(`Data untuk tanggal ${dateString} tidak ditemukan di JSON.`);
+                // Simpan ke memori browser
+                localStorage.setItem(monthKey, JSON.stringify(storagePayload));
+                console.log("[CACHE] Data 1 bulan berhasil disimpan!");
+
+                // Ambil data hari ini
+                todaySchedule = storagePayload[dateKey];
             }
 
-            console.log("Data Mentah Jadwal:", jadwalHarian); // Cek ini harusnya objek sholat, bukan tanggal
-
-            CONFIG.prayerTimes = {
-                tahajjud: calculateTahajjud(jadwalHarian.subuh),
-                imsak: jadwalHarian.imsak,
-                shubuh: jadwalHarian.subuh,
-                syuruq: jadwalHarian.terbit, 
-                dhuha: jadwalHarian.dhuha,
-                dzuhur: jadwalHarian.dzuhur,
-                ashar: jadwalHarian.ashar,
-                maghrib: jadwalHarian.maghrib,
-                isya: jadwalHarian.isya
-            };
-            console.log("Jadwal Berhasil Diupdate:", CONFIG.prayerTimes);
-            
-            // Render ulang UI
-            renderHomePrayerList();
-            renderFullScheduleGrid();
-            
-        } else {
-            throw new Error("Struktur JSON tidak valid.");
+        } catch (e) {
+            console.error("[NETWORK ERROR]", e);
         }
-    } catch (e) {
-        console.error("GAGAL FETCH API:", e);
-        // Fallback ke default
+    }
+
+    // 3. APPLY DATA KE CONFIG
+    if (todaySchedule) {
+        CONFIG.prayerTimes = {
+            tahajjud: calculateTahajjud(todaySchedule.subuh),
+            imsak: todaySchedule.imsak,
+            shubuh: todaySchedule.subuh,
+            syuruq: todaySchedule.terbit,
+            dhuha: todaySchedule.dhuha,
+            dzuhur: todaySchedule.dzuhur,
+            ashar: todaySchedule.ashar,
+            maghrib: todaySchedule.maghrib,
+            isya: todaySchedule.isya
+        };
+        console.log("Jadwal Aktif:", CONFIG.prayerTimes);
+        renderHomePrayerList();
+        renderFullScheduleGrid();
+    } else {
+        console.warn("[SYSTEM] Gagal memuat data (API & Cache mati). Menggunakan Default.");
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
         renderHomePrayerList();
         renderFullScheduleGrid();
@@ -138,35 +153,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log("Memulai Sistem...");
         
-        // 1. Ambil Elemen DOM
         els = {
             masjidName: document.getElementById('masjid-name'),
             address: document.getElementById('masjid-address'),
             runningText: document.getElementById('running-text'),
             progressBar: document.getElementById('slide-progress'),
-            
             homeClock: document.getElementById('home-clock'),
             homeDate: document.getElementById('home-date'),
             homeNextName: document.getElementById('home-next-name'),
             homeNextTime: document.getElementById('home-next-time'),
             homePrayerList: document.getElementById('home-prayer-list'),
-            
             nextDetailName: document.getElementById('next-detail-name'),
             nextDetailTime: document.getElementById('next-detail-time'),
             scheduleGridFull: document.getElementById('schedule-grid-full'),
-            
             ayatText: document.getElementById('ayat-text'),
             ayatSource: document.getElementById('ayat-source'),
             haditsText: document.getElementById('hadits-text'),
             haditsSource: document.getElementById('hadits-source'),
             infoTitle: document.getElementById('info-title'),
             infoText: document.getElementById('info-text'),
-            
             countdownTitle: document.getElementById('countdown-title'),
             countdownName: document.getElementById('countdown-name'),
             countdownTimer: document.getElementById('countdown-timer'),
             countdownBg: document.getElementById('countdown-bg'),
-            
             scenes: {
                 home: document.getElementById('scene-home'),
                 nextDetail: document.getElementById('scene-next-detail'),
@@ -181,29 +190,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         };
 
-        // 2. Set Info Dasar Static
         if(els.masjidName) els.masjidName.textContent = CONFIG.masjidName;
         if(els.address) els.address.textContent = CONFIG.address;
         if(els.runningText) els.runningText.textContent = CONFIG.runningText;
 
-        // 3. Ambil Jadwal Sholat (Async)
-        await fetchSchedule();
+        // LOAD DATA (Offline First Logic)
+        await loadSchedule();
 
-        // 4. Render UI Jadwal Awal
-        renderHomePrayerList();
-        renderFullScheduleGrid();
-
-        // 5. Start Loops
         updateClock(); 
         setInterval(updateClock, 1000);
         setInterval(checkSystemState, 1000);
 
-        // 6. Start Slide
         setMode('NORMAL');
 
-    } catch(e) {
-        console.error("Init Error:", e);
-    }
+    } catch(e) { console.error("Init Error:", e); }
 });
 
 // --- CORE LOGIC ---
@@ -211,22 +211,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 function updateClock() {
     const now = new Date();
     
-    // Auto-Refresh saat ganti hari
+    // Cek Ganti Hari
     const currentDateString = now.toDateString();
     if (lastDateString !== "" && lastDateString !== currentDateString) {
-        console.log("Hari berganti, refresh jadwal...");
-        fetchSchedule().then(() => {
-            renderHomePrayerList();
-            renderFullScheduleGrid();
-        });
+        console.log("Hari berganti, muat ulang jadwal...");
+        // Saat ganti hari, fungsi loadSchedule akan otomatis cek LocalStorage dulu.
+        // Jika sudah ada (karena kita fetch sebulan), dia tidak butuh internet.
+        // Jika masuk bulan baru (tanggal 1), LocalStorage kosong, baru dia minta internet.
+        loadSchedule(); 
     }
     lastDateString = currentDateString;
 
-    // Update UI Jam & Tanggal
     if(els.homeClock) els.homeClock.textContent = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit' });
     if(els.homeDate) els.homeDate.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     
-    // Update Next Prayer Info
     const next = getNextPrayer(now);
     if(next) {
         if(els.homeNextName) els.homeNextName.textContent = next.name;
@@ -237,18 +235,14 @@ function updateClock() {
 }
 
 function getNextPrayer(now) {
-    // Pastikan CONFIG.prayerTimes sudah terisi
     if (!CONFIG.prayerTimes.shubuh) return null;
-
     const curMinutes = now.getHours() * 60 + now.getMinutes();
     const keys = ['shubuh', 'syuruq', 'dzuhur', 'ashar', 'maghrib', 'isya'];
-    
     let found = null;
     let minDiff = 9999;
     
     keys.forEach(key => {
         if(CONFIG.prayerTimes[key]) {
-            // Split dengan aman
             const timeParts = CONFIG.prayerTimes[key].split(':');
             const h = parseInt(timeParts[0]);
             const m = parseInt(timeParts[1]);
@@ -260,32 +254,22 @@ function getNextPrayer(now) {
             }
         }
     });
-
-    if (!found) {
-        found = { name: 'SHUBUH', timeStr: CONFIG.prayerTimes.shubuh };
-    }
+    if (!found) found = { name: 'SHUBUH', timeStr: CONFIG.prayerTimes.shubuh };
     return found;
 }
 
 function checkSystemState() {
-    // Pastikan jadwal ada
     if (!CONFIG.prayerTimes.shubuh) return;
-
     const now = new Date();
     const curTime = now.getTime();
     let activeEvent = null;
-
     const wajib = ['shubuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     
     for (let name of wajib) {
         if(!CONFIG.prayerTimes[name]) continue;
-        
         const timeParts = CONFIG.prayerTimes[name].split(':');
-        const h = parseInt(timeParts[0]);
-        const m = parseInt(timeParts[1]);
-        
         const pDate = new Date(now);
-        pDate.setHours(h, m, 0, 0);
+        pDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
         const pTime = pDate.getTime();
         
         const msPreAdzan = CONFIG.thresholds.preAdzan * 60000;
@@ -299,12 +283,9 @@ function checkSystemState() {
             activeEvent = { mode: 'COUNTDOWN', sub: 'IQAMAH', name, target: pTime + msPreIqamah };
         } else if (curTime >= (pTime + msPreIqamah) && curTime < (pTime + msPreIqamah + msInPrayer)) {
             activeEvent = { mode: 'PRAYER' };
-        } else if ((name === 'shubuh' || name === 'ashar') && 
-                   curTime >= (pTime + msPreIqamah + msInPrayer) && 
-                   curTime < (pTime + msPreIqamah + msInPrayer + msDzikir)) {
+        } else if ((name === 'shubuh' || name === 'ashar') && curTime >= (pTime + msPreIqamah + msInPrayer) && curTime < (pTime + msPreIqamah + msInPrayer + msDzikir)) {
             activeEvent = { mode: 'DZIKIR' };
         }
-        
         if (activeEvent) break;
     }
 
@@ -326,13 +307,10 @@ function setMode(mode, data = {}) {
         if (mode !== 'COUNTDOWN') return;
         if (mode === 'COUNTDOWN' && currentState.subMode === data.sub) return;
     }
-
     currentState.mode = mode;
     currentState.subMode = data.sub || null;
-
     clearTimeout(slideTimer);
     if(els.progressBar) els.progressBar.style.width = '0%';
-
     Object.values(els.scenes).forEach(el => { if(el) el.classList.add('hidden-slide'); });
 
     if (mode === 'NORMAL') {
@@ -340,12 +318,10 @@ function setMode(mode, data = {}) {
         nextNormalSlide();
     } else {
         let sceneKey = mode.toLowerCase();
-        
         if(mode === 'COUNTDOWN') {
             sceneKey = 'countdown';
             if(els.countdownTitle) els.countdownTitle.textContent = data.sub === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQAMAH';
             if(els.countdownName) els.countdownName.textContent = data.name.toUpperCase();
-            
             if(data.sub === 'ADZAN') {
                 els.countdownTitle.className = "text-5xl font-bold uppercase tracking-widest mb-6 text-gold-400 animate-pulse";
                 els.countdownTimer.className = "text-[18vh] font-mono font-bold leading-none tracking-widest text-gold-400";
@@ -356,7 +332,6 @@ function setMode(mode, data = {}) {
                 if(els.countdownBg) els.countdownBg.className = "absolute inset-0 z-0 bg-gradient-to-br from-emerald-900/50 to-black transition-all duration-1000";
             }
         }
-        
         if(els.scenes[sceneKey]) els.scenes[sceneKey].classList.remove('hidden-slide');
     }
 }
@@ -365,7 +340,6 @@ const SLIDES_ORDER = ['home', 'nextDetail', 'scheduleFull', 'ayat', 'hadits', 'i
 
 function nextNormalSlide() {
     if (currentState.mode !== 'NORMAL') return;
-
     const key = SLIDES_ORDER[currentState.slideIndex];
     let duration = CONFIG.duration[key] || 10;
 
@@ -373,20 +347,17 @@ function nextNormalSlide() {
         const item = DATA_CONTENT.ayat[Math.floor(Math.random() * DATA_CONTENT.ayat.length)];
         els.ayatText.textContent = `"${item.text}"`;
         els.ayatSource.textContent = item.source;
-    } 
-    else if (key === 'hadits' && els.haditsText) {
+    } else if (key === 'hadits' && els.haditsText) {
         const item = DATA_CONTENT.hadits[Math.floor(Math.random() * DATA_CONTENT.hadits.length)];
         els.haditsText.textContent = `"${item.text}"`;
         els.haditsSource.textContent = item.source;
-    }
-    else if (key === 'info' && els.infoTitle) {
+    } else if (key === 'info' && els.infoTitle) {
         const item = DATA_CONTENT.info[Math.floor(Math.random() * DATA_CONTENT.info.length)];
         els.infoTitle.textContent = item.title;
         els.infoText.textContent = item.text;
     }
 
     Object.values(els.scenes).forEach(el => { if(el) el.classList.add('hidden-slide'); });
-    
     if(els.scenes[key]) {
         const scene = els.scenes[key];
         scene.classList.remove('hidden-slide');
@@ -394,9 +365,7 @@ function nextNormalSlide() {
         void scene.offsetWidth; 
         scene.classList.add('animate-enter-up');
     }
-
     animateProgressBar(duration);
-
     slideTimer = setTimeout(() => {
         currentState.slideIndex = (currentState.slideIndex + 1) % SLIDES_ORDER.length;
         nextNormalSlide();
@@ -407,14 +376,10 @@ function renderHomePrayerList() {
     if (!els.homePrayerList) return;
     const keys = ['shubuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     els.homePrayerList.innerHTML = '';
-    
     keys.forEach(key => {
         const div = document.createElement('div');
         div.className = "flex flex-col items-center justify-center bg-white/5 rounded-xl border border-white/5";
-        div.innerHTML = `
-            <span class="text-xs text-gray-400 uppercase mb-1">${key}</span>
-            <span class="text-xl font-bold text-white">${CONFIG.prayerTimes[key] || '--:--'}</span>
-        `;
+        div.innerHTML = `<span class="text-xs text-gray-400 uppercase mb-1">${key}</span><span class="text-xl font-bold text-white">${CONFIG.prayerTimes[key] || '--:--'}</span>`;
         els.homePrayerList.appendChild(div);
     });
 }
@@ -422,22 +387,15 @@ function renderHomePrayerList() {
 function renderFullScheduleGrid() {
     if (!els.scheduleGridFull) return;
     els.scheduleGridFull.innerHTML = '';
-    
     const order = ['tahajjud', 'imsak', 'shubuh', 'syuruq', 'dhuha', 'dzuhur', 'ashar', 'maghrib', 'isya'];
-    
     order.forEach(name => {
         const time = CONFIG.prayerTimes[name] || '--:--';
         const isWajib = ['shubuh','dzuhur','ashar','maghrib','isya'].includes(name);
-        
         const bgClass = isWajib ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-white/5 border-white/5';
         const textClass = isWajib ? 'text-emerald-400' : 'text-gray-400';
-        
         const div = document.createElement('div');
         div.className = `flex flex-col items-center justify-center p-6 rounded-2xl border ${bgClass}`;
-        div.innerHTML = `
-            <span class="text-lg font-bold uppercase tracking-widest mb-2 ${textClass}">${name}</span>
-            <span class="text-5xl font-display font-bold text-white">${time}</span>
-        `;
+        div.innerHTML = `<span class="text-lg font-bold uppercase tracking-widest mb-2 ${textClass}">${name}</span><span class="text-5xl font-display font-bold text-white">${time}</span>`;
         els.scheduleGridFull.appendChild(div);
     });
 }
@@ -445,11 +403,9 @@ function renderFullScheduleGrid() {
 function animateProgressBar(durationSeconds) {
     const bar = els.progressBar;
     if(!bar) return;
-    
     bar.style.transition = 'none';
     bar.style.width = '0%';
     void bar.offsetWidth;
-    
     requestAnimationFrame(() => {
         bar.style.transition = `width ${durationSeconds}s linear`;
         bar.style.width = '100%';
