@@ -38,8 +38,9 @@ const DATA_CONTENT = {
     ]
 };
 
-// --- STATE ---
-let currentState = { mode: 'NORMAL', slideIndex: 0, subMode: null };
+// --- STATE MANAGEMENT ---
+// PERBAIKAN: mode awal diset null agar trigger 'setMode' berjalan saat start
+let currentState = { mode: null, slideIndex: 0, subMode: null };
 let slideTimer = null;
 let els = {};
 
@@ -107,12 +108,13 @@ document.addEventListener('DOMContentLoaded', () => {
         setInterval(updateClock, 1000);
         setInterval(checkSystemState, 1000);
 
-        // 5. Start Slide
+        // 5. Start Slide (Akan trigger rotasi karena currentState.mode awalnya null)
+        console.log("Menjalankan Slide Pertama...");
         setMode('NORMAL');
 
     } catch(e) {
         console.error("Init Error:", e);
-        alert("Terjadi kesalahan saat memulai: " + e.message);
+        // alert("Terjadi kesalahan saat memulai: " + e.message);
     }
 });
 
@@ -121,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function updateClock() {
     const now = new Date();
     if(els.homeClock) els.homeClock.textContent = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    if(els.homeDate) els.homeDate.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long' });
+    if(els.homeDate) els.homeDate.textContent = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     
     // Update Next Prayer Info
     const next = getNextPrayer(now);
@@ -211,7 +213,7 @@ function checkSystemState() {
 }
 
 function setMode(mode, data = {}) {
-    // Hindari re-render jika mode sama
+    // Hindari re-render jika mode sama, KECUALI jika mode saat ini null (startup)
     if (currentState.mode === mode) {
         if (mode !== 'COUNTDOWN') return;
         if (mode === 'COUNTDOWN' && currentState.subMode === data.sub) return;
@@ -241,9 +243,11 @@ function setMode(mode, data = {}) {
             if(data.sub === 'ADZAN') {
                 els.countdownTitle.className = "text-5xl font-bold uppercase tracking-widest mb-6 text-gold-400 animate-pulse";
                 els.countdownTimer.className = "text-[18vh] font-mono font-bold leading-none tracking-widest text-gold-400";
+                els.countdownBg.className = "absolute inset-0 z-0 bg-gradient-to-br from-gold-900/50 to-black transition-all duration-1000";
             } else {
                 els.countdownTitle.className = "text-5xl font-bold uppercase tracking-widest mb-6 text-rose-500 animate-pulse";
                 els.countdownTimer.className = "text-[18vh] font-mono font-bold leading-none tracking-widest text-rose-500";
+                els.countdownBg.className = "absolute inset-0 z-0 bg-gradient-to-br from-rose-900/50 to-black transition-all duration-1000";
             }
         }
         
@@ -334,9 +338,17 @@ function renderFullScheduleGrid() {
 function animateProgressBar(durationSeconds) {
     const bar = els.progressBar;
     if(!bar) return;
+    
+    // Reset instan
     bar.style.transition = 'none';
     bar.style.width = '0%';
+    
+    // Force Reflow
     void bar.offsetWidth;
-    bar.style.transition = `width ${durationSeconds}s linear`;
-    bar.style.width = '100%';
+    
+    // Start Animation dengan sedikit delay agar browser "sadar" perubahan
+    requestAnimationFrame(() => {
+        bar.style.transition = `width ${durationSeconds}s linear`;
+        bar.style.width = '100%';
+    });
 }
