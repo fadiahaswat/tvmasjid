@@ -78,7 +78,7 @@ async function fetchSchedule() {
         const d = now.getDate();
 
         // MENGGUNAKAN ENDPOINT V1 (Karena ID berupa UUID panjang)
-        const url = `https://api.myquran.com/v3/sholat/jadwal/577ef1154f3240ad5b9b413aa7346a1e/2025-12-03`;
+        const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}-${m}-${d}`;
         
         console.log("Request URL:", url);
         const res = await fetch(url);
