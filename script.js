@@ -7,7 +7,7 @@ const CONFIG = {
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
     runningText: "Selamat Datang di Masjid Jami' Mu'allimin • Mohon luruskan shaf • Matikan HP saat sholat berlangsung",
     
-    duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 15, hadits: 15, info: 10, donation: 10 },
+    duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 15, hadits: 20, info: 10, donation: 10 },
     thresholds: { preAdzan: 12, preIqamah: 10, inPrayer: 20, dzikir: 10, jumatPrep: 30 },
     
     defaultPrayerTimes: {
@@ -24,10 +24,21 @@ const DATA_CONTENT = {
         { text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", source: "QS. Al-Insyirah: 5" },
         { text: "Dan dirikanlah shalat, tunaikanlah zakat.", source: "QS. Al-Baqarah: 43" }
     ],
-    // Data default akan ditimpa jika API Hadis sukses
     hadits: [
-        { text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", source: "HR. Ahmad" },
-        { text: "Shalat berjamaah lebih utama 27 derajat.", source: "HR. Bukhari Muslim" }
+        { 
+            text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", 
+            arabic: "خَيْرُ الناسِ أَنْفَعُهُمْ لِلناسِ",
+            source: "HR. Ahmad",
+            grade: "Shahih",
+            hikmah: null
+        },
+        { 
+            text: "Shalat berjamaah lebih utama 27 derajat.", 
+            arabic: "صَلاةُ الْجَمَاعَةِ تَفْضُلُ صَلاةَ الْفَذِّ بِسَبْعٍ وَعِشْرِينَ دَرَجَةً",
+            source: "HR. Bukhari Muslim",
+            grade: "Muttafaq Alaih",
+            hikmah: "Pentingnya kebersamaan umat."
+        }
     ],
     info: [
         { title: "Kerja Bakti", text: "Kerja bakti hari Ahad depan pukul 08:00 WIB." },
@@ -48,7 +59,7 @@ function calculateTahajjud(shubuhTime) {
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210);
+    date.setMinutes(date.getMinutes() - 210); // -3.5 jam
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -61,7 +72,7 @@ function getFormattedDate(dateObj) {
 
 // --- DATA FETCHING FUNCTIONS ---
 
-// 1. Fetch Hadis Random (DIPERBAIKI SESUAI JSON USER)
+// 1. Fetch Hadis Random (Lengkap dengan Grade & Hikmah)
 async function fetchRandomHadith() {
     try {
         console.log("[API] Mengambil Hadis Random...");
@@ -77,69 +88,53 @@ async function fetchRandomHadith() {
             const arabicText = d.text.ar || "";
             const indoText = d.text.id || "";
 
-            // 2. Takhrij (Ambil Namanya Saja)
-            // Hapus kata "Diriwayatkan oleh" agar sesuai format UI "Riwayat: Muslim"
+            // 2. Takhrij (Bersihkan kata "Diriwayatkan oleh")
             let sourceName = d.takhrij || "Muttafaq Alaihi";
             sourceName = sourceName.replace("Diriwayatkan oleh", "").trim();
 
-            // 3. Grade (Derajat Hadis)
+            // 3. Grade & Hikmah
             const grade = d.grade ? d.grade : "";
-
-            // 4. Hikmah (Cek apakah ada isinya / tidak null)
             const hikmah = d.hikmah ? d.hikmah : null;
 
             const newHadith = {
                 text: indoText,
                 arabic: arabicText,
                 source: sourceName,
-                grade: grade,   // Data Grade disimpan
-                hikmah: hikmah  // Data Hikmah disimpan
+                grade: grade,
+                hikmah: hikmah
             };
             
-            // Masukkan ke index 0
             DATA_CONTENT.hadits.unshift(newHadith);
-            console.log("[API] Hadis berhasil ditambahkan:", sourceName);
+            console.log("[API] Hadis berhasil update.");
         }
     } catch (e) {
-        console.warn("[API] Gagal ambil hadis. Menggunakan data statis.", e);
+        console.warn("[API] Gagal ambil hadis.", e);
     }
 }
 
-// 2. Fetch Tanggal Hijriah (DIPERBAIKI)
+// 2. Fetch Tanggal Hijriah
 async function fetchHijriDate(dateString) {
     try {
         const url = `https://api.myquran.com/v3/cal/hijr/${dateString}`;
-        console.log("[API] Mengambil Hijriah:", url);
-        
         const res = await fetch(url);
         const json = await res.json();
         
         if (json.status && json.data && json.data.date) {
             const d = json.data.date;
-            
-            // Ambil data (handle kemungkinan null/undefined)
             const day = d.day || "";
-            // Cek apakah month berupa object {en: "...", ar: "..."} atau string
             const month = (d.month && d.month.en) ? d.month.en : (d.month || "");
             const year = d.year || "";
 
             CONFIG.currentHijriDate = `${day} ${month} ${year} H`;
-            console.log("[API] Tanggal Hijriah set:", CONFIG.currentHijriDate);
-            
-            // Update UI jam segera setelah dapat data
             updateClock();
         }
-    } catch (e) {
-        console.warn("[API] Gagal ambil Hijriah.", e);
-    }
+    } catch (e) { console.warn("[API] Gagal ambil Hijriah.", e); }
 }
 
 // 3. Main Schedule Loader
 async function loadSchedule() {
     const now = new Date();
     const dateKey = getFormattedDate(now); 
-    
-    // Key Cache Bulanan (YYYY-MM)
     const [y, m, d] = dateKey.split('-'); 
     const monthKey = `jadwal_bulan_${y}_${m}`; 
 
@@ -151,41 +146,27 @@ async function loadSchedule() {
     if (monthlyData) {
         try {
             const parsedData = JSON.parse(monthlyData);
-            if (parsedData[dateKey]) {
-                console.log("[CACHE] Jadwal sholat (Offline).");
-                todaySchedule = parsedData[dateKey];
-            }
-        } catch (e) {
-            localStorage.removeItem(monthKey);
-        }
+            if (parsedData[dateKey]) todaySchedule = parsedData[dateKey];
+        } catch (e) { localStorage.removeItem(monthKey); }
     }
 
     if (!todaySchedule) {
-        console.log("[NETWORK] Download Jadwal Bulanan...");
         try {
-            // URL Bulanan (Format Strip YYYY-MM)
             const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}/${m}`; 
-            
             const res = await fetch(url);
             const json = await res.json();
             
             if (json.status && json.data && json.data.jadwal) {
                 let storagePayload = {};
-                
                 if (Array.isArray(json.data.jadwal)) {
-                    json.data.jadwal.forEach(day => {
-                        storagePayload[day.date] = day; 
-                    });
+                    json.data.jadwal.forEach(day => { storagePayload[day.date] = day; });
                 } else {
                     storagePayload = json.data.jadwal;
                 }
-
                 localStorage.setItem(monthKey, JSON.stringify(storagePayload));
                 todaySchedule = storagePayload[dateKey];
             }
-        } catch (e) {
-            console.error("[NETWORK ERROR] Gagal ambil jadwal sholat:", e);
-        }
+        } catch (e) { console.error("[NETWORK ERROR]", e); }
     }
 
     if (todaySchedule) {
@@ -208,7 +189,6 @@ async function loadSchedule() {
         renderFullScheduleGrid();
     }
 
-    // Load Extra Data (Hijriah & Hadis)
     await fetchHijriDate(dateKey); 
     await fetchRandomHadith();
 }
@@ -218,45 +198,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log("Memulai Sistem...");
         
-        // MAPPING ELEMENT ID (Sesuai index.html terbaru)
         els = {
             masjidName: document.getElementById('masjid-name'),
             address: document.getElementById('masjid-address'),
             runningText: document.getElementById('running-text'),
             progressBar: document.getElementById('slide-progress'),
             
-            // Clock & Date
             homeClock: document.getElementById('home-clock'),
-            homeClockReflect: document.getElementById('home-clock-reflect'), // NEW
+            homeClockReflect: document.getElementById('home-clock-reflect'),
             homeDate: document.getElementById('home-date'),
             
-            // Next Prayer Widget
             homeNextName: document.getElementById('home-next-name'),
             homeNextTime: document.getElementById('home-next-time'),
             homePrayerList: document.getElementById('home-prayer-list'),
-            
-            // Detail Scene
             nextDetailName: document.getElementById('next-detail-name'),
             nextDetailTime: document.getElementById('next-detail-time'),
-            
-            // Full Schedule
             scheduleGridFull: document.getElementById('schedule-grid-full'),
             
-            // Content
             ayatText: document.getElementById('ayat-text'),
             ayatSource: document.getElementById('ayat-source'),
+            
             haditsText: document.getElementById('hadits-text'),
+            haditsArabic: document.getElementById('hadits-arabic'),
             haditsSource: document.getElementById('hadits-source'),
+            
             infoTitle: document.getElementById('info-title'),
             infoText: document.getElementById('info-text'),
             
-            // Countdown
             countdownTitle: document.getElementById('countdown-title'),
             countdownName: document.getElementById('countdown-name'),
             countdownTimer: document.getElementById('countdown-timer'),
             countdownBg: document.getElementById('countdown-bg'),
             
-            // Scenes List
             scenes: {
                 home: document.getElementById('scene-home'),
                 nextDetail: document.getElementById('scene-next-detail'),
@@ -268,8 +241,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 countdown: document.getElementById('scene-countdown'),
                 prayer: document.getElementById('scene-prayer'),
                 dzikir: document.getElementById('scene-dzikir'),
-                jumat: document.getElementById('scene-jumat'), // NEW
-                kajian: document.getElementById('scene-kajian') // NEW
+                jumat: document.getElementById('scene-jumat'),
+                kajian: document.getElementById('scene-kajian')
             }
         };
 
@@ -292,25 +265,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function updateClock() {
     const now = new Date();
-    
-    // Cek Ganti Hari
     const currentDateString = getFormattedDate(now);
+    
     if (lastDateString !== "" && lastDateString !== currentDateString) {
-        console.log("Hari berganti, refresh data...");
         loadSchedule(); 
     }
     lastDateString = currentDateString;
 
-    // JAM (Utama + Refleksi)
     const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit' });
     if(els.homeClock) els.homeClock.textContent = timeStr;
     if(els.homeClockReflect) els.homeClockReflect.textContent = timeStr;
     
-    // TANGGAL (Masehi + Hijriah)
     if(els.homeDate) {
         const masehi = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        
-        // Gabungkan Masehi & Hijriah
         if (CONFIG.currentHijriDate) {
             els.homeDate.textContent = `${masehi} • ${CONFIG.currentHijriDate}`;
         } else {
@@ -438,34 +405,27 @@ function nextNormalSlide() {
         const item = DATA_CONTENT.ayat[Math.floor(Math.random() * DATA_CONTENT.ayat.length)];
         els.ayatText.textContent = `"${item.text}"`;
         els.ayatSource.textContent = item.source;
-    } // ... kode sebelumnya ...
-    
-    else if (key === 'hadits' && els.haditsText) {
+    } else if (key === 'hadits' && els.haditsText) {
         const item = DATA_CONTENT.hadits[Math.floor(Math.random() * DATA_CONTENT.hadits.length)];
         
         // 1. Tampilkan Arab
         if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
         
-        // 2. Tampilkan Teks Indo + Hikmah (Jika ada)
-        // Kita pakai innerHTML agar bisa kasih enter (<br>) untuk Hikmah
+        // 2. Tampilkan Teks Indo + Hikmah (HTML)
         let contentHTML = `"${item.text}"`;
-        
         if (item.hikmah) {
-            // Tambahkan Hikmah dengan font lebih kecil/warna beda
-            contentHTML += `<br><br><span class="text-2xl text-emerald-400 not-italic font-sans tracking-normal">💡 Hikmah: ${item.hikmah}</span>`;
+            contentHTML += `<br><br><span class="text-3xl text-emerald-400 not-italic font-sans tracking-wide block mt-4 border-t border-emerald-500/30 pt-4">💡 Hikmah: ${item.hikmah}</span>`;
         }
         els.haditsText.innerHTML = contentHTML;
         
         // 3. Tampilkan Sumber + Grade
-        // Contoh Output: HR. BUKHARI • (Hadis Sahih)
         let sourceInfo = item.source;
         if (item.grade) {
             sourceInfo += ` • (${item.grade})`;
         }
         els.haditsSource.textContent = sourceInfo;
-    } 
 
-    // ... kode selanjutnya ... else if (key === 'info' && els.infoTitle) {
+    } else if (key === 'info' && els.infoTitle) {
         const item = DATA_CONTENT.info[Math.floor(Math.random() * DATA_CONTENT.info.length)];
         els.infoTitle.textContent = item.title;
         els.infoText.textContent = item.text;
@@ -486,12 +446,10 @@ function nextNormalSlide() {
     }, duration * 1000);
 }
 
-// Render Jadwal di Halaman Utama (Premium Style)
 function renderHomePrayerList() {
     if (!els.homePrayerList) return;
     const keys = ['shubuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     els.homePrayerList.innerHTML = '';
-    
     keys.forEach(key => {
         const div = document.createElement('div');
         div.className = "flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-gradient-to-b from-white/5 to-transparent relative group overflow-hidden transition-all duration-300 hover:bg-white/10";
@@ -504,29 +462,22 @@ function renderHomePrayerList() {
     });
 }
 
-// Render Grid Jadwal Lengkap (Premium Style)
 function renderFullScheduleGrid() {
     if (!els.scheduleGridFull) return;
     els.scheduleGridFull.innerHTML = '';
     const order = ['tahajjud', 'imsak', 'shubuh', 'syuruq', 'dhuha', 'dzuhur', 'ashar', 'maghrib', 'isya'];
-    
     order.forEach(name => {
         const time = CONFIG.prayerTimes[name] || '--:--';
         const isWajib = ['shubuh','dzuhur','ashar','maghrib','isya'].includes(name);
-        
         const baseClass = "flex flex-col items-center justify-center p-5 rounded-2xl border backdrop-blur-sm relative overflow-hidden transition-transform duration-500 hover:scale-105";
         const colorClass = isWajib 
             ? "bg-gradient-to-br from-emerald-950/50 to-emerald-900/10 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
             : "bg-white/5 border-white/5";
-        
         const titleColor = isWajib ? "text-emerald-400 text-glow-emerald" : "text-gray-400";
         const timeColor = isWajib ? "text-white" : "text-gray-300";
-
         const div = document.createElement('div');
         div.className = `${baseClass} ${colorClass}`;
-        
         const glowEffect = isWajib ? `<div class="absolute -top-10 -right-10 w-20 h-20 bg-emerald-500/20 rounded-full blur-xl"></div>` : '';
-
         div.innerHTML = `
             ${glowEffect}
             <span class="text-sm font-bold uppercase tracking-[0.2em] mb-2 ${titleColor} z-10">${name}</span>
