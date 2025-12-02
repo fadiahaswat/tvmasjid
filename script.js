@@ -69,27 +69,32 @@ function calculateTahajjud(shubuhTime) {
 }
 
 // Fetch Data API (KHUSUS VERSI 1 UNTUK ID UUID)
+// Fetch Data API (FIXED FORMAT TANGGAL)
 async function fetchSchedule() {
-    console.log(`Mengambil data jadwal (v1) untuk ID: ${CONFIG.cityId}...`);
+    console.log(`Mengambil data jadwal (v3) untuk ID: ${CONFIG.cityId}...`);
     try {
         const now = new Date();
         const y = now.getFullYear();
-        const m = now.getMonth() + 1;
-        const d = now.getDate();
+        // TAMBAHKAN padStart(2, '0') agar jadi "01", "02", dst.
+        const m = String(now.getMonth() + 1).padStart(2, '0'); 
+        const d = String(now.getDate()).padStart(2, '0');
 
-        // MENGGUNAKAN ENDPOINT V1 (Karena ID berupa UUID panjang)
+        // URL TETAP PAKAI STRIP (-) SESUAI CURL ANDA
         const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}-${m}-${d}`;
         
-        console.log("Request URL:", url);
+        console.log("Request URL:", url); // Pastikan outputnya .../2025-12-03
+        
         const res = await fetch(url);
         
-        if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
+        // Cek HTTP Status dulu
+        if (!res.ok) {
+            throw new Error(`HTTP Error! Status: ${res.status}`);
+        }
         
         const json = await res.json();
-        console.log("Response JSON:", json);
+        console.log("Full Response JSON:", json); // Cek isi JSON di console
 
-        // Validasi respon v1
-        // Biasanya v1 strukturnya: { status: true, data: { jadwal: { ... } } }
+        // Validasi data
         if (json.status && json.data && json.data.jadwal) {
             const data = json.data.jadwal;
             
@@ -97,7 +102,7 @@ async function fetchSchedule() {
                 tahajjud: calculateTahajjud(data.subuh),
                 imsak: data.imsak,
                 shubuh: data.subuh,
-                syuruq: data.terbit, // v1 menggunakan 'terbit'
+                syuruq: data.terbit, 
                 dhuha: data.dhuha,
                 dzuhur: data.dzuhur,
                 ashar: data.ashar,
@@ -106,18 +111,20 @@ async function fetchSchedule() {
             };
             console.log("Jadwal Berhasil Diupdate:", CONFIG.prayerTimes);
             
+            // Render ulang UI
+            renderHomePrayerList();
+            renderFullScheduleGrid();
+            
         } else {
-            throw new Error("Format JSON API v1 tidak sesuai.");
+            console.warn("Struktur JSON tidak sesuai atau data kosong:", json);
+            throw new Error("Data jadwal tidak ditemukan dalam response.");
         }
     } catch (e) {
-        console.error("GAGAL FETCH API. Menggunakan jadwal default.", e);
+        console.error("GAGAL FETCH API:", e);
         // Fallback ke default
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
-        
-        // Peringatan Khusus jika dijalankan langsung (bukan server)
-        if (window.location.protocol === 'file:') {
-            console.warn("PERINGATAN: Membuka file HTML langsung (file://) seringkali diblokir oleh browser (CORS). Gunakan Live Server atau Localhost.");
-        }
+        renderHomePrayerList();
+        renderFullScheduleGrid();
     }
 }
 
