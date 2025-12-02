@@ -1,13 +1,13 @@
 // --- CONFIGURATION ---
 const CONFIG = {
-    // ID KOTA YOGYAKARTA
+    // ID KOTA YOGYAKARTA (UUID v3)
     cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
     
     masjidName: "MASJID JAMI' MU'ALLIMIN",
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
     runningText: "Selamat Datang di Masjid Jami' Mu'allimin • Mohon luruskan shaf • Matikan HP saat sholat berlangsung",
     
-    duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 15, hadits: 15, info: 10, donation: 10 },
+    duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 15, hadits: 20, info: 10, donation: 10 },
     thresholds: { preAdzan: 12, preIqamah: 10, inPrayer: 20, dzikir: 10, jumatPrep: 30 },
     
     defaultPrayerTimes: {
@@ -24,10 +24,18 @@ const DATA_CONTENT = {
         { text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", source: "QS. Al-Insyirah: 5" },
         { text: "Dan dirikanlah shalat, tunaikanlah zakat.", source: "QS. Al-Baqarah: 43" }
     ],
-    // Hadits default (jika API gagal)
+    // Hadits Default (Lengkap dengan Arab)
     hadits: [
-        { text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", source: "HR. Ahmad" },
-        { text: "Shalat berjamaah lebih utama 27 derajat.", source: "HR. Bukhari Muslim" }
+        { 
+            text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", 
+            arabic: "خَيْرُ الناسِ أَنْفَعُهُمْ لِلناسِ",
+            source: "HR. Ahmad" 
+        },
+        { 
+            text: "Shalat berjamaah lebih utama 27 derajat.", 
+            arabic: "صَلاةُ الْجَمَاعَةِ تَفْضُلُ صَلاةَ الْفَذِّ بِسَبْعٍ وَعِشْرِينَ دَرَجَةً",
+            source: "HR. Bukhari Muslim" 
+        }
     ],
     info: [
         { title: "Kerja Bakti", text: "Kerja bakti hari Ahad depan pukul 08:00 WIB." },
@@ -48,7 +56,7 @@ function calculateTahajjud(shubuhTime) {
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210);
+    date.setMinutes(date.getMinutes() - 210); // -3.5 jam
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -61,72 +69,63 @@ function getFormattedDate(dateObj) {
 
 // --- DATA FETCHING FUNCTIONS ---
 
-// 1. Fetch Hadis Random (DIPERBAIKI)
+// 1. Fetch Hadis Random (FIXED ARABIC)
 async function fetchRandomHadith() {
     try {
         console.log("[API] Mengambil Hadis Random...");
         const res = await fetch("https://api.myquran.com/v3/hadis/enc/random");
         const json = await res.json();
         
-        console.log("[DEBUG] JSON Hadis:", json); // Cek console untuk memastikan
-
-        if (json.status && json.data) {
-            // PERBAIKAN: Akses json.data.text.id dan json.data.takhrij
-            const textContent = json.data.text ? json.data.text.id : json.data.id;
-            const sourceContent = json.data.takhrij || `HR. ${json.data.perawi || 'Unknown'}`;
+        // Validasi Struktur JSON sesuai data user
+        if (json.status && json.data && json.data.text && json.data.text.id) {
+            
+            // 1. Ambil Teks Indonesia
+            const textContent = json.data.text.id;
+            
+            // 2. Ambil Teks Arab (PENTING)
+            const arabicContent = json.data.text.ar || ""; 
+            
+            // 3. Ambil Takhrij
+            const sourceContent = json.data.takhrij || "Hadits Shahih";
 
             const newHadith = {
-                text: textContent, 
+                text: textContent,
+                arabic: arabicContent, // Simpan Arab
                 source: sourceContent
             };
             
             // Masukkan ke index 0
             DATA_CONTENT.hadits.unshift(newHadith);
-            console.log("[API] Hadis berhasil ditambahkan:", newHadith.source);
-        }
+            console.log("[API] Hadis berhasil update.");
+        } 
     } catch (e) {
-        console.warn("[API] Gagal ambil hadis. Menggunakan data statis.", e);
+        console.warn("[API] Gagal ambil hadis.", e);
     }
 }
 
-// 2. Fetch Tanggal Hijriah (DIPERBAIKI)
+// 2. Fetch Tanggal Hijriah
 async function fetchHijriDate(dateString) {
     try {
         const url = `https://api.myquran.com/v3/cal/hijr/${dateString}`;
-        console.log("[API] Mengambil Hijriah:", url);
-        
         const res = await fetch(url);
         const json = await res.json();
         
-        console.log("[DEBUG] JSON Hijriah:", json);
-
         if (json.status && json.data && json.data.date) {
             const d = json.data.date;
-            
-            // Cek struktur (kadang API berubah format object/string)
-            // Biasanya: { day: "14", month: { en: "Ramadan" }, year: "1446" }
             const day = d.day || "";
             const month = (d.month && d.month.en) ? d.month.en : (d.month || "");
             const year = d.year || "";
 
             CONFIG.currentHijriDate = `${day} ${month} ${year} H`;
-            console.log("[API] Tanggal Hijriah set:", CONFIG.currentHijriDate);
-            
-            // Force update tampilan
             updateClock();
         }
-    } catch (e) {
-        console.warn("[API] Gagal ambil Hijriah.", e);
-        CONFIG.currentHijriDate = ""; 
-    }
+    } catch (e) { console.warn("[API] Gagal ambil Hijriah.", e); }
 }
 
 // 3. Main Schedule Loader
 async function loadSchedule() {
     const now = new Date();
     const dateKey = getFormattedDate(now); 
-    
-    // Key Cache Bulanan (YYYY-MM)
     const [y, m, d] = dateKey.split('-'); 
     const monthKey = `jadwal_bulan_${y}_${m}`; 
 
@@ -138,41 +137,27 @@ async function loadSchedule() {
     if (monthlyData) {
         try {
             const parsedData = JSON.parse(monthlyData);
-            if (parsedData[dateKey]) {
-                console.log("[CACHE] Jadwal sholat (Offline).");
-                todaySchedule = parsedData[dateKey];
-            }
-        } catch (e) {
-            localStorage.removeItem(monthKey);
-        }
+            if (parsedData[dateKey]) todaySchedule = parsedData[dateKey];
+        } catch (e) { localStorage.removeItem(monthKey); }
     }
 
     if (!todaySchedule) {
-        console.log("[NETWORK] Download Jadwal Bulanan...");
         try {
-            // URL Bulanan (Format Strip YYYY-MM)
             const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}/${m}`; 
-            
             const res = await fetch(url);
             const json = await res.json();
             
             if (json.status && json.data && json.data.jadwal) {
                 let storagePayload = {};
-                
                 if (Array.isArray(json.data.jadwal)) {
-                    json.data.jadwal.forEach(day => {
-                        storagePayload[day.date] = day; 
-                    });
+                    json.data.jadwal.forEach(day => { storagePayload[day.date] = day; });
                 } else {
                     storagePayload = json.data.jadwal;
                 }
-
                 localStorage.setItem(monthKey, JSON.stringify(storagePayload));
                 todaySchedule = storagePayload[dateKey];
             }
-        } catch (e) {
-            console.error("[NETWORK ERROR] Gagal ambil jadwal sholat:", e);
-        }
+        } catch (e) { console.error("[NETWORK ERROR]", e); }
     }
 
     if (todaySchedule) {
@@ -195,7 +180,6 @@ async function loadSchedule() {
         renderFullScheduleGrid();
     }
 
-    // Load Extra Data
     await fetchHijriDate(dateKey); 
     await fetchRandomHadith();
 }
@@ -210,24 +194,33 @@ document.addEventListener('DOMContentLoaded', async () => {
             address: document.getElementById('masjid-address'),
             runningText: document.getElementById('running-text'),
             progressBar: document.getElementById('slide-progress'),
+            
             homeClock: document.getElementById('home-clock'),
+            homeClockReflect: document.getElementById('home-clock-reflect'),
             homeDate: document.getElementById('home-date'),
+            
             homeNextName: document.getElementById('home-next-name'),
             homeNextTime: document.getElementById('home-next-time'),
             homePrayerList: document.getElementById('home-prayer-list'),
             nextDetailName: document.getElementById('next-detail-name'),
             nextDetailTime: document.getElementById('next-detail-time'),
             scheduleGridFull: document.getElementById('schedule-grid-full'),
+            
             ayatText: document.getElementById('ayat-text'),
             ayatSource: document.getElementById('ayat-source'),
+            
             haditsText: document.getElementById('hadits-text'),
+            haditsArabic: document.getElementById('hadits-arabic'), // NEW: Element Arab
             haditsSource: document.getElementById('hadits-source'),
+            
             infoTitle: document.getElementById('info-title'),
             infoText: document.getElementById('info-text'),
+            
             countdownTitle: document.getElementById('countdown-title'),
             countdownName: document.getElementById('countdown-name'),
             countdownTimer: document.getElementById('countdown-timer'),
             countdownBg: document.getElementById('countdown-bg'),
+            
             scenes: {
                 home: document.getElementById('scene-home'),
                 nextDetail: document.getElementById('scene-next-detail'),
@@ -238,7 +231,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 donation: document.getElementById('scene-donation'),
                 countdown: document.getElementById('scene-countdown'),
                 prayer: document.getElementById('scene-prayer'),
-                dzikir: document.getElementById('scene-dzikir')
+                dzikir: document.getElementById('scene-dzikir'),
+                jumat: document.getElementById('scene-jumat'),
+                kajian: document.getElementById('scene-kajian')
             }
         };
 
@@ -262,26 +257,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 function updateClock() {
     const now = new Date();
     
-    // Cek Ganti Hari
     const currentDateString = getFormattedDate(now);
     if (lastDateString !== "" && lastDateString !== currentDateString) {
-        console.log("Hari berganti, refresh data...");
         loadSchedule(); 
     }
     lastDateString = currentDateString;
 
-    // Jam
-    if(els.homeClock) {
-        els.homeClock.textContent = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    }
+    const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit' });
+    if(els.homeClock) els.homeClock.textContent = timeStr;
+    if(els.homeClockReflect) els.homeClockReflect.textContent = timeStr;
     
-    // Tanggal (Masehi + Hijriah)
     if(els.homeDate) {
         const masehi = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        
-        // GABUNGKAN DATA DISINI
         if (CONFIG.currentHijriDate) {
-            els.homeDate.textContent = `${masehi} / ${CONFIG.currentHijriDate}`;
+            els.homeDate.textContent = `${masehi} • ${CONFIG.currentHijriDate}`;
         } else {
             els.homeDate.textContent = masehi;
         }
@@ -386,12 +375,10 @@ function setMode(mode, data = {}) {
             if(els.countdownName) els.countdownName.textContent = data.name.toUpperCase();
             if(data.sub === 'ADZAN') {
                 els.countdownTitle.className = "text-5xl font-bold uppercase tracking-widest mb-6 text-gold-400 animate-pulse";
-                els.countdownTimer.className = "text-[18vh] font-mono font-bold leading-none tracking-widest text-gold-400";
-                if(els.countdownBg) els.countdownBg.className = "absolute inset-0 z-0 bg-gradient-to-br from-gold-900/50 to-black transition-all duration-1000";
+                els.countdownTimer.className = "text-[16vh] font-mono font-bold leading-none tracking-widest text-gold-400";
             } else {
                 els.countdownTitle.className = "text-5xl font-bold uppercase tracking-widest mb-6 text-emerald-400 animate-pulse";
-                els.countdownTimer.className = "text-[18vh] font-mono font-bold leading-none tracking-widest text-emerald-400";
-                if(els.countdownBg) els.countdownBg.className = "absolute inset-0 z-0 bg-gradient-to-br from-emerald-900/50 to-black transition-all duration-1000";
+                els.countdownTimer.className = "text-[16vh] font-mono font-bold leading-none tracking-widest text-emerald-400";
             }
         }
         if(els.scenes[sceneKey]) els.scenes[sceneKey].classList.remove('hidden-slide');
@@ -410,9 +397,16 @@ function nextNormalSlide() {
         els.ayatText.textContent = `"${item.text}"`;
         els.ayatSource.textContent = item.source;
     } else if (key === 'hadits' && els.haditsText) {
-        // Ambil dari DATA_CONTENT (yang sudah diisi API)
         const item = DATA_CONTENT.hadits[Math.floor(Math.random() * DATA_CONTENT.hadits.length)];
+        
+        // Populate Bahasa
         els.haditsText.textContent = `"${item.text}"`;
+        
+        // Populate Arab (Jika elemen ada dan data ada)
+        if (els.haditsArabic) {
+            els.haditsArabic.textContent = item.arabic || "";
+        }
+        
         els.haditsSource.textContent = item.source;
     } else if (key === 'info' && els.infoTitle) {
         const item = DATA_CONTENT.info[Math.floor(Math.random() * DATA_CONTENT.info.length)];
@@ -441,8 +435,12 @@ function renderHomePrayerList() {
     els.homePrayerList.innerHTML = '';
     keys.forEach(key => {
         const div = document.createElement('div');
-        div.className = "flex flex-col items-center justify-center bg-white/5 rounded-xl border border-white/5";
-        div.innerHTML = `<span class="text-xs text-gray-400 uppercase mb-1">${key}</span><span class="text-xl font-bold text-white">${CONFIG.prayerTimes[key] || '--:--'}</span>`;
+        div.className = "flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-gradient-to-b from-white/5 to-transparent relative group overflow-hidden transition-all duration-300 hover:bg-white/10";
+        div.innerHTML = `
+            <div class="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition duration-500"></div>
+            <span class="text-[0.65rem] text-emerald-400/80 uppercase tracking-widest mb-1 font-bold z-10">${key}</span>
+            <span class="text-xl font-display font-bold text-white z-10 drop-shadow-md">${CONFIG.prayerTimes[key] || '--:--'}</span>
+        `;
         els.homePrayerList.appendChild(div);
     });
 }
@@ -454,11 +452,20 @@ function renderFullScheduleGrid() {
     order.forEach(name => {
         const time = CONFIG.prayerTimes[name] || '--:--';
         const isWajib = ['shubuh','dzuhur','ashar','maghrib','isya'].includes(name);
-        const bgClass = isWajib ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-white/5 border-white/5';
-        const textClass = isWajib ? 'text-emerald-400' : 'text-gray-400';
+        const baseClass = "flex flex-col items-center justify-center p-5 rounded-2xl border backdrop-blur-sm relative overflow-hidden transition-transform duration-500 hover:scale-105";
+        const colorClass = isWajib 
+            ? "bg-gradient-to-br from-emerald-950/50 to-emerald-900/10 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+            : "bg-white/5 border-white/5";
+        const titleColor = isWajib ? "text-emerald-400 text-glow-emerald" : "text-gray-400";
+        const timeColor = isWajib ? "text-white" : "text-gray-300";
         const div = document.createElement('div');
-        div.className = `flex flex-col items-center justify-center p-6 rounded-2xl border ${bgClass}`;
-        div.innerHTML = `<span class="text-lg font-bold uppercase tracking-widest mb-2 ${textClass}">${name}</span><span class="text-5xl font-display font-bold text-white">${time}</span>`;
+        div.className = `${baseClass} ${colorClass}`;
+        const glowEffect = isWajib ? `<div class="absolute -top-10 -right-10 w-20 h-20 bg-emerald-500/20 rounded-full blur-xl"></div>` : '';
+        div.innerHTML = `
+            ${glowEffect}
+            <span class="text-sm font-bold uppercase tracking-[0.2em] mb-2 ${titleColor} z-10">${name}</span>
+            <span class="text-4xl font-display font-bold ${timeColor} z-10 tracking-tight">${time}</span>
+        `;
         els.scheduleGridFull.appendChild(div);
     });
 }
