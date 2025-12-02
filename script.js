@@ -24,7 +24,7 @@ const DATA_CONTENT = {
         { text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", source: "QS. Al-Insyirah: 5" },
         { text: "Dan dirikanlah shalat, tunaikanlah zakat.", source: "QS. Al-Baqarah: 43" }
     ],
-    // Data default (akan digeser oleh API)
+    // Data default akan ditimpa jika API Hadis sukses
     hadits: [
         { text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", source: "HR. Ahmad" },
         { text: "Shalat berjamaah lebih utama 27 derajat.", source: "HR. Bukhari Muslim" }
@@ -48,7 +48,7 @@ function calculateTahajjud(shubuhTime) {
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210); // -3.5 jam
+    date.setMinutes(date.getMinutes() - 210);
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -61,7 +61,7 @@ function getFormattedDate(dateObj) {
 
 // --- DATA FETCHING FUNCTIONS ---
 
-// 1. Fetch Hadis Random (FIXED STRICT MODE)
+// 1. Fetch Hadis Random (DIPERBAIKI SESUAI JSON USER)
 async function fetchRandomHadith() {
     try {
         console.log("[API] Mengambil Hadis Random...");
@@ -70,32 +70,37 @@ async function fetchRandomHadith() {
         
         console.log("[DEBUG] JSON Hadis:", json); 
 
-        // Cek struktur JSON sesuai yang Anda kirim
-        if (json.status && json.data && json.data.text && json.data.text.id) {
+        if (json.status && json.data) {
+            // FIX: Mengambil data sesuai struktur JSON terbaru
+            // data.text.id = Isi Hadis Indonesia
+            // data.takhrij = Sumber
             
-            // 1. Ambil Teks Indonesia (data.text.id)
-            const textContent = json.data.text.id;
+            let textContent = "Terjadi kesalahan memuat teks hadis.";
             
-            // 2. Ambil Takhrij/Sumber (data.takhrij)
-            const sourceContent = json.data.takhrij || "Hadits Shahih";
+            if (json.data.text && json.data.text.id) {
+                textContent = json.data.text.id;
+            } else if (json.data.id && typeof json.data.id === 'string') {
+                // Jaga-jaga jika format berubah
+                textContent = json.data.id;
+            }
+
+            const sourceContent = json.data.takhrij || "HR. Muttafaq Alaihi";
 
             const newHadith = {
                 text: textContent, 
                 source: sourceContent
             };
             
-            // Masukkan ke index 0 agar langsung muncul di slide berikutnya
+            // Masukkan ke index 0 agar langsung muncul
             DATA_CONTENT.hadits.unshift(newHadith);
             console.log("[API] Hadis berhasil ditambahkan:", sourceContent);
-        } else {
-            console.warn("[API] Struktur JSON Hadis berbeda dari ekspektasi.");
         }
     } catch (e) {
         console.warn("[API] Gagal ambil hadis. Menggunakan data statis.", e);
     }
 }
 
-// 2. Fetch Tanggal Hijriah
+// 2. Fetch Tanggal Hijriah (DIPERBAIKI)
 async function fetchHijriDate(dateString) {
     try {
         const url = `https://api.myquran.com/v3/cal/hijr/${dateString}`;
@@ -107,14 +112,16 @@ async function fetchHijriDate(dateString) {
         if (json.status && json.data && json.data.date) {
             const d = json.data.date;
             
+            // Ambil data (handle kemungkinan null/undefined)
             const day = d.day || "";
-            // Handle jika month object atau string
+            // Cek apakah month berupa object {en: "...", ar: "..."} atau string
             const month = (d.month && d.month.en) ? d.month.en : (d.month || "");
             const year = d.year || "";
 
             CONFIG.currentHijriDate = `${day} ${month} ${year} H`;
             console.log("[API] Tanggal Hijriah set:", CONFIG.currentHijriDate);
             
+            // Update UI jam segera setelah dapat data
             updateClock();
         }
     } catch (e) {
@@ -127,6 +134,7 @@ async function loadSchedule() {
     const now = new Date();
     const dateKey = getFormattedDate(now); 
     
+    // Key Cache Bulanan (YYYY-MM)
     const [y, m, d] = dateKey.split('-'); 
     const monthKey = `jadwal_bulan_${y}_${m}`; 
 
@@ -195,7 +203,7 @@ async function loadSchedule() {
         renderFullScheduleGrid();
     }
 
-    // Load Extra Data
+    // Load Extra Data (Hijriah & Hadis)
     await fetchHijriDate(dateKey); 
     await fetchRandomHadith();
 }
@@ -205,6 +213,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log("Memulai Sistem...");
         
+        // MAPPING ELEMENT ID (Sesuai index.html terbaru)
         els = {
             masjidName: document.getElementById('masjid-name'),
             address: document.getElementById('masjid-address'),
@@ -213,7 +222,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             
             // Clock & Date
             homeClock: document.getElementById('home-clock'),
-            homeClockReflect: document.getElementById('home-clock-reflect'),
+            homeClockReflect: document.getElementById('home-clock-reflect'), // NEW
             homeDate: document.getElementById('home-date'),
             
             // Next Prayer Widget
@@ -254,8 +263,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                 countdown: document.getElementById('scene-countdown'),
                 prayer: document.getElementById('scene-prayer'),
                 dzikir: document.getElementById('scene-dzikir'),
-                jumat: document.getElementById('scene-jumat'),
-                kajian: document.getElementById('scene-kajian')
+                jumat: document.getElementById('scene-jumat'), // NEW
+                kajian: document.getElementById('scene-kajian') // NEW
             }
         };
 
@@ -296,6 +305,7 @@ function updateClock() {
     if(els.homeDate) {
         const masehi = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         
+        // Gabungkan Masehi & Hijriah
         if (CONFIG.currentHijriDate) {
             els.homeDate.textContent = `${masehi} • ${CONFIG.currentHijriDate}`;
         } else {
@@ -308,4 +318,204 @@ function updateClock() {
         if(els.homeNextName) els.homeNextName.textContent = next.name;
         if(els.homeNextTime) els.homeNextTime.textContent = next.timeStr;
         if(els.nextDetailName) els.nextDetailName.textContent = next.name;
-        if(els
+        if(els.nextDetailTime) els.nextDetailTime.textContent = next.timeStr;
+    }
+}
+
+function getNextPrayer(now) {
+    if (!CONFIG.prayerTimes.shubuh) return null;
+    const curMinutes = now.getHours() * 60 + now.getMinutes();
+    const keys = ['shubuh', 'syuruq', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+    let found = null;
+    let minDiff = 9999;
+    
+    keys.forEach(key => {
+        if(CONFIG.prayerTimes[key]) {
+            const timeParts = CONFIG.prayerTimes[key].split(':');
+            const h = parseInt(timeParts[0]);
+            const m = parseInt(timeParts[1]);
+            const pMinutes = h * 60 + m;
+            
+            if (pMinutes > curMinutes && (pMinutes - curMinutes) < minDiff) {
+                minDiff = pMinutes - curMinutes;
+                found = { name: key.toUpperCase(), timeStr: CONFIG.prayerTimes[key] };
+            }
+        }
+    });
+    if (!found) found = { name: 'SHUBUH', timeStr: CONFIG.prayerTimes.shubuh };
+    return found;
+}
+
+function checkSystemState() {
+    if (!CONFIG.prayerTimes.shubuh) return;
+    const now = new Date();
+    const curTime = now.getTime();
+    let activeEvent = null;
+    const wajib = ['shubuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+    
+    for (let name of wajib) {
+        if(!CONFIG.prayerTimes[name]) continue;
+        const timeParts = CONFIG.prayerTimes[name].split(':');
+        const pDate = new Date(now);
+        pDate.setHours(parseInt(timeParts[0]), parseInt(timeParts[1]), 0, 0);
+        const pTime = pDate.getTime();
+        
+        const msPreAdzan = CONFIG.thresholds.preAdzan * 60000;
+        const msPreIqamah = CONFIG.thresholds.preIqamah * 60000;
+        const msInPrayer = CONFIG.thresholds.inPrayer * 60000;
+        const msDzikir = CONFIG.thresholds.dzikir * 60000;
+
+        if (curTime >= (pTime - msPreAdzan) && curTime < pTime) {
+            activeEvent = { mode: 'COUNTDOWN', sub: 'ADZAN', name, target: pTime };
+        } else if (curTime >= pTime && curTime < (pTime + msPreIqamah)) {
+            activeEvent = { mode: 'COUNTDOWN', sub: 'IQAMAH', name, target: pTime + msPreIqamah };
+        } else if (curTime >= (pTime + msPreIqamah) && curTime < (pTime + msPreIqamah + msInPrayer)) {
+            activeEvent = { mode: 'PRAYER' };
+        } else if ((name === 'shubuh' || name === 'ashar') && curTime >= (pTime + msPreIqamah + msInPrayer) && curTime < (pTime + msPreIqamah + msInPrayer + msDzikir)) {
+            activeEvent = { mode: 'DZIKIR' };
+        }
+        if (activeEvent) break;
+    }
+
+    if (activeEvent) {
+        setMode(activeEvent.mode, activeEvent);
+        if (activeEvent.mode === 'COUNTDOWN' && els.countdownTimer) {
+            const diff = activeEvent.target - curTime;
+            const m = Math.floor(diff > 0 ? diff / 60000 : 0).toString().padStart(2,'0');
+            const s = Math.floor(diff > 0 ? (diff % 60000) / 1000 : 0).toString().padStart(2,'0');
+            els.countdownTimer.textContent = `${m}:${s}`;
+        }
+    } else {
+        setMode('NORMAL');
+    }
+}
+
+function setMode(mode, data = {}) {
+    if (currentState.mode === mode) {
+        if (mode !== 'COUNTDOWN') return;
+        if (mode === 'COUNTDOWN' && currentState.subMode === data.sub) return;
+    }
+    currentState.mode = mode;
+    currentState.subMode = data.sub || null;
+    clearTimeout(slideTimer);
+    if(els.progressBar) els.progressBar.style.width = '0%';
+    Object.values(els.scenes).forEach(el => { if(el) el.classList.add('hidden-slide'); });
+
+    if (mode === 'NORMAL') {
+        currentState.slideIndex = 0;
+        nextNormalSlide();
+    } else {
+        let sceneKey = mode.toLowerCase();
+        if(mode === 'COUNTDOWN') {
+            sceneKey = 'countdown';
+            if(els.countdownTitle) els.countdownTitle.textContent = data.sub === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQAMAH';
+            if(els.countdownName) els.countdownName.textContent = data.name.toUpperCase();
+            if(data.sub === 'ADZAN') {
+                els.countdownTitle.className = "text-5xl font-bold uppercase tracking-widest mb-6 text-gold-400 animate-pulse";
+                els.countdownTimer.className = "text-[16vh] font-mono font-bold leading-none tracking-widest text-gold-400";
+            } else {
+                els.countdownTitle.className = "text-5xl font-bold uppercase tracking-widest mb-6 text-emerald-400 animate-pulse";
+                els.countdownTimer.className = "text-[16vh] font-mono font-bold leading-none tracking-widest text-emerald-400";
+            }
+        }
+        if(els.scenes[sceneKey]) els.scenes[sceneKey].classList.remove('hidden-slide');
+    }
+}
+
+const SLIDES_ORDER = ['home', 'nextDetail', 'scheduleFull', 'ayat', 'hadits', 'info', 'donation'];
+
+function nextNormalSlide() {
+    if (currentState.mode !== 'NORMAL') return;
+    const key = SLIDES_ORDER[currentState.slideIndex];
+    let duration = CONFIG.duration[key] || 10;
+
+    if (key === 'ayat' && els.ayatText) {
+        const item = DATA_CONTENT.ayat[Math.floor(Math.random() * DATA_CONTENT.ayat.length)];
+        els.ayatText.textContent = `"${item.text}"`;
+        els.ayatSource.textContent = item.source;
+    } else if (key === 'hadits' && els.haditsText) {
+        const item = DATA_CONTENT.hadits[Math.floor(Math.random() * DATA_CONTENT.hadits.length)];
+        els.haditsText.textContent = `"${item.text}"`;
+        els.haditsSource.textContent = item.source;
+    } else if (key === 'info' && els.infoTitle) {
+        const item = DATA_CONTENT.info[Math.floor(Math.random() * DATA_CONTENT.info.length)];
+        els.infoTitle.textContent = item.title;
+        els.infoText.textContent = item.text;
+    }
+
+    Object.values(els.scenes).forEach(el => { if(el) el.classList.add('hidden-slide'); });
+    if(els.scenes[key]) {
+        const scene = els.scenes[key];
+        scene.classList.remove('hidden-slide');
+        scene.classList.remove('animate-enter-up');
+        void scene.offsetWidth; 
+        scene.classList.add('animate-enter-up');
+    }
+    animateProgressBar(duration);
+    slideTimer = setTimeout(() => {
+        currentState.slideIndex = (currentState.slideIndex + 1) % SLIDES_ORDER.length;
+        nextNormalSlide();
+    }, duration * 1000);
+}
+
+// Render Jadwal di Halaman Utama (Premium Style)
+function renderHomePrayerList() {
+    if (!els.homePrayerList) return;
+    const keys = ['shubuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+    els.homePrayerList.innerHTML = '';
+    
+    keys.forEach(key => {
+        const div = document.createElement('div');
+        div.className = "flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-gradient-to-b from-white/5 to-transparent relative group overflow-hidden transition-all duration-300 hover:bg-white/10";
+        div.innerHTML = `
+            <div class="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition duration-500"></div>
+            <span class="text-[0.65rem] text-emerald-400/80 uppercase tracking-widest mb-1 font-bold z-10">${key}</span>
+            <span class="text-xl font-display font-bold text-white z-10 drop-shadow-md">${CONFIG.prayerTimes[key] || '--:--'}</span>
+        `;
+        els.homePrayerList.appendChild(div);
+    });
+}
+
+// Render Grid Jadwal Lengkap (Premium Style)
+function renderFullScheduleGrid() {
+    if (!els.scheduleGridFull) return;
+    els.scheduleGridFull.innerHTML = '';
+    const order = ['tahajjud', 'imsak', 'shubuh', 'syuruq', 'dhuha', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+    
+    order.forEach(name => {
+        const time = CONFIG.prayerTimes[name] || '--:--';
+        const isWajib = ['shubuh','dzuhur','ashar','maghrib','isya'].includes(name);
+        
+        const baseClass = "flex flex-col items-center justify-center p-5 rounded-2xl border backdrop-blur-sm relative overflow-hidden transition-transform duration-500 hover:scale-105";
+        const colorClass = isWajib 
+            ? "bg-gradient-to-br from-emerald-950/50 to-emerald-900/10 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]" 
+            : "bg-white/5 border-white/5";
+        
+        const titleColor = isWajib ? "text-emerald-400 text-glow-emerald" : "text-gray-400";
+        const timeColor = isWajib ? "text-white" : "text-gray-300";
+
+        const div = document.createElement('div');
+        div.className = `${baseClass} ${colorClass}`;
+        
+        const glowEffect = isWajib ? `<div class="absolute -top-10 -right-10 w-20 h-20 bg-emerald-500/20 rounded-full blur-xl"></div>` : '';
+
+        div.innerHTML = `
+            ${glowEffect}
+            <span class="text-sm font-bold uppercase tracking-[0.2em] mb-2 ${titleColor} z-10">${name}</span>
+            <span class="text-4xl font-display font-bold ${timeColor} z-10 tracking-tight">${time}</span>
+        `;
+        els.scheduleGridFull.appendChild(div);
+    });
+}
+
+function animateProgressBar(durationSeconds) {
+    const bar = els.progressBar;
+    if(!bar) return;
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    void bar.offsetWidth;
+    requestAnimationFrame(() => {
+        bar.style.transition = `width ${durationSeconds}s linear`;
+        bar.style.width = '100%';
+    });
+}
