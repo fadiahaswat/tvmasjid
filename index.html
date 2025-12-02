@@ -5,13 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Masjid - Vanilla</title>
     
-    <!-- LIBRARIES -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- FONTS -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=Oswald:wght@200;400;500;700&family=Amiri:ital,wght@0,400;0,700;1,400&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
 
-    <!-- CONFIG TAILWIND & STYLE -->
     <script>
         tailwind.config = {
             theme: {
@@ -38,11 +35,9 @@
 
     <div class="mesh-bg"></div>
 
-    <!-- HEADER -->
     <header class="flex justify-between items-center h-24 px-4 z-10">
         <div class="flex items-center gap-6">
             <div class="w-16 h-16 bg-gradient-to-br from-emerald-600 to-cyan-700 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                <!-- Icon Masjid -->
                 <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 9a2 2 0 012-2h4a2 2 0 012 2v12H8V9zm-5 12h18M5 21V7l8-4 8 4v14"/></svg>
             </div>
             <div>
@@ -50,16 +45,13 @@
                 <p id="masjid-address" class="text-gray-400 text-lg flex items-center gap-2 mt-1">Jl. Contoh No. 1</p>
             </div>
         </div>
-        <!-- Progress Bar -->
         <div class="w-64 h-1.5 bg-white/10 rounded-full overflow-hidden">
             <div id="slide-progress" class="h-full bg-cyan-400 w-0 transition-all duration-1000 ease-linear"></div>
         </div>
     </header>
 
-    <!-- MAIN CONTENT AREA -->
     <main class="flex-1 relative glass-panel rounded-[3rem] overflow-hidden p-4">
         
-        <!-- SCENE 1: JAM BESAR (CLOCK) -->
         <div id="scene-clock" class="scene h-full flex flex-col items-center justify-center text-center hidden-slide animate-enter-up">
             <div class="mb-6 px-6 py-2 rounded-full glass-panel text-cyan-400 font-medium tracking-wide">
                 Yogyakarta, 28°C Cerah
@@ -72,15 +64,12 @@
             </div>
         </div>
 
-        <!-- SCENE 2: JADWAL SHOLAT (SCHEDULE) -->
         <div id="scene-schedule" class="scene h-full flex flex-col items-center justify-center hidden-slide animate-enter-up">
             <h2 class="text-4xl font-epic text-emerald-400 mb-12 uppercase tracking-[0.2em] border-b-2 border-emerald-500/30 pb-4">Jadwal Sholat</h2>
             <div class="grid grid-cols-3 gap-6 w-full max-w-7xl" id="prayer-grid">
-                <!-- Item jadwal akan digenerate oleh JS atau bisa ditulis manual di sini dengan ID spesifik -->
-            </div>
+                </div>
         </div>
 
-        <!-- SCENE 3: INFO/CONTENT (AYAT/HADITS) -->
         <div id="scene-content" class="scene h-full flex flex-col items-center justify-center text-center px-12 hidden-slide animate-enter-up">
             <div id="content-icon" class="w-20 h-20 text-gold-400 mb-8 mx-auto"></div>
             <h3 id="content-title" class="text-2xl font-bold uppercase tracking-[0.3em] text-gold-400 mb-8">JUDUL</h3>
@@ -90,7 +79,6 @@
             <p id="content-source" class="mt-8 text-xl text-gray-400 font-medium tracking-wide">Sumber</p>
         </div>
 
-        <!-- SCENE 4: COUNTDOWN (ADZAN/IQAMAH/JUMAT) -->
         <div id="scene-countdown" class="scene h-full flex flex-col items-center justify-center text-center hidden-slide animate-enter-up">
             <h2 id="countdown-title" class="text-4xl text-rose-400 font-bold uppercase tracking-widest mb-4">MENUJU ADZAN</h2>
             <h1 id="countdown-name" class="text-8xl font-display font-bold text-white mb-8">ASHAR</h1>
@@ -99,7 +87,6 @@
             </div>
         </div>
 
-        <!-- SCENE 5: SHOLAT BERLANGSUNG -->
         <div id="scene-prayer" class="scene h-full flex flex-col items-center justify-center bg-black absolute inset-0 z-50 hidden-slide">
             <h1 class="text-6xl text-gray-700 font-display font-bold uppercase tracking-widest mb-8">Sholat Berlangsung</h1>
             <p class="text-2xl text-gray-500 uppercase tracking-[0.5em]">Mohon Luruskan Shaf</p>
@@ -107,7 +94,6 @@
 
     </main>
 
-    <!-- FOOTER -->
     <footer class="h-20 glass-panel rounded-full flex items-center px-2 relative overflow-hidden shrink-0 mt-auto">
         <div class="bg-white/10 px-8 py-3 rounded-full text-lg font-bold uppercase tracking-widest border border-white/5 z-10">
             Info
@@ -119,7 +105,6 @@
         </div>
     </footer>
 
-    <!-- LOGIC SCRIPT -->
     <script src="script.js"></script>
 </body>
 </html>
