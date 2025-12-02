@@ -70,30 +70,35 @@ async function fetchRandomHadith() {
         
         console.log("[DEBUG] JSON Hadis:", json); 
 
-        if (json.status && json.data) {
-            // FIX: Mengambil data sesuai struktur JSON terbaru
-            // data.text.id = Isi Hadis Indonesia
-            // data.takhrij = Sumber
-            
-            let textContent = "Terjadi kesalahan memuat teks hadis.";
-            
-            if (json.data.text && json.data.text.id) {
-                textContent = json.data.text.id;
-            } else if (json.data.id && typeof json.data.id === 'string') {
-                // Jaga-jaga jika format berubah
-                textContent = json.data.id;
-            }
+        if (json.status && json.data && json.data.text) {
+            const d = json.data;
 
-            const sourceContent = json.data.takhrij || "HR. Muttafaq Alaihi";
+            // 1. Teks Arab & Indo
+            const arabicText = d.text.ar || "";
+            const indoText = d.text.id || "";
+
+            // 2. Takhrij (Ambil Namanya Saja)
+            // Hapus kata "Diriwayatkan oleh" agar sesuai format UI "Riwayat: Muslim"
+            let sourceName = d.takhrij || "Muttafaq Alaihi";
+            sourceName = sourceName.replace("Diriwayatkan oleh", "").trim();
+
+            // 3. Grade (Derajat Hadis)
+            const grade = d.grade ? d.grade : "";
+
+            // 4. Hikmah (Cek apakah ada isinya / tidak null)
+            const hikmah = d.hikmah ? d.hikmah : null;
 
             const newHadith = {
-                text: textContent, 
-                source: sourceContent
+                text: indoText,
+                arabic: arabicText,
+                source: sourceName,
+                grade: grade,   // Data Grade disimpan
+                hikmah: hikmah  // Data Hikmah disimpan
             };
             
-            // Masukkan ke index 0 agar langsung muncul
+            // Masukkan ke index 0
             DATA_CONTENT.hadits.unshift(newHadith);
-            console.log("[API] Hadis berhasil ditambahkan:", sourceContent);
+            console.log("[API] Hadis berhasil ditambahkan:", sourceName);
         }
     } catch (e) {
         console.warn("[API] Gagal ambil hadis. Menggunakan data statis.", e);
@@ -433,11 +438,34 @@ function nextNormalSlide() {
         const item = DATA_CONTENT.ayat[Math.floor(Math.random() * DATA_CONTENT.ayat.length)];
         els.ayatText.textContent = `"${item.text}"`;
         els.ayatSource.textContent = item.source;
-    } else if (key === 'hadits' && els.haditsText) {
+    } // ... kode sebelumnya ...
+    
+    else if (key === 'hadits' && els.haditsText) {
         const item = DATA_CONTENT.hadits[Math.floor(Math.random() * DATA_CONTENT.hadits.length)];
-        els.haditsText.textContent = `"${item.text}"`;
-        els.haditsSource.textContent = item.source;
-    } else if (key === 'info' && els.infoTitle) {
+        
+        // 1. Tampilkan Arab
+        if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
+        
+        // 2. Tampilkan Teks Indo + Hikmah (Jika ada)
+        // Kita pakai innerHTML agar bisa kasih enter (<br>) untuk Hikmah
+        let contentHTML = `"${item.text}"`;
+        
+        if (item.hikmah) {
+            // Tambahkan Hikmah dengan font lebih kecil/warna beda
+            contentHTML += `<br><br><span class="text-2xl text-emerald-400 not-italic font-sans tracking-normal">💡 Hikmah: ${item.hikmah}</span>`;
+        }
+        els.haditsText.innerHTML = contentHTML;
+        
+        // 3. Tampilkan Sumber + Grade
+        // Contoh Output: HR. BUKHARI • (Hadis Sahih)
+        let sourceInfo = item.source;
+        if (item.grade) {
+            sourceInfo += ` • (${item.grade})`;
+        }
+        els.haditsSource.textContent = sourceInfo;
+    } 
+
+    // ... kode selanjutnya ... else if (key === 'info' && els.infoTitle) {
         const item = DATA_CONTENT.info[Math.floor(Math.random() * DATA_CONTENT.info.length)];
         els.infoTitle.textContent = item.title;
         els.infoText.textContent = item.text;
