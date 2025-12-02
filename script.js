@@ -1,6 +1,6 @@
 // --- CONFIGURATION ---
 const CONFIG = {
-    // ID KOTA YOGYAKARTA (UUID v3)
+    // ID KOTA YOGYAKARTA
     cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
     
     masjidName: "MASJID JAMI' MU'ALLIMIN",
@@ -10,14 +10,13 @@ const CONFIG = {
     duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 15, hadits: 15, info: 10, donation: 10 },
     thresholds: { preAdzan: 12, preIqamah: 10, inPrayer: 20, dzikir: 10, jumatPrep: 30 },
     
-    // Fallback Default
     defaultPrayerTimes: {
         tahajjud: "03:00", imsak: "04:10", shubuh: "04:20", syuruq: "05:35",
         dhuha: "06:00", dzuhur: "11:45", ashar: "15:05", maghrib: "17:55", isya: "19:05"
     },
 
     prayerTimes: {},
-    currentHijriDate: "" // Menyimpan string tanggal hijriah
+    currentHijriDate: "" 
 };
 
 const DATA_CONTENT = {
@@ -25,7 +24,7 @@ const DATA_CONTENT = {
         { text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", source: "QS. Al-Insyirah: 5" },
         { text: "Dan dirikanlah shalat, tunaikanlah zakat.", source: "QS. Al-Baqarah: 43" }
     ],
-    // Hadits ini akan ditambah/ditimpa oleh API Random
+    // Hadits default (jika API gagal)
     hadits: [
         { text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", source: "HR. Ahmad" },
         { text: "Shalat berjamaah lebih utama 27 derajat.", source: "HR. Bukhari Muslim" }
@@ -49,11 +48,10 @@ function calculateTahajjud(shubuhTime) {
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210); // -3.5 Jam
+    date.setMinutes(date.getMinutes() - 210);
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-// Helper untuk format YYYY-MM-DD (Penting: Pakai Strip)
 function getFormattedDate(dateObj) {
     const y = dateObj.getFullYear();
     const m = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -63,74 +61,85 @@ function getFormattedDate(dateObj) {
 
 // --- DATA FETCHING FUNCTIONS ---
 
-// 1. Fetch Hadis Random
+// 1. Fetch Hadis Random (DIPERBAIKI)
 async function fetchRandomHadith() {
     try {
         console.log("[API] Mengambil Hadis Random...");
         const res = await fetch("https://api.myquran.com/v3/hadis/enc/random");
         const json = await res.json();
         
+        console.log("[DEBUG] JSON Hadis:", json); // Cek console untuk memastikan
+
         if (json.status && json.data) {
-            // Tambahkan ke awal array data konten
+            // PERBAIKAN: Akses json.data.text.id dan json.data.takhrij
+            const textContent = json.data.text ? json.data.text.id : json.data.id;
+            const sourceContent = json.data.takhrij || `HR. ${json.data.perawi || 'Unknown'}`;
+
             const newHadith = {
-                text: json.data.id, // Teks hadis bahasa Indonesia
-                source: `HR. ${json.data.perawi}`
+                text: textContent, 
+                source: sourceContent
             };
-            // Masukkan ke index 0 agar muncul duluan
+            
+            // Masukkan ke index 0
             DATA_CONTENT.hadits.unshift(newHadith);
             console.log("[API] Hadis berhasil ditambahkan:", newHadith.source);
         }
     } catch (e) {
-        console.warn("[API] Gagal ambil hadis (Mungkin Offline). Menggunakan data statis.");
+        console.warn("[API] Gagal ambil hadis. Menggunakan data statis.", e);
     }
 }
 
-// 2. Fetch Tanggal Hijriah
+// 2. Fetch Tanggal Hijriah (DIPERBAIKI)
 async function fetchHijriDate(dateString) {
     try {
-        // dateString harus format YYYY-MM-DD
-        const url = `https://api.myquran.com/v3/cal/hijr/${dateString}?method=islamic-umalqura`;
-        console.log("[API] Mengambil Tanggal Hijriah:", url);
+        const url = `https://api.myquran.com/v3/cal/hijr/${dateString}`;
+        console.log("[API] Mengambil Hijriah:", url);
         
         const res = await fetch(url);
         const json = await res.json();
+        
+        console.log("[DEBUG] JSON Hijriah:", json);
 
         if (json.status && json.data && json.data.date) {
-            const h = json.data.date;
-            // Format: 14 Ramadan 1446 H
-            CONFIG.currentHijriDate = `${h.day} ${h.month.en} ${h.year} H`;
-            console.log("[API] Tanggal Hijriah:", CONFIG.currentHijriDate);
+            const d = json.data.date;
             
-            // Update tampilan langsung jika elemen ada
-            if (els.homeDate) updateClock(); 
+            // Cek struktur (kadang API berubah format object/string)
+            // Biasanya: { day: "14", month: { en: "Ramadan" }, year: "1446" }
+            const day = d.day || "";
+            const month = (d.month && d.month.en) ? d.month.en : (d.month || "");
+            const year = d.year || "";
+
+            CONFIG.currentHijriDate = `${day} ${month} ${year} H`;
+            console.log("[API] Tanggal Hijriah set:", CONFIG.currentHijriDate);
+            
+            // Force update tampilan
+            updateClock();
         }
     } catch (e) {
-        console.warn("[API] Gagal ambil Hijriah (Offline).");
-        CONFIG.currentHijriDate = ""; // Kosongkan jika gagal
+        console.warn("[API] Gagal ambil Hijriah.", e);
+        CONFIG.currentHijriDate = ""; 
     }
 }
 
-// 3. Main Schedule Loader (Offline-First Logic)
+// 3. Main Schedule Loader
 async function loadSchedule() {
     const now = new Date();
-    const dateKey = getFormattedDate(now); // Format YYYY-MM-DD
+    const dateKey = getFormattedDate(now); 
     
-    // Pecah untuk key bulanan
+    // Key Cache Bulanan (YYYY-MM)
     const [y, m, d] = dateKey.split('-'); 
     const monthKey = `jadwal_bulan_${y}_${m}`; 
 
-    console.log(`[SYSTEM] Memuat data untuk: ${dateKey}`);
+    console.log(`[SYSTEM] Load data: ${dateKey}`);
 
-    // --- A. JADWAL SHOLAT (Cache Bulanan) ---
     let monthlyData = localStorage.getItem(monthKey);
     let todaySchedule = null;
 
     if (monthlyData) {
         try {
             const parsedData = JSON.parse(monthlyData);
-            // Akses menggunakan key YYYY-MM-DD
             if (parsedData[dateKey]) {
-                console.log("[CACHE] Jadwal sholat ditemukan di LocalStorage.");
+                console.log("[CACHE] Jadwal sholat (Offline).");
                 todaySchedule = parsedData[dateKey];
             }
         } catch (e) {
@@ -139,12 +148,9 @@ async function loadSchedule() {
     }
 
     if (!todaySchedule) {
-        console.log("[NETWORK] Mengunduh jadwal sholat 1 BULAN...");
+        console.log("[NETWORK] Download Jadwal Bulanan...");
         try {
-            // URL Bulanan: YYYY/MM (API MyQuran support YYYY/MM untuk bulk)
-            // Tapi user minta pemisah STRIP (-). 
-            // Note: Endpoint bulk biasanya /sholat/jadwal/{id}/{tahun}/{bulan} 
-            // Kita coba sesuaikan dengan format yang diminta user:
+            // URL Bulanan (Format Strip YYYY-MM)
             const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}/${m}`; 
             
             const res = await fetch(url);
@@ -153,13 +159,11 @@ async function loadSchedule() {
             if (json.status && json.data && json.data.jadwal) {
                 let storagePayload = {};
                 
-                // Normalisasi Data ke format Key Date (YYYY-MM-DD)
                 if (Array.isArray(json.data.jadwal)) {
                     json.data.jadwal.forEach(day => {
                         storagePayload[day.date] = day; 
                     });
                 } else {
-                    // Jika API v3 return object dengan key tanggal "YYYY-MM-DD"
                     storagePayload = json.data.jadwal;
                 }
 
@@ -171,7 +175,6 @@ async function loadSchedule() {
         }
     }
 
-    // Apply Prayer Times
     if (todaySchedule) {
         CONFIG.prayerTimes = {
             tahajjud: calculateTahajjud(todaySchedule.subuh),
@@ -192,9 +195,7 @@ async function loadSchedule() {
         renderFullScheduleGrid();
     }
 
-    // --- B. LOAD EXTRA DATA (HIJRI & HADIS) ---
-    // Dipanggil setiap hari (saat loadSchedule jalan)
-    // Gunakan dateKey (YYYY-MM-DD)
+    // Load Extra Data
     await fetchHijriDate(dateKey); 
     await fetchRandomHadith();
 }
@@ -245,7 +246,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if(els.address) els.address.textContent = CONFIG.address;
         if(els.runningText) els.runningText.textContent = CONFIG.runningText;
 
-        // LOAD DATA
         await loadSchedule();
 
         updateClock(); 
@@ -265,21 +265,23 @@ function updateClock() {
     // Cek Ganti Hari
     const currentDateString = getFormattedDate(now);
     if (lastDateString !== "" && lastDateString !== currentDateString) {
-        console.log("Hari berganti, muat ulang jadwal & data...");
+        console.log("Hari berganti, refresh data...");
         loadSchedule(); 
     }
     lastDateString = currentDateString;
 
+    // Jam
     if(els.homeClock) {
         els.homeClock.textContent = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit' });
     }
     
-    // Update Tanggal (Masehi + Hijriah)
+    // Tanggal (Masehi + Hijriah)
     if(els.homeDate) {
         const masehi = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
-        // Jika ada data Hijriah, gabungkan. Jika tidak, Masehi saja.
+        
+        // GABUNGKAN DATA DISINI
         if (CONFIG.currentHijriDate) {
-            els.homeDate.textContent = `${masehi} • ${CONFIG.currentHijriDate}`;
+            els.homeDate.textContent = `${masehi} / ${CONFIG.currentHijriDate}`;
         } else {
             els.homeDate.textContent = masehi;
         }
@@ -408,7 +410,7 @@ function nextNormalSlide() {
         els.ayatText.textContent = `"${item.text}"`;
         els.ayatSource.textContent = item.source;
     } else if (key === 'hadits' && els.haditsText) {
-        // Ambil random dari list (list sudah diisi API random)
+        // Ambil dari DATA_CONTENT (yang sudah diisi API)
         const item = DATA_CONTENT.hadits[Math.floor(Math.random() * DATA_CONTENT.hadits.length)];
         els.haditsText.textContent = `"${item.text}"`;
         els.haditsSource.textContent = item.source;
