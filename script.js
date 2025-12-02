@@ -1,8 +1,8 @@
 // --- CONFIGURATION ---
 const CONFIG = {
-    masjidName: "MASJID RAYA AL-FALAH",
-    address: "Jl. Merdeka No. 123, Kota Pusat",
-    runningText: "Selamat Datang di Masjid Raya Al-Falah • Mohon luruskan shaf • Matikan HP saat sholat berlangsung",
+    masjidName: "MASJID JAMI' MU'ALLIMIN",
+    address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
+    runningText: "Selamat Datang di Masjid Jami' Mu'allimin • Mohon luruskan shaf • Matikan HP saat sholat berlangsung",
     
     // Durasi tiap slide (detik)
     duration: { 
