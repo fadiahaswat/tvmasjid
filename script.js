@@ -184,4 +184,63 @@ function rotateNormalSlides() {
         els.contentText.textContent = `"${content.text}"`;
         els.contentSource.textContent = content.source;
         // Ganti warna berdasarkan tipe (opsional)
-        els.contentTitle.className = content.type === 'ayat' ? 'text-2xl font-bold uppercase tracking-[0.3em] text-gold-400 mb-8' : 'text-2xl font-bold uppercase tracking-[0.3em] text-cyan-
+        els.contentTitle.className = content.type === 'ayat' ? 'text-2xl font-bold uppercase tracking-[0.3em] text-gold-400 mb-8' : 'text-2xl font-bold uppercase tracking-[0.3em] text-cyan-400 mb-8';
+        
+        showScene('content');
+    }
+
+    // Setup Progress Bar Animation
+    animateProgressBar(duration);
+
+    // Schedule next slide
+    slideTimer = setTimeout(() => {
+        currentState.slideIndex = (currentState.slideIndex + 1) % SLIDES_ORDER.length;
+        rotateNormalSlides();
+    }, duration * 1000);
+}
+
+// --- HELPER FUNCTIONS ---
+
+function hideAllScenes() {
+    Object.values(els.scenes).forEach(el => el.classList.add('hidden-slide'));
+}
+
+function showScene(key) {
+    hideAllScenes();
+    const el = els.scenes[key];
+    if (el) {
+        el.classList.remove('hidden-slide');
+        // Reset animation trigger
+        el.classList.remove('animate-enter-up');
+        void el.offsetWidth; // Trigger reflow
+        el.classList.add('animate-enter-up');
+    }
+}
+
+function renderScheduleGrid() {
+    els.prayerGrid.innerHTML = '';
+    Object.entries(CONFIG.prayerTimes).forEach(([name, time]) => {
+        const div = document.createElement('div');
+        div.className = "flex flex-col items-center justify-center p-6 rounded-2xl glass-panel border border-white/5";
+        div.innerHTML = `
+            <span class="text-xl font-bold uppercase tracking-widest mb-1 text-gray-400">${name}</span>
+            <span class="text-5xl font-display font-bold text-white">${time}</span>
+        `;
+        els.prayerGrid.appendChild(div);
+    });
+}
+
+function animateProgressBar(durationSeconds) {
+    const bar = els.progressBar;
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    
+    // Force reflow
+    void bar.offsetWidth;
+
+    bar.style.transition = `width ${durationSeconds}s linear`;
+    bar.style.width = '100%';
+}
+
+// Jalankan
+init();
