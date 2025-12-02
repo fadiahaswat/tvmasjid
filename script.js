@@ -70,44 +70,50 @@ function calculateTahajjud(shubuhTime) {
 
 // Fetch Data API (KHUSUS VERSI 1 UNTUK ID UUID)
 // Fetch Data API (FIXED FORMAT TANGGAL)
+// Fetch Data API (FIXED - AKSES NESTED KEY TANGGAL)
 async function fetchSchedule() {
     console.log(`Mengambil data jadwal (v3) untuk ID: ${CONFIG.cityId}...`);
     try {
         const now = new Date();
         const y = now.getFullYear();
-        // TAMBAHKAN padStart(2, '0') agar jadi "01", "02", dst.
+        // Penting: padStart harus ada agar sesuai dengan Key di JSON (01, 02, dst)
         const m = String(now.getMonth() + 1).padStart(2, '0'); 
         const d = String(now.getDate()).padStart(2, '0');
 
-        // URL TETAP PAKAI STRIP (-) SESUAI CURL ANDA
-        const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}-${m}-${d}`;
+        // String tanggal ini dipakai untuk URL DAN untuk mengambil key JSON
+        const dateString = `${y}-${m}-${d}`; 
+
+        const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${dateString}`;
         
-        console.log("Request URL:", url); // Pastikan outputnya .../2025-12-03
+        console.log("Request URL:", url);
         
         const res = await fetch(url);
-        
-        // Cek HTTP Status dulu
-        if (!res.ok) {
-            throw new Error(`HTTP Error! Status: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
         
         const json = await res.json();
-        console.log("Full Response JSON:", json); // Cek isi JSON di console
-
-        // Validasi data
+        
+        // PERBAIKAN LOGIKA PENGAMBILAN DATA DISINI
         if (json.status && json.data && json.data.jadwal) {
-            const data = json.data.jadwal;
             
+            // Ambil objek jadwal berdasarkan KEY TANGGAL (contoh: "2025-12-03")
+            const jadwalHarian = json.data.jadwal[dateString]; 
+
+            if (!jadwalHarian) {
+                throw new Error(`Data untuk tanggal ${dateString} tidak ditemukan di JSON.`);
+            }
+
+            console.log("Data Mentah Jadwal:", jadwalHarian); // Cek ini harusnya objek sholat, bukan tanggal
+
             CONFIG.prayerTimes = {
-                tahajjud: calculateTahajjud(data.subuh),
-                imsak: data.imsak,
-                shubuh: data.subuh,
-                syuruq: data.terbit, 
-                dhuha: data.dhuha,
-                dzuhur: data.dzuhur,
-                ashar: data.ashar,
-                maghrib: data.maghrib,
-                isya: data.isya
+                tahajjud: calculateTahajjud(jadwalHarian.subuh),
+                imsak: jadwalHarian.imsak,
+                shubuh: jadwalHarian.subuh,
+                syuruq: jadwalHarian.terbit, 
+                dhuha: jadwalHarian.dhuha,
+                dzuhur: jadwalHarian.dzuhur,
+                ashar: jadwalHarian.ashar,
+                maghrib: jadwalHarian.maghrib,
+                isya: jadwalHarian.isya
             };
             console.log("Jadwal Berhasil Diupdate:", CONFIG.prayerTimes);
             
@@ -116,8 +122,7 @@ async function fetchSchedule() {
             renderFullScheduleGrid();
             
         } else {
-            console.warn("Struktur JSON tidak sesuai atau data kosong:", json);
-            throw new Error("Data jadwal tidak ditemukan dalam response.");
+            throw new Error("Struktur JSON tidak valid.");
         }
     } catch (e) {
         console.error("GAGAL FETCH API:", e);
