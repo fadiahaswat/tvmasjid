@@ -268,30 +268,42 @@
             </div>
         </div>
         
-        <div id="scene-hadits" class="scene hidden-slide w-full h-full flex flex-col items-center justify-center text-center px-16 relative overflow-hidden">
+        <div id="scene-hadits" class="scene hidden-slide w-full h-full flex flex-col items-center justify-center text-center px-16 relative overflow-hidden" role="region" aria-label="Mutiara Hadits">
+            
             <div class="absolute inset-0 z-0 pointer-events-none">
                 <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-emerald-600/10 rounded-full blur-[120px]"></div>
             </div>
 
-            <div class="relative z-10 w-full max-w-6xl flex flex-col items-center animate-enter-up">
-                <div class="flex flex-col items-center mb-10">
-                    <div class="w-24 h-24 rounded-full bg-gradient-to-br from-emerald-800 to-black flex items-center justify-center border border-emerald-400/40 shadow-lg mb-6">
-                        <span class="text-5xl">🕌</span>
+            <div class="relative z-10 w-full max-w-7xl flex flex-col items-center animate-enter-up">
+                
+                <div class="flex flex-col items-center mb-8">
+                    <div class="w-20 h-20 rounded-full bg-gradient-to-br from-emerald-800 to-black flex items-center justify-center border border-emerald-400/40 shadow-lg mb-4">
+                        <span class="text-4xl">🕌</span>
                     </div>
                     <h3 class="text-xl font-bold uppercase tracking-[0.5em] text-emerald-300">Mutiara Hadits</h3>
                 </div>
 
-                <div class="relative py-6 px-12">
-                    <p id="hadits-text" class="text-4xl lg:text-5xl font-serif italic leading-relaxed text-gray-100 max-w-5xl relative z-10 drop-shadow-xl">...</p>
+                <div class="relative py-4 px-4 flex flex-col items-center gap-6 w-full">
+                    
+                    <p id="hadits-arabic" class="text-4xl lg:text-5xl font-serif text-emerald-100 leading-[1.8] drop-shadow-md w-full max-w-6xl" dir="rtl" lang="ar">
+                        ...
+                    </p>
+
+                    <div class="w-32 h-[1px] bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent"></div>
+
+                    <p id="hadits-text" class="text-2xl lg:text-3xl font-sans font-light italic leading-relaxed text-gray-200 max-w-5xl relative z-10 drop-shadow-xl">
+                        ...
+                    </p>
                 </div>
 
-                <div class="mt-12 inline-flex items-center gap-4 px-8 py-3 bg-emerald-950/50 backdrop-blur-xl rounded-2xl border border-emerald-500/20">
+                <div class="mt-10 inline-flex items-center gap-4 px-8 py-3 bg-emerald-950/50 backdrop-blur-xl rounded-2xl border border-emerald-500/20 shadow-lg">
                     <span class="text-[0.65rem] uppercase tracking-widest text-emerald-400 font-bold border-r border-emerald-500/30 pr-4">Riwayat</span>
-                    <p id="hadits-source" class="text-xl text-white font-display tracking-wide uppercase font-bold">...</p>
+                    <p id="hadits-source" class="text-lg text-white font-display tracking-wide uppercase font-bold">...</p>
                 </div>
+
             </div>
         </div>
-
+        
         <div id="scene-info" class="scene hidden-slide w-full h-full flex flex-col items-center justify-center text-center px-16 relative overflow-hidden">
             <div class="relative z-10 w-full max-w-5xl flex flex-col items-center animate-enter-up">
                 <div class="mb-8 px-6 py-2 bg-slate-900 rounded-full border border-blue-400/30 flex items-center gap-3 shadow-lg">
