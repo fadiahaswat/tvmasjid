@@ -1,7 +1,7 @@
 // --- CONFIGURATION ---
 const CONFIG = {
-    // ID Kota (1638 = Yogyakarta). Cari ID kota lain di: https://api.myquran.com/v2/sholat/kota/cari/{nama_kota}
-    cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
+    // ID KOTA YOGYAKARTA (Sesuai hasil scan Anda: 1505)
+    cityId: '1505', 
     
     masjidName: "MASJID JAMI' MU'ALLIMIN",
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
@@ -19,13 +19,13 @@ const CONFIG = {
         dzikir: 10, jumatPrep: 30 
     },
     
-    // Jadwal Default (Fallback jika API Gagal)
+    // Jadwal Default (Fallback jika API Gagal/Offline)
     defaultPrayerTimes: {
         tahajjud: "03:00", imsak: "04:10", shubuh: "04:20", syuruq: "05:35",
         dhuha: "06:00", dzuhur: "11:45", ashar: "15:05", maghrib: "17:55", isya: "19:05"
     },
 
-    // Container untuk menampung jadwal aktif (akan diisi oleh API)
+    // Container jadwal (akan diisi otomatis oleh system)
     prayerTimes: {} 
 };
 
@@ -48,7 +48,7 @@ const DATA_CONTENT = {
 let currentState = { mode: null, slideIndex: 0, subMode: null };
 let slideTimer = null;
 let els = {};
-let lastDateString = ""; // Untuk cek pergantian hari
+let lastDateString = ""; 
 
 // --- API & LOGIC HELPERS ---
 
@@ -65,23 +65,24 @@ function calculateTahajjud(shubuhTime) {
     return `${hh}:${mm}`;
 }
 
-// Fetch Data API
+// Fetch Data API (VERSI 2 - Sesuai ID 1505)
 async function fetchSchedule() {
-    console.log("Mengambil data jadwal sholat...");
+    console.log(`Mengambil data jadwal sholat untuk ID: ${CONFIG.cityId}...`);
     try {
         const now = new Date();
         const y = now.getFullYear();
         const m = now.getMonth() + 1;
         const d = now.getDate();
 
-        // API Request
-        const res = await fetch(`https://api.myquran.com/v2/sholat/jadwal/${CONFIG.cityId}/${y}/${m}/${d}`);
+        // URL endpoint v2
+        const url = `https://api.myquran.com/v2/sholat/jadwal/${CONFIG.cityId}/${y}/${m}/${d}`;
+        
+        const res = await fetch(url);
         const json = await res.json();
 
         if (json.status && json.data && json.data.jadwal) {
             const data = json.data.jadwal;
             
-            // Mapping Data API ke Config
             CONFIG.prayerTimes = {
                 tahajjud: calculateTahajjud(data.subuh),
                 imsak: data.imsak,
@@ -93,12 +94,13 @@ async function fetchSchedule() {
                 maghrib: data.maghrib,
                 isya: data.isya
             };
-            console.log("Jadwal Updated:", CONFIG.prayerTimes);
+            console.log("Jadwal Berhasil Diupdate:", CONFIG.prayerTimes);
+            
         } else {
-            throw new Error("Data API tidak valid");
+            throw new Error("Format data API tidak sesuai");
         }
     } catch (e) {
-        console.error("Gagal ambil jadwal, gunakan default.", e);
+        console.error("Gagal ambil jadwal, menggunakan default.", e);
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
     }
 }
@@ -146,7 +148,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 info: document.getElementById('scene-info'),
                 donation: document.getElementById('scene-donation'),
                 countdown: document.getElementById('scene-countdown'),
-                // Scene khusus di bawah ini opsional jika belum ada di HTML
                 prayer: document.getElementById('scene-prayer'),
                 dzikir: document.getElementById('scene-dzikir')
             }
@@ -160,17 +161,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         // 3. Ambil Jadwal Sholat (Async)
         await fetchSchedule();
 
-        // 4. Render UI Jadwal
+        // 4. Render UI Jadwal Awal
         renderHomePrayerList();
         renderFullScheduleGrid();
 
         // 5. Start Loops
-        updateClock(); // Jalankan sekali agar tidak delay 1 detik
+        updateClock(); 
         setInterval(updateClock, 1000);
         setInterval(checkSystemState, 1000);
 
         // 6. Start Slide
-        console.log("Menjalankan Slide Pertama...");
         setMode('NORMAL');
 
     } catch(e) {
@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 function updateClock() {
     const now = new Date();
     
-    // Logic Auto-Refresh saat ganti hari
+    // Auto-Refresh saat ganti hari
     const currentDateString = now.toDateString();
     if (lastDateString !== "" && lastDateString !== currentDateString) {
         console.log("Hari berganti, refresh jadwal...");
@@ -210,7 +210,6 @@ function updateClock() {
 
 function getNextPrayer(now) {
     const curMinutes = now.getHours() * 60 + now.getMinutes();
-    // Urutan pengecekan waktu
     const keys = ['shubuh', 'syuruq', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     
     let found = null;
@@ -240,7 +239,7 @@ function checkSystemState() {
     const curTime = now.getTime();
     let activeEvent = null;
 
-    // Cek 5 Waktu Wajib Saja untuk trigger Adzan/Iqamah
+    // Cek 5 Waktu Wajib untuk Countdown
     const wajib = ['shubuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     
     for (let name of wajib) {
@@ -274,7 +273,7 @@ function checkSystemState() {
 
     if (activeEvent) {
         setMode(activeEvent.mode, activeEvent);
-        // Update Countdown Realtime
+        // Update Countdown Timer
         if (activeEvent.mode === 'COUNTDOWN' && els.countdownTimer) {
             const diff = activeEvent.target - curTime;
             const m = Math.floor(diff > 0 ? diff / 60000 : 0).toString().padStart(2,'0');
@@ -287,7 +286,6 @@ function checkSystemState() {
 }
 
 function setMode(mode, data = {}) {
-    // Hindari re-render jika mode sama
     if (currentState.mode === mode) {
         if (mode !== 'COUNTDOWN') return;
         if (mode === 'COUNTDOWN' && currentState.subMode === data.sub) return;
@@ -307,16 +305,13 @@ function setMode(mode, data = {}) {
         currentState.slideIndex = 0;
         nextNormalSlide();
     } else {
-        // Mode Khusus (Countdown/Prayer/dll)
         let sceneKey = mode.toLowerCase();
         
-        // Handle Tampilan Countdown
         if(mode === 'COUNTDOWN') {
             sceneKey = 'countdown';
             if(els.countdownTitle) els.countdownTitle.textContent = data.sub === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQAMAH';
             if(els.countdownName) els.countdownName.textContent = data.name.toUpperCase();
             
-            // Ubah Warna Tema Countdown
             if(data.sub === 'ADZAN') {
                 els.countdownTitle.className = "text-5xl font-bold uppercase tracking-widest mb-6 text-gold-400 animate-pulse";
                 els.countdownTimer.className = "text-[18vh] font-mono font-bold leading-none tracking-widest text-gold-400";
@@ -340,7 +335,7 @@ function nextNormalSlide() {
     const key = SLIDES_ORDER[currentState.slideIndex];
     let duration = CONFIG.duration[key] || 10;
 
-    // Isi Konten Dinamis untuk Slide Tertentu
+    // Isi Konten Dinamis
     if (key === 'ayat' && els.ayatText) {
         const item = DATA_CONTENT.ayat[Math.floor(Math.random() * DATA_CONTENT.ayat.length)];
         els.ayatText.textContent = `"${item.text}"`;
@@ -357,13 +352,11 @@ function nextNormalSlide() {
         els.infoText.textContent = item.text;
     }
 
-    // Tampilkan Scene
     Object.values(els.scenes).forEach(el => { if(el) el.classList.add('hidden-slide'); });
     
     if(els.scenes[key]) {
         const scene = els.scenes[key];
         scene.classList.remove('hidden-slide');
-        // Restart Animation Effect
         scene.classList.remove('animate-enter-up');
         void scene.offsetWidth; 
         scene.classList.add('animate-enter-up');
@@ -377,7 +370,6 @@ function nextNormalSlide() {
     }, duration * 1000);
 }
 
-// Render Jadwal di Halaman Utama (5 Waktu)
 function renderHomePrayerList() {
     if (!els.homePrayerList) return;
     const keys = ['shubuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
@@ -394,12 +386,10 @@ function renderHomePrayerList() {
     });
 }
 
-// Render Jadwal Lengkap (Termasuk Tahajjud, Imsak, dll)
 function renderFullScheduleGrid() {
     if (!els.scheduleGridFull) return;
     els.scheduleGridFull.innerHTML = '';
     
-    // Urutan tampilan di grid
     const order = ['tahajjud', 'imsak', 'shubuh', 'syuruq', 'dhuha', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     
     order.forEach(name => {
@@ -423,14 +413,10 @@ function animateProgressBar(durationSeconds) {
     const bar = els.progressBar;
     if(!bar) return;
     
-    // Reset instan
     bar.style.transition = 'none';
     bar.style.width = '0%';
-    
-    // Force Reflow
     void bar.offsetWidth;
     
-    // Start Animation
     requestAnimationFrame(() => {
         bar.style.transition = `width ${durationSeconds}s linear`;
         bar.style.width = '100%';
