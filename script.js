@@ -1,7 +1,7 @@
 // --- CONFIGURATION ---
 const CONFIG = {
-    // ID KOTA YOGYAKARTA (Sesuai hasil scan Anda: 1505)
-    cityId: '1505', 
+    // ID KOTA YOGYAKARTA (Sesuai permintaan Anda)
+    cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
     
     masjidName: "MASJID JAMI' MU'ALLIMIN",
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
@@ -25,7 +25,7 @@ const CONFIG = {
         dhuha: "06:00", dzuhur: "11:45", ashar: "15:05", maghrib: "17:55", isya: "19:05"
     },
 
-    // Container jadwal (akan diisi otomatis oleh system)
+    // Container jadwal
     prayerTimes: {} 
 };
 
@@ -55,7 +55,10 @@ let lastDateString = "";
 // Hitung Tahajjud (Subuh - 3 jam 30 menit)
 function calculateTahajjud(shubuhTime) {
     if (!shubuhTime) return "03:00";
-    const [h, m] = shubuhTime.split(':').map(Number);
+    // Bersihkan format waktu jika ada spasi/detik yang tidak perlu
+    const cleanTime = shubuhTime.split(':').slice(0,2).join(':'); 
+    
+    const [h, m] = cleanTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
     date.setMinutes(date.getMinutes() - 210); // Kurangi 210 menit
@@ -65,21 +68,28 @@ function calculateTahajjud(shubuhTime) {
     return `${hh}:${mm}`;
 }
 
-// Fetch Data API (VERSI 2 - Sesuai ID 1505)
+// Fetch Data API (KHUSUS VERSI 1 UNTUK ID UUID)
 async function fetchSchedule() {
-    console.log(`Mengambil data jadwal sholat untuk ID: ${CONFIG.cityId}...`);
+    console.log(`Mengambil data jadwal (v1) untuk ID: ${CONFIG.cityId}...`);
     try {
         const now = new Date();
         const y = now.getFullYear();
         const m = now.getMonth() + 1;
         const d = now.getDate();
 
-        // URL endpoint v2
-        const url = `https://api.myquran.com/v2/sholat/jadwal/${CONFIG.cityId}/${y}/${m}/${d}`;
+        // MENGGUNAKAN ENDPOINT V1 (Karena ID berupa UUID panjang)
+        const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}/${m}/${d}`;
         
+        console.log("Request URL:", url);
         const res = await fetch(url);
+        
+        if (!res.ok) throw new Error(`HTTP Error! Status: ${res.status}`);
+        
         const json = await res.json();
+        console.log("Response JSON:", json);
 
+        // Validasi respon v1
+        // Biasanya v1 strukturnya: { status: true, data: { jadwal: { ... } } }
         if (json.status && json.data && json.data.jadwal) {
             const data = json.data.jadwal;
             
@@ -87,7 +97,7 @@ async function fetchSchedule() {
                 tahajjud: calculateTahajjud(data.subuh),
                 imsak: data.imsak,
                 shubuh: data.subuh,
-                syuruq: data.terbit,
+                syuruq: data.terbit, // v1 menggunakan 'terbit'
                 dhuha: data.dhuha,
                 dzuhur: data.dzuhur,
                 ashar: data.ashar,
@@ -97,11 +107,17 @@ async function fetchSchedule() {
             console.log("Jadwal Berhasil Diupdate:", CONFIG.prayerTimes);
             
         } else {
-            throw new Error("Format data API tidak sesuai");
+            throw new Error("Format JSON API v1 tidak sesuai.");
         }
     } catch (e) {
-        console.error("Gagal ambil jadwal, menggunakan default.", e);
+        console.error("GAGAL FETCH API. Menggunakan jadwal default.", e);
+        // Fallback ke default
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
+        
+        // Peringatan Khusus jika dijalankan langsung (bukan server)
+        if (window.location.protocol === 'file:') {
+            console.warn("PERINGATAN: Membuka file HTML langsung (file://) seringkali diblokir oleh browser (CORS). Gunakan Live Server atau Localhost.");
+        }
     }
 }
 
@@ -209,6 +225,9 @@ function updateClock() {
 }
 
 function getNextPrayer(now) {
+    // Pastikan CONFIG.prayerTimes sudah terisi
+    if (!CONFIG.prayerTimes.shubuh) return null;
+
     const curMinutes = now.getHours() * 60 + now.getMinutes();
     const keys = ['shubuh', 'syuruq', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     
@@ -217,7 +236,10 @@ function getNextPrayer(now) {
     
     keys.forEach(key => {
         if(CONFIG.prayerTimes[key]) {
-            const [h, m] = CONFIG.prayerTimes[key].split(':').map(Number);
+            // Split dengan aman
+            const timeParts = CONFIG.prayerTimes[key].split(':');
+            const h = parseInt(timeParts[0]);
+            const m = parseInt(timeParts[1]);
             const pMinutes = h * 60 + m;
             
             if (pMinutes > curMinutes && (pMinutes - curMinutes) < minDiff) {
@@ -227,25 +249,29 @@ function getNextPrayer(now) {
         }
     });
 
-    if (!found && CONFIG.prayerTimes.shubuh) {
-        // Jika lewat Isya, tampilkan Shubuh (besok)
+    if (!found) {
         found = { name: 'SHUBUH', timeStr: CONFIG.prayerTimes.shubuh };
     }
     return found;
 }
 
 function checkSystemState() {
+    // Pastikan jadwal ada
+    if (!CONFIG.prayerTimes.shubuh) return;
+
     const now = new Date();
     const curTime = now.getTime();
     let activeEvent = null;
 
-    // Cek 5 Waktu Wajib untuk Countdown
     const wajib = ['shubuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     
     for (let name of wajib) {
         if(!CONFIG.prayerTimes[name]) continue;
         
-        const [h, m] = CONFIG.prayerTimes[name].split(':').map(Number);
+        const timeParts = CONFIG.prayerTimes[name].split(':');
+        const h = parseInt(timeParts[0]);
+        const m = parseInt(timeParts[1]);
+        
         const pDate = new Date(now);
         pDate.setHours(h, m, 0, 0);
         const pTime = pDate.getTime();
@@ -255,7 +281,6 @@ function checkSystemState() {
         const msInPrayer = CONFIG.thresholds.inPrayer * 60000;
         const msDzikir = CONFIG.thresholds.dzikir * 60000;
 
-        // Logika Status
         if (curTime >= (pTime - msPreAdzan) && curTime < pTime) {
             activeEvent = { mode: 'COUNTDOWN', sub: 'ADZAN', name, target: pTime };
         } else if (curTime >= pTime && curTime < (pTime + msPreIqamah)) {
@@ -273,7 +298,6 @@ function checkSystemState() {
 
     if (activeEvent) {
         setMode(activeEvent.mode, activeEvent);
-        // Update Countdown Timer
         if (activeEvent.mode === 'COUNTDOWN' && els.countdownTimer) {
             const diff = activeEvent.target - curTime;
             const m = Math.floor(diff > 0 ? diff / 60000 : 0).toString().padStart(2,'0');
@@ -297,10 +321,8 @@ function setMode(mode, data = {}) {
     clearTimeout(slideTimer);
     if(els.progressBar) els.progressBar.style.width = '0%';
 
-    // Sembunyikan Semua Scene
     Object.values(els.scenes).forEach(el => { if(el) el.classList.add('hidden-slide'); });
 
-    // Tampilkan Scene Aktif
     if (mode === 'NORMAL') {
         currentState.slideIndex = 0;
         nextNormalSlide();
@@ -335,7 +357,6 @@ function nextNormalSlide() {
     const key = SLIDES_ORDER[currentState.slideIndex];
     let duration = CONFIG.duration[key] || 10;
 
-    // Isi Konten Dinamis
     if (key === 'ayat' && els.ayatText) {
         const item = DATA_CONTENT.ayat[Math.floor(Math.random() * DATA_CONTENT.ayat.length)];
         els.ayatText.textContent = `"${item.text}"`;
