@@ -1,6 +1,8 @@
 // --- CONFIGURATION ---
 const CONFIG = {
+    // ID KOTA YOGYAKARTA (UUID v3)
     cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
+    
     masjidName: "MASJID JAMI' MU'ALLIMIN",
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
     runningText: "Selamat Datang di Masjid Jami' Mu'allimin • Mohon luruskan shaf • Matikan HP saat sholat berlangsung • Jagalah kebersihan masjid",
@@ -14,13 +16,13 @@ const CONFIG = {
     },
 
     prayerTimes: {},
-    currentHijriDate: "Memuat..." 
+    currentHijriDate: "..." 
 };
 
 // --- BATCH CONFIG ---
 const CONTENT_BATCH_SIZE_TOTAL = 60; 
 
-// --- CONTENT STORE ---
+// --- CONTENT STORE (CACHEABLE) ---
 const DATA_CONTENT = {
     ayat: [
         { text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", source: "QS. Al-Insyirah: 5" },
@@ -37,18 +39,26 @@ const DATA_CONTENT = {
     ]
 };
 
-let currentState = { mode: null, slideIndex: 0, subMode: null, currentAyatIndex: 0, currentHadithIndex: 0 };
+// --- STATE MANAGEMENT ---
+let currentState = { 
+    mode: null, 
+    slideIndex: 0, 
+    subMode: null, 
+    currentAyatIndex: 0, 
+    currentHadithIndex: 0 
+};
 let slideTimer = null;
 let els = {};
 let lastDateString = ""; 
 
-// --- HELPERS ---
+// --- HELPER FUNCTIONS ---
+
 function calculateTahajjud(shubuhTime) {
     if (!shubuhTime) return "03:00";
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210);
+    date.setMinutes(date.getMinutes() - 210); 
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -59,7 +69,8 @@ function getFormattedDate(dateObj) {
     return `${y}-${m}-${d}`;
 }
 
-// --- FETCHERS ---
+// --- API FETCHERS ---
+
 async function fetchSingleRandomAyat() {
     try {
         const res = await fetch("https://api.myquran.com/v2/quran/ayat/acak");
@@ -90,17 +101,23 @@ async function fetchSingleRandomHadith() {
 
 async function fetchHijriDate(dateString) {
     try {
+        // Date string sudah format YYYY-MM-DD
         const res = await fetch(`https://api.myquran.com/v3/cal/hijr/${dateString}`);
         const json = await res.json();
+        
         if (json.status && json.data?.date) {
             const d = json.data.date;
-            CONFIG.currentHijriDate = `${d.day || ""} ${d.month?.en || ""} ${d.year || ""} H`;
-            updateClock();
+            // Handle jika month object atau string
+            const mName = (d.month?.en) ? d.month.en : (d.month || "");
+            CONFIG.currentHijriDate = `${d.day || ""} ${mName} ${d.year || ""} H`;
+            console.log("[API] Hijriah Updated:", CONFIG.currentHijriDate);
+            updateClock(); // Force update UI header
         }
-    } catch (e) { console.warn("Hijri Error", e); }
+    } catch (e) { console.warn("[API] Gagal fetch Hijriah", e); }
 }
 
-// --- LOADERS ---
+// --- LOADERS (CACHE & NETWORK) ---
+
 async function loadMonthlyContent() {
     const now = new Date();
     const monthKey = `content_batch_${now.getFullYear()}_${now.getMonth()}`;
@@ -112,14 +129,16 @@ async function loadMonthlyContent() {
             if (parsed.ayat && parsed.hadits) {
                 DATA_CONTENT.ayat = parsed.ayat;
                 DATA_CONTENT.hadits = parsed.hadits;
+                console.log("[CACHE] Konten batch bulanan dimuat.");
                 return;
             }
         } catch(e) { localStorage.removeItem(monthKey); }
     }
     
-    console.log("Downloading Monthly Batch...");
+    console.log("[API] Mengunduh batch konten baru (Ayat/Hadis)...");
     const ayatPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomAyat());
     const hadithPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomHadith());
+    
     const [ayats, hadiths] = await Promise.all([Promise.all(ayatPromises), Promise.all(hadithPromises)]);
     
     const validAyats = ayats.filter(i => i);
@@ -130,17 +149,19 @@ async function loadMonthlyContent() {
     
     if (validAyats.length > 0 || validHadiths.length > 0) {
         localStorage.setItem(monthKey, JSON.stringify({ ayat: DATA_CONTENT.ayat, hadits: DATA_CONTENT.hadits }));
+        console.log("[API] Konten batch disimpan ke cache.");
     }
 }
 
 async function loadSchedule() {
     const now = new Date();
-    const dateKey = getFormattedDate(now);
+    const dateKey = getFormattedDate(now); // YYYY-MM-DD
     const monthKey = `jadwal_${now.getFullYear()}_${now.getMonth()+1}`;
     
     let monthlyData = localStorage.getItem(monthKey);
     let todaySchedule = null;
 
+    // 1. Cek Cache Bulanan
     if (monthlyData) {
         try {
             const parsed = JSON.parse(monthlyData);
@@ -148,20 +169,54 @@ async function loadSchedule() {
         } catch (e) { localStorage.removeItem(monthKey); }
     }
 
+    // 2. Jika tidak ada di cache, Fetch API
     if (!todaySchedule) {
         try {
-            const res = await fetch(`https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}`);
-            const json = await res.json();
+            // PERBAIKAN: Gunakan format YYYY-MM (dengan strip)
+            const y = now.getFullYear();
+            const m = String(now.getMonth()+1).padStart(2,'0');
+            const d = String(now.getDate()).padStart(2,'0');
+            
+            // Coba Fetch Bulanan
+            let url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}-${m}`;
+            console.log("[API] Fetch Jadwal Bulanan:", url);
+            
+            let res = await fetch(url);
+            let json = await res.json();
+            
+            // Validasi Data Bulanan
             if (json.status && json.data?.jadwal) {
                 let storage = {};
-                (Array.isArray(json.data.jadwal) ? json.data.jadwal : [json.data.jadwal]).forEach(day => storage[day.date] = day);
+                // Jika return array (standar bulanan)
+                if (Array.isArray(json.data.jadwal)) {
+                    json.data.jadwal.forEach(day => storage[day.date] = day);
+                } else {
+                    // Jika return object single (fallback)
+                    storage[json.data.jadwal.date] = json.data.jadwal;
+                }
                 localStorage.setItem(monthKey, JSON.stringify(storage));
                 todaySchedule = storage[dateKey];
+            } else {
+                // FALLBACK: Jika bulanan gagal, ambil Harian (Emergency)
+                console.warn("[API] Bulanan gagal, mencoba Harian...");
+                url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}-${m}-${d}`;
+                res = await fetch(url);
+                json = await res.json();
+                
+                if (json.status && json.data?.jadwal) {
+                    todaySchedule = json.data.jadwal;
+                    // Simpan setidaknya untuk hari ini agar tidak request terus
+                    let tempStorage = {};
+                    tempStorage[dateKey] = todaySchedule;
+                    localStorage.setItem(monthKey, JSON.stringify(tempStorage));
+                }
             }
-        } catch (e) { console.error("Schedule Error", e); }
+        } catch (e) { console.error("[API ERROR] Jadwal Sholat:", e); }
     }
 
+    // 3. Set Config Prayer Times
     if (todaySchedule) {
+        console.log("[SYSTEM] Jadwal sholat hari ini berhasil dimuat.");
         CONFIG.prayerTimes = {
             tahajjud: calculateTahajjud(todaySchedule.subuh),
             imsak: todaySchedule.imsak,
@@ -174,30 +229,41 @@ async function loadSchedule() {
             isya: todaySchedule.isya
         };
     } else {
+        console.warn("[SYSTEM] Menggunakan jadwal sholat default.");
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
     }
     
+    // 4. Update Tampilan & Fetch Lainnya
     renderFooterSchedule(); 
-    await fetchHijriDate(dateKey);
+    await fetchHijriDate(dateKey); // Pastikan ini dipanggil
     await loadMonthlyContent();
 }
 
-// --- INIT ---
+// --- INIT & DOM ---
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        console.log("Starting System...");
         els = {
+            // Header Elements
             headerClock: document.getElementById('header-clock'),
             headerDateMasehi: document.getElementById('header-date-masehi'),
             headerDateHijri: document.getElementById('header-date-hijri'),
             headerNextName: document.getElementById('header-next-name'),
             headerCountdown: document.getElementById('header-countdown'),
             
+            // Home Slide Elements
             homeDateMasehi: document.getElementById('home-date-masehi'),
             homeDateHijri: document.getElementById('home-date-hijri'),
+            homeNextName: document.getElementById('home-next-name'),
+            homeNextTime: document.getElementById('home-next-time'),
+            homePrayerList: document.getElementById('home-prayer-list'),
             
+            // Detail Slide Elements
             nextDetailName: document.getElementById('next-detail-name'),
             nextDetailTime: document.getElementById('next-detail-time'),
             
+            // Content Elements
             ayatText: document.getElementById('ayat-text'),
             ayatArabic: document.getElementById('ayat-arabic'),
             ayatSource: document.getElementById('ayat-source'),
@@ -215,7 +281,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             footerSchedule: document.getElementById('footer-schedule'),
             progressBar: document.getElementById('slide-progress'),
             runningText: document.getElementById('running-text'),
-            runningTextDup: document.getElementById('running-text-duplicate'),
             
             scenes: {
                 home: document.getElementById('scene-home'),
@@ -230,9 +295,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         };
 
         if(els.runningText) els.runningText.textContent = CONFIG.runningText;
-        if(els.runningTextDup) els.runningTextDup.textContent = CONFIG.runningText;
 
+        // Load Data Pertama Kali
         await loadSchedule();
+        
+        // Start Loops
         updateClock();
         setInterval(updateClock, 1000);
         setInterval(checkSystemState, 1000);
@@ -241,11 +308,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch(e) { console.error("Init Error", e); }
 });
 
-// --- LOGIC ---
+// --- CORE LOGIC ---
+
 function updateClock() {
     const now = new Date();
     const currentDateString = getFormattedDate(now);
+    
+    // Cek Ganti Hari
     if (lastDateString !== "" && lastDateString !== currentDateString) {
+        console.log("Hari berganti, refresh data...");
         loadSchedule();
         currentState.currentAyatIndex = 0;
         currentState.currentHadithIndex = 0;
@@ -255,13 +326,16 @@ function updateClock() {
     const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const masehiDate = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
+    // Update Header
     if(els.headerClock) els.headerClock.textContent = timeStr;
     if(els.headerDateMasehi) els.headerDateMasehi.textContent = masehiDate;
-    if(els.headerDateHijri) els.headerDateHijri.textContent = CONFIG.currentHijriDate;
+    if(els.headerDateHijri) els.headerDateHijri.textContent = CONFIG.currentHijriDate; // Hijriah muncul disini
     
+    // Update Home Slide
     if(els.homeDateMasehi) els.homeDateMasehi.textContent = masehiDate;
     if(els.homeDateHijri) els.homeDateHijri.textContent = CONFIG.currentHijriDate;
 
+    // Countdown Logic
     const next = getNextPrayer(now);
     if(next) {
         const [h, m] = next.timeStr.split(':').map(Number);
@@ -277,6 +351,9 @@ function updateClock() {
         if(els.headerCountdown) els.headerCountdown.textContent = `-${hh}:${mm}:${ss}`;
         if(els.headerNextName) els.headerNextName.textContent = next.name;
         
+        if(els.homeNextName) els.homeNextName.textContent = next.name;
+        if(els.homeNextTime) els.homeNextTime.textContent = next.timeStr;
+        
         if(els.nextDetailName) els.nextDetailName.textContent = next.name;
         if(els.nextDetailTime) els.nextDetailTime.textContent = next.timeStr;
     }
@@ -288,6 +365,7 @@ function getNextPrayer(now) {
     const keys = ['shubuh', 'syuruq', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     let found = null;
     let minDiff = 9999;
+    
     keys.forEach(key => {
         if(CONFIG.prayerTimes[key]) {
             const [h, m] = CONFIG.prayerTimes[key].split(':').map(Number);
@@ -378,6 +456,7 @@ function nextNormalSlide() {
     const key = SLIDES_ORDER[currentState.slideIndex];
     let duration = CONFIG.duration[key] || 10;
 
+    // RENDER: AYAT
     if (key === 'ayat' && els.ayatText) {
         const item = DATA_CONTENT.ayat[currentState.currentAyatIndex % DATA_CONTENT.ayat.length];
         if (els.ayatArabic) els.ayatArabic.textContent = item.arabic || "";
@@ -385,6 +464,7 @@ function nextNormalSlide() {
         els.ayatSource.textContent = item.source;
         currentState.currentAyatIndex++;
     } 
+    // RENDER: HADITS
     else if (key === 'hadits' && els.haditsText) {
         const item = DATA_CONTENT.hadits[currentState.currentHadithIndex % DATA_CONTENT.hadits.length];
         if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
@@ -396,6 +476,7 @@ function nextNormalSlide() {
         els.haditsSource.textContent = sourceInfo;
         currentState.currentHadithIndex++;
     }
+    // RENDER: INFO
     else if (key === 'info' && els.infoGrid) {
         els.infoGrid.innerHTML = '';
         DATA_CONTENT.infoList.forEach(item => {
