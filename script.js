@@ -7,7 +7,7 @@ const CONFIG = {
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
     runningText: "Selamat Datang di Masjid Jami' Mu'allimin • Mohon luruskan shaf • Matikan HP saat sholat berlangsung",
     
-    duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 15, hadits: 20, info: 10, donation: 10 },
+    duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 15, hadits: 25, info: 10, donation: 10 },
     thresholds: { preAdzan: 12, preIqamah: 10, inPrayer: 20, dzikir: 10, jumatPrep: 30 },
     
     defaultPrayerTimes: {
@@ -24,20 +24,14 @@ const DATA_CONTENT = {
         { text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", source: "QS. Al-Insyirah: 5" },
         { text: "Dan dirikanlah shalat, tunaikanlah zakat.", source: "QS. Al-Baqarah: 43" }
     ],
+    // Hadits Default (Offline)
     hadits: [
         { 
             text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", 
             arabic: "خَيْرُ الناسِ أَنْفَعُهُمْ لِلناسِ",
             source: "HR. Ahmad",
-            grade: "Shahih",
+            grade: "Hasan",
             hikmah: null
-        },
-        { 
-            text: "Shalat berjamaah lebih utama 27 derajat.", 
-            arabic: "صَلاةُ الْجَمَاعَةِ تَفْضُلُ صَلاةَ الْفَذِّ بِسَبْعٍ وَعِشْرِينَ دَرَجَةً",
-            source: "HR. Bukhari Muslim",
-            grade: "Muttafaq Alaih",
-            hikmah: "Pentingnya kebersamaan umat."
         }
     ],
     info: [
@@ -72,40 +66,39 @@ function getFormattedDate(dateObj) {
 
 // --- DATA FETCHING FUNCTIONS ---
 
-// 1. Fetch Hadis Random (Lengkap dengan Grade & Hikmah)
+// 1. Fetch Hadis Random (FIXED & ROBUST)
 async function fetchRandomHadith() {
     try {
         console.log("[API] Mengambil Hadis Random...");
         const res = await fetch("https://api.myquran.com/v3/hadis/enc/random");
         const json = await res.json();
         
-        console.log("[DEBUG] JSON Hadis:", json); 
-
-        if (json.status && json.data && json.data.text) {
+        // Gunakan Optional Chaining (?.) untuk keamanan data
+        if (json.status && json.data?.text) {
             const d = json.data;
 
-            // 1. Teks Arab & Indo
-            const arabicText = d.text.ar || "";
-            const indoText = d.text.id || "";
+            // Ambil Data
+            const arabicText = d.text?.ar || "";
+            let indoText = d.text?.id || "";
+            
+            // Ganti baris baru (\n) dengan <br> agar rapi di HTML
+            indoText = indoText.replace(/\n/g, "<br>");
 
-            // 2. Takhrij (Bersihkan kata "Diriwayatkan oleh")
+            // Bersihkan Takhrij
             let sourceName = d.takhrij || "Muttafaq Alaihi";
             sourceName = sourceName.replace("Diriwayatkan oleh", "").trim();
-
-            // 3. Grade & Hikmah
-            const grade = d.grade ? d.grade : "";
-            const hikmah = d.hikmah ? d.hikmah : null;
 
             const newHadith = {
                 text: indoText,
                 arabic: arabicText,
                 source: sourceName,
-                grade: grade,
-                hikmah: hikmah
+                grade: d.grade || "",
+                hikmah: d.hikmah || null
             };
             
+            // Masukkan ke array konten
             DATA_CONTENT.hadits.unshift(newHadith);
-            console.log("[API] Hadis berhasil update.");
+            console.log("[API] Hadis berhasil update:", sourceName);
         }
     } catch (e) {
         console.warn("[API] Gagal ambil hadis.", e);
@@ -119,10 +112,10 @@ async function fetchHijriDate(dateString) {
         const res = await fetch(url);
         const json = await res.json();
         
-        if (json.status && json.data && json.data.date) {
+        if (json.status && json.data?.date) {
             const d = json.data.date;
             const day = d.day || "";
-            const month = (d.month && d.month.en) ? d.month.en : (d.month || "");
+            const month = (d.month?.en) ? d.month.en : (d.month || "");
             const year = d.year || "";
 
             CONFIG.currentHijriDate = `${day} ${month} ${year} H`;
@@ -156,7 +149,7 @@ async function loadSchedule() {
             const res = await fetch(url);
             const json = await res.json();
             
-            if (json.status && json.data && json.data.jadwal) {
+            if (json.status && json.data?.jadwal) {
                 let storagePayload = {};
                 if (Array.isArray(json.data.jadwal)) {
                     json.data.jadwal.forEach(day => { storagePayload[day.date] = day; });
@@ -265,8 +258,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function updateClock() {
     const now = new Date();
-    const currentDateString = getFormattedDate(now);
     
+    const currentDateString = getFormattedDate(now);
     if (lastDateString !== "" && lastDateString !== currentDateString) {
         loadSchedule(); 
     }
@@ -411,10 +404,13 @@ function nextNormalSlide() {
         // 1. Tampilkan Arab
         if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
         
-        // 2. Tampilkan Teks Indo + Hikmah (HTML)
+        // 2. Tampilkan Indo (HTML)
+        // Gunakan innerHTML agar tag <br> terbaca
         let contentHTML = `"${item.text}"`;
+        
+        // Tambahkan Hikmah jika ada
         if (item.hikmah) {
-            contentHTML += `<br><br><span class="text-3xl text-emerald-400 not-italic font-sans tracking-wide block mt-4 border-t border-emerald-500/30 pt-4">💡 Hikmah: ${item.hikmah}</span>`;
+            contentHTML += `<br><br><span class="text-3xl text-emerald-400 font-sans tracking-wide block mt-4 pt-4 border-t border-emerald-500/30">💡 Hikmah: ${item.hikmah}</span>`;
         }
         els.haditsText.innerHTML = contentHTML;
         
