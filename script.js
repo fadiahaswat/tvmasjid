@@ -19,28 +19,19 @@ const CONFIG = {
     currentHijriDate: "" 
 };
 
+// --- BATCH CONFIGURATION ---
+// Total item yang di-fetch sekali sebulan untuk rotasi
+const CONTENT_BATCH_SIZE_TOTAL = 60; 
+
 // --- DATA CONTENT (DEFAULT/FALLBACK) ---
 const DATA_CONTENT = {
+    // Konten ini akan di-replace oleh cache bulanan
     ayat: [
-        { 
-            text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", 
-            arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا",
-            source: "QS. Al-Insyirah: 5" 
-        },
-        { 
-            text: "Dan dirikanlah shalat, tunaikanlah zakat.", 
-            arabic: "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ",
-            source: "QS. Al-Baqarah: 43" 
-        }
+        { text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", source: "QS. Al-Insyirah: 5" },
+        { text: "Dan dirikanlah shalat, tunaikanlah zakat.", arabic: "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ", source: "QS. Al-Baqarah: 43" }
     ],
     hadits: [
-        { 
-            text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", 
-            arabic: "خَيْرُ الناسِ أَنْفَعُهُمْ لِلناسِ",
-            source: "HR. Ahmad",
-            grade: "Hasan",
-            hikmah: null
-        }
+        { text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", arabic: "خَيْرُ الناسِ أَنْفَعُهُمْ لِلناسِ", source: "HR. Ahmad", grade: "Hasan", hikmah: null }
     ],
     info: [
         { title: "Kerja Bakti", text: "Kerja bakti hari Ahad depan pukul 08:00 WIB." },
@@ -49,7 +40,13 @@ const DATA_CONTENT = {
 };
 
 // --- STATE MANAGEMENT ---
-let currentState = { mode: null, slideIndex: 0, subMode: null };
+let currentState = { 
+    mode: null, 
+    slideIndex: 0, 
+    subMode: null, 
+    currentAyatIndex: 0, 
+    currentHadithIndex: 0 
+};
 let slideTimer = null;
 let els = {};
 let lastDateString = ""; 
@@ -61,7 +58,7 @@ function calculateTahajjud(shubuhTime) {
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210); // -3.5 jam
+    date.setMinutes(date.getMinutes() - 210);
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -72,10 +69,10 @@ function getFormattedDate(dateObj) {
     return `${y}-${m}-${d}`;
 }
 
-// --- DATA FETCHING FUNCTIONS ---
+// --- DATA FETCHING FUNCTIONS (SINGLE ITEM) ---
+// Fungsi ini mengambil 1 item, digunakan dalam loop batch loader
 
-// 1. Fetch Ayat Acak
-async function fetchRandomAyat() {
+async function fetchSingleRandomAyat() {
     try {
         const url = "https://api.myquran.com/v2/quran/ayat/acak";
         const res = await fetch(url);
@@ -84,27 +81,21 @@ async function fetchRandomAyat() {
         if (json.status && json.data?.ayat) {
             const ayat = json.data.ayat;
             const info = json.data.info.surat;
-
-            // Bersihkan teks Indonesia (\n -> <br>)
             const textId = (ayat.text || "").replace(/\n/g, "<br>");
             
-            const newAyat = {
+            return {
                 text: textId,
                 arabic: ayat.arab || "",
                 source: `QS. ${info.nama.id} (${info.id}): ${ayat.ayah}` 
             };
-
-            // Timpa array yang lama (hanya 1 ayat acak yang tampil)
-            DATA_CONTENT.ayat = [newAyat];
         }
+        return null;
     } catch (e) {
-        console.warn("[API] Gagal ambil ayat acak.", e);
+        return null;
     }
 }
 
-
-// 2. Fetch Hadis Random (FIXED: Hanya simpan 1 data terbaru)
-async function fetchRandomHadith() {
+async function fetchSingleRandomHadith() {
     try {
         const res = await fetch("https://api.myquran.com/v3/hadis/enc/random");
         const json = await res.json();
@@ -114,47 +105,75 @@ async function fetchRandomHadith() {
 
             const arabicText = d.text?.ar || "";
             let indoText = d.text?.id || "";
-            
-            indoText = indoText.replace(/\n/g, "<br>"); // Format HTML
+            indoText = indoText.replace(/\n/g, "<br>");
 
             let sourceName = d.takhrij || "Muttafaq Alaihi";
             sourceName = sourceName.replace("Diriwayatkan oleh", "").trim();
 
-            const newHadith = {
+            return {
                 text: indoText,
                 arabic: arabicText,
                 source: sourceName,
                 grade: d.grade || "",
                 hikmah: d.hikmah || null
             };
-            
-            // LOGIKA PENTING: Hanya simpan Hadis API ini, hapus yang lama/statis
-            DATA_CONTENT.hadits = [newHadith];
         }
+        return null;
     } catch (e) {
-        console.warn("[API] Gagal ambil hadis.", e);
-        // Jika gagal, array Hadis akan kembali ke data statis
+        return null;
     }
 }
 
-// 3. Fetch Tanggal Hijriah
-async function fetchHijriDate(dateString) {
-    try {
-        const url = `https://api.myquran.com/v3/cal/hijr/${dateString}`;
-        const res = await fetch(url);
-        const json = await res.json();
-        
-        if (json.status && json.data?.date) {
-            const d = json.data.date;
-            const day = d.day || "";
-            const month = (d.month?.en) ? d.month.en : (d.month || "");
-            const year = d.year || "";
+// --- CONTENT BATCH LOADER (BULANAN) ---
+async function loadMonthlyContent() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const monthKey = `monthly_content_${y}_${m}`; // Key cache bulanan untuk konten
 
-            CONFIG.currentHijriDate = `${day} ${month} ${year} H`;
-            updateClock();
+    let cachedContent = localStorage.getItem(monthKey);
+
+    if (cachedContent) {
+        try {
+            const parsed = JSON.parse(cachedContent);
+            if (parsed.ayat && parsed.hadits) {
+                DATA_CONTENT.ayat = parsed.ayat;
+                DATA_CONTENT.hadits = parsed.hadits;
+                console.log("[CACHE] Konten bulanan dimuat dari cache.");
+                return; 
+            }
+        } catch(e) {
+            localStorage.removeItem(monthKey);
         }
-    } catch (e) { console.warn("[API] Gagal ambil Hijriah.", e); }
+    }
+    
+    // FETCH NEW BATCH (Hanya jika cache bulanan kosong / expired)
+    console.log(`[API] Mengunduh batch konten baru (${CONTENT_BATCH_SIZE_TOTAL} item/tipe)...`);
+    
+    // Fetch 60 items of each type concurrently
+    const ayatPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomAyat());
+    const hadithPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomHadith());
+
+    const [newAyatBatch, newHadithBatch] = await Promise.all([
+        Promise.all(ayatPromises),
+        Promise.all(hadithPromises)
+    ]);
+    
+    const finalAyat = newAyatBatch.filter(item => item !== null);
+    const finalHadith = newHadithBatch.filter(item => item !== null);
+    
+    if (finalAyat.length > 0 || finalHadith.length > 0) {
+        if (finalAyat.length > 0) DATA_CONTENT.ayat = finalAyat;
+        if (finalHadith.length > 0) DATA_CONTENT.hadits = finalHadith;
+        
+        const payload = JSON.stringify({ ayat: DATA_CONTENT.ayat, hadits: DATA_CONTENT.hadits });
+        localStorage.setItem(monthKey, payload);
+        console.log(`[CACHE] Konten bulanan (${finalAyat.length} Ayat, ${finalHadith.length} Hadis) disimpan.`);
+    } else {
+        console.warn("[API] Gagal mendapatkan konten bulanan. Menggunakan data statis.");
+    }
 }
+
 
 // 4. Main Schedule Loader (Offline-First Logic)
 async function loadSchedule() {
@@ -212,10 +231,9 @@ async function loadSchedule() {
         renderFullScheduleGrid();
     }
 
-    // Load Extra Content
+    // Load Extra Content (Hijri Date dan Konten Bulanan)
     await fetchHijriDate(dateKey); 
-    await fetchRandomHadith();
-    await fetchRandomAyat(); 
+    await loadMonthlyContent(); 
 }
 
 // --- INITIALIZATION ---
@@ -223,7 +241,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log("Memulai Sistem...");
         
-        // MAPPING ELEMENT ID DARI INDEX.HTML
         els = {
             masjidName: document.getElementById('masjid-name'),
             address: document.getElementById('masjid-address'),
@@ -241,12 +258,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             nextDetailTime: document.getElementById('next-detail-time'),
             scheduleGridFull: document.getElementById('schedule-grid-full'),
             
-            // AYAT
             ayatText: document.getElementById('ayat-text'),
             ayatArabic: document.getElementById('ayat-arabic'), 
             ayatSource: document.getElementById('ayat-source'),
             
-            // HADITS
             haditsText: document.getElementById('hadits-text'),
             haditsArabic: document.getElementById('hadits-arabic'),
             haditsSource: document.getElementById('hadits-source'),
@@ -298,6 +313,9 @@ function updateClock() {
     const currentDateString = getFormattedDate(now);
     if (lastDateString !== "" && lastDateString !== currentDateString) {
         loadSchedule(); 
+        // Reset index rotasi konten saat ganti hari
+        currentState.currentAyatIndex = 0;
+        currentState.currentHadithIndex = 0;
     }
     lastDateString = currentDateString;
 
@@ -432,34 +450,57 @@ function nextNormalSlide() {
 
     // --- RENDERING AYAT ---
     if (key === 'ayat' && els.ayatText) {
-        const item = DATA_CONTENT.ayat[Math.floor(Math.random() * DATA_CONTENT.ayat.length)];
+        // Ambil data berdasarkan index yang dirotasi
+        const totalAyat = DATA_CONTENT.ayat.length;
+        const item = DATA_CONTENT.ayat[currentState.currentAyatIndex % totalAyat];
         
-        if (els.ayatArabic) {
-             els.ayatArabic.textContent = item.arabic || "";
+        if (totalAyat > 0) {
+             // 1. Teks Arab
+            if (els.ayatArabic) els.ayatArabic.textContent = item.arabic || "";
+            
+            // 2. Teks Indonesia
+            els.ayatText.innerHTML = `"${item.text}"`;
+            els.ayatSource.textContent = item.source;
+            
+            // Increment index untuk slide berikutnya
+            currentState.currentAyatIndex = (currentState.currentAyatIndex + 1) % totalAyat;
+        } else {
+            // Fallback jika array kosong
+            els.ayatText.innerHTML = '"Gagal memuat ayat acak."';
+            els.ayatSource.textContent = 'Membutuhkan koneksi internet untuk fetch bulanan.';
         }
-        
-        els.ayatText.innerHTML = `"${item.text}"`;
-        els.ayatSource.textContent = item.source;
     } 
     
     // --- RENDERING HADITS ---
     else if (key === 'hadits' && els.haditsText) {
-        const item = DATA_CONTENT.hadits[Math.floor(Math.random() * DATA_CONTENT.hadits.length)];
+        // Ambil data berdasarkan index yang dirotasi
+        const totalHadith = DATA_CONTENT.hadits.length;
+        const item = DATA_CONTENT.hadits[currentState.currentHadithIndex % totalHadith];
         
-        if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
-        
-        let contentHTML = `"${item.text}"`;
-        if (item.hikmah) {
-            contentHTML += `<br><br><span class="text-3xl text-emerald-400 font-sans tracking-wide block mt-4 pt-4 border-t border-emerald-500/30">💡 Hikmah: ${item.hikmah}</span>`;
+        if (totalHadith > 0) {
+            // 1. Tampilkan Arab
+            if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
+            
+            // 2. Tampilkan Indo + Hikmah
+            let contentHTML = `"${item.text}"`;
+            if (item.hikmah) {
+                contentHTML += `<br><br><span class="text-3xl text-emerald-400 font-sans tracking-wide block mt-4 pt-4 border-t border-emerald-500/30">💡 Hikmah: ${item.hikmah}</span>`;
+            }
+            els.haditsText.innerHTML = contentHTML;
+            
+            // 3. Tampilkan Sumber + Grade
+            let sourceInfo = item.source;
+            if (item.grade) {
+                sourceInfo += ` • (${item.grade})`;
+            }
+            els.haditsSource.textContent = sourceInfo;
+            
+            // Increment index untuk slide berikutnya
+            currentState.currentHadithIndex = (currentState.currentHadithIndex + 1) % totalHadith;
+        } else {
+             els.haditsText.innerHTML = '"Gagal memuat hadis acak."';
+             els.haditsSource.textContent = 'Membutuhkan koneksi internet untuk fetch bulanan.';
         }
-        els.haditsText.innerHTML = contentHTML;
-        
-        let sourceInfo = item.source;
-        if (item.grade) {
-            sourceInfo += ` • (${item.grade})`;
-        }
-        els.haditsSource.textContent = sourceInfo;
-
     } 
     
     // --- RENDERING INFO/DONATION ---
