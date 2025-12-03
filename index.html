@@ -24,7 +24,7 @@
                         sans: ['Outfit', 'sans-serif'], 
                         serif: ['Amiri', 'serif'], 
                         mono: ['JetBrains Mono', 'monospace'],
-                        cinzel: ['Cinzel', 'serif'] /* Font Baru Registered */
+                        cinzel: ['Cinzel', 'serif']
                     },
                     colors: { 
                         dark: { 900: '#050505', 800: '#0a0a0a', card: '#111111' },
@@ -133,7 +133,7 @@
         }
         
         #footer-schedule > div h3 { 
-            font-family: 'Cinzel', serif; /* Footer titles use Cinzel */
+            font-family: 'Cinzel', serif;
             font-size: 0.85rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -182,147 +182,130 @@
     <div class="main-layout">
         
         <header class="bento-card h-36 px-8 grid grid-cols-12 gap-6 items-center relative z-20 overflow-hidden border-t border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)]">
-    
-    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 opacity-20"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 opacity-20"></div>
 
-    <div class="col-span-4 flex items-center gap-6 border-r border-white/5 pr-6 relative">
-        <div class="relative group">
-            <div class="absolute inset-0 bg-gradient-to-tr from-brand-500/30 to-accent-500/10 blur-2xl rounded-full group-hover:scale-110 transition duration-700"></div>
-            <div class="relative z-10 p-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-sm shadow-inner">
-                <img src="logo-putih-muallimin.webp" alt="Logo" class="h-20 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-                <i class="ri-mosque-fill text-5xl text-brand-500 hidden"></i>
+            <div class="col-span-4 flex items-center gap-6 border-r border-white/5 pr-6 relative">
+                <div class="relative group">
+                    <div class="absolute inset-0 bg-gradient-to-tr from-brand-500/30 to-accent-500/10 blur-2xl rounded-full group-hover:scale-110 transition duration-700"></div>
+                    <div class="relative z-10 p-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-sm shadow-inner">
+                        <img src="logo-putih-muallimin.webp" alt="Logo" class="h-20 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                        <i class="ri-mosque-fill text-5xl text-brand-500 hidden"></i>
+                    </div>
+                </div>
+                
+                <div class="flex flex-col">
+                    <h1 id="masjid-name" class="font-cinzel font-black text-2xl tracking-tight uppercase leading-none mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 drop-shadow-sm">
+                        Masjid Mu'allimin
+                    </h1>
+                    <div class="flex items-center gap-2">
+                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/20">
+                            <i class="ri-map-pin-line text-[10px]"></i>
+                        </span>
+                        <span id="masjid-address" class="text-slate-400 font-bold text-xs tracking-[0.25em] uppercase font-sans">Yogyakarta</span>
+                    </div>
+                </div>
             </div>
-        </div>
-        
-        <div class="flex flex-col">
-            <h1 id="masjid-name" class="font-cinzel font-black text-2xl tracking-tight uppercase leading-none mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 drop-shadow-sm">
-                Masjid Mu'allimin
-            </h1>
-            <div class="flex items-center gap-2">
-                <span class="flex items-center justify-center w-5 h-5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/20">
-                    <i class="ri-map-pin-line text-[10px]"></i>
-                </span>
-                <span id="masjid-address" class="text-slate-400 font-bold text-xs tracking-[0.25em] uppercase font-sans">Yogyakarta</span>
+
+            <div class="col-span-4 flex flex-col items-center justify-center relative">
+                <div class="absolute inset-x-4 inset-y-2 bg-gradient-to-b from-white/5 to-transparent rounded-2xl border border-white/5 -z-10"></div>
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="ri-calendar-event-fill text-brand-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]"></i>
+                    <span id="header-date-masehi" class="font-sans font-bold text-xl text-white tracking-wide drop-shadow-md">...</span>
+                </div>
+                <div class="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent my-1"></div>
+                <div class="flex items-center gap-3">
+                    <i class="ri-moon-cloudy-fill text-accent-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"></i>
+                    <span id="header-date-hijri" class="font-sans font-semibold text-lg text-accent-100 tracking-wide">...</span>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="col-span-4 flex flex-col items-center justify-center relative">
-        <div class="absolute inset-x-4 inset-y-2 bg-gradient-to-b from-white/5 to-transparent rounded-2xl border border-white/5 -z-10"></div>
-        
-        <div class="flex items-center gap-3 mb-2">
-            <i class="ri-calendar-event-fill text-brand-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]"></i>
-            <span id="header-date-masehi" class="font-sans font-bold text-xl text-white tracking-wide drop-shadow-md">...</span>
-        </div>
-        
-        <div class="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent my-1"></div>
-        
-        <div class="flex items-center gap-3">
-            <i class="ri-moon-cloudy-fill text-accent-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"></i>
-            <span id="header-date-hijri" class="font-sans font-semibold text-lg text-accent-100 tracking-wide">...</span>
-        </div>
-    </div>
+            <div class="col-span-4 flex flex-col items-end justify-center pl-6 border-l border-white/5 relative">
+                 <div class="flex items-center gap-3 mb-2 bg-black/40 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-lg absolute top-3 right-8 overflow-hidden group">
+                    <div class="absolute inset-0 bg-gradient-to-r from-brand-500/0 via-brand-500/10 to-brand-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-br from-red-400 to-red-600 border border-white/20"></span>
+                    </span>
+                    <span class="text-[0.65rem] font-bold text-slate-300 uppercase tracking-widest relative z-10">
+                        Menuju <span id="header-next-name" class="text-brand-400 ml-1 font-cinzel text-glow-brand">...</span>
+                    </span>
+                </div>
 
-    <div class="col-span-4 flex flex-col items-end justify-center pl-6 border-l border-white/5 relative">
-         <div class="flex items-center gap-3 mb-2 bg-black/40 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-lg absolute top-3 right-8 overflow-hidden group">
-            <div class="absolute inset-0 bg-gradient-to-r from-brand-500/0 via-brand-500/10 to-brand-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
-            
-            <span class="relative flex h-2.5 w-2.5">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-br from-red-400 to-red-600 border border-white/20"></span>
-            </span>
-            <span class="text-[0.65rem] font-bold text-slate-300 uppercase tracking-widest relative z-10">
-                Menuju <span id="header-next-name" class="text-brand-400 ml-1 font-cinzel text-glow-brand">...</span>
-            </span>
-        </div>
-
-        <div id="header-clock" class="text-7xl font-mono font-black text-white tracking-tighter leading-none mt-8 drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] tabular-nums scale-y-110">
-            00:00
-        </div>
-        
-        <div class="flex items-center gap-2 mt-1 opacity-90">
-            <i class="ri-timer-flash-line text-accent-500 animate-pulse"></i>
-            <div id="header-countdown" class="text-xl font-mono font-bold text-accent-400 tracking-widest tabular-nums drop-shadow-sm">
-                -00:00:00
+                <div id="header-clock" class="text-7xl font-mono font-black text-white tracking-tighter leading-none mt-8 drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] tabular-nums scale-y-110">
+                    00:00
+                </div>
+                
+                <div class="flex items-center gap-2 mt-1 opacity-90">
+                    <i class="ri-timer-flash-line text-accent-500 animate-pulse"></i>
+                    <div id="header-countdown" class="text-xl font-mono font-bold text-accent-400 tracking-widest tabular-nums drop-shadow-sm">
+                        -00:00:00
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
-
-</header>
+        </header>
 
         <main class="relative z-10 w-full h-full overflow-hidden bento-card flex flex-col justify-center items-center">
             
             <div id="scene-home" class="w-full h-full flex flex-col items-center justify-center animate-fade-in relative px-10 overflow-hidden">
-    
-    <div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
-        <div class="absolute w-[600px] h-[600px] bg-brand-500/20 rounded-full blur-[120px] animate-pulse"></div>
-        
-        <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" class="w-[120%] h-[120%] animate-spin-slow text-brand-500">
-            <defs>
-                <pattern id="pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                    <path d="M20 0 L40 20 L20 40 L0 20 Z" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-                </pattern>
-            </defs>
-            <g transform="translate(250,250)">
-                <circle cx="0" cy="0" r="200" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="10 10" opacity="0.5" />
-                <circle cx="0" cy="0" r="160" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3" />
-                <path d="M0 -220 L50 -100 L180 -180 L100 -50 L220 0 L100 50 L180 180 L50 100 L0 220 L-50 100 L-180 180 L-100 50 L-220 0 L-100 -50 L-180 -180 L-50 -100 Z" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2" />
-            </g>
-        </svg>
-    </div>
-    
-    <div class="relative z-10 mb-4">
-        <h2 class="text-3xl text-accent-400 font-cinzel font-bold tracking-[0.6em] uppercase flex items-center gap-8">
-            <div class="h-[2px] w-24 bg-gradient-to-l from-accent-400 to-transparent"></div>
-            
-            <span class="text-glow-accent drop-shadow-lg">Ahlan Wa Sahlan</span>
-            
-            <div class="h-[2px] w-24 bg-gradient-to-r from-accent-400 to-transparent"></div>
-        </h2>
-    </div>
-    
-    <div class="relative z-10 text-center group">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[50%] bg-brand-500/10 blur-3xl rounded-full"></div>
-
-        <h1 class="text-[9rem] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-500 leading-[0.85] tracking-tight drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] relative z-20">
-            MASJID JAMI'
-        </h1>
-        
-        <h1 class="text-[9rem] font-cinzel font-black leading-[0.85] tracking-tight relative z-20 mt-2">
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 via-white to-brand-500 drop-shadow-[0_0_25px_rgba(20,184,166,0.4)]">
-                MU'ALLIMIN
-            </span>
-        </h1>
-
-        <h1 class="text-[9rem] font-cinzel font-black text-white leading-[0.85] tracking-tight absolute top-full left-0 right-0 opacity-10 scale-y-[-0.5] blur-sm pointer-events-none bg-gradient-to-t from-transparent to-white bg-clip-text text-transparent transform -translate-y-10">
-            MU'ALLIMIN
-        </h1>
-    </div>
-    
-    <div class="mt-20 relative">
-        <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent to-accent-500"></div>
-        
-        <div class="bg-gradient-to-b from-white/10 to-black/30 backdrop-blur-xl px-12 py-6 rounded-[2rem] border border-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] flex flex-col items-center">
-            <div class="text-accent-400 text-2xl mb-2 opacity-80">
-                <i class="ri-double-quotes-l"></i>
+                <div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
+                    <div class="absolute w-[600px] h-[600px] bg-brand-500/20 rounded-full blur-[120px] animate-pulse"></div>
+                    <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" class="w-[120%] h-[120%] animate-spin-slow text-brand-500">
+                        <defs>
+                            <pattern id="pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                                <path d="M20 0 L40 20 L20 40 L0 20 Z" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"/>
+                            </pattern>
+                        </defs>
+                        <g transform="translate(250,250)">
+                            <circle cx="0" cy="0" r="200" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="10 10" opacity="0.5" />
+                            <circle cx="0" cy="0" r="160" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3" />
+                            <path d="M0 -220 L50 -100 L180 -180 L100 -50 L220 0 L100 50 L180 180 L50 100 L0 220 L-50 100 L-180 180 L-100 50 L-220 0 L-100 -50 L-180 -180 L-50 -100 Z" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2" />
+                        </g>
+                    </svg>
+                </div>
+                
+                <div class="relative z-10 mb-4">
+                    <h2 class="text-3xl text-accent-400 font-cinzel font-bold tracking-[0.6em] uppercase flex items-center gap-8">
+                        <div class="h-[2px] w-24 bg-gradient-to-l from-accent-400 to-transparent"></div>
+                        <span class="text-glow-accent drop-shadow-lg">Ahlan Wa Sahlan</span>
+                        <div class="h-[2px] w-24 bg-gradient-to-r from-accent-400 to-transparent"></div>
+                    </h2>
+                </div>
+                
+                <div class="relative z-10 text-center group">
+                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[50%] bg-brand-500/10 blur-3xl rounded-full"></div>
+                    <h1 class="text-[9rem] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-500 leading-[0.85] tracking-tight drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] relative z-20">
+                        MASJID JAMI'
+                    </h1>
+                    <h1 class="text-[9rem] font-cinzel font-black leading-[0.85] tracking-tight relative z-20 mt-2">
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 via-white to-brand-500 drop-shadow-[0_0_25px_rgba(20,184,166,0.4)]">
+                            MU'ALLIMIN
+                        </span>
+                    </h1>
+                    <h1 class="text-[9rem] font-cinzel font-black text-white leading-[0.85] tracking-tight absolute top-full left-0 right-0 opacity-10 scale-y-[-0.5] blur-sm pointer-events-none bg-gradient-to-t from-transparent to-white bg-clip-text text-transparent transform -translate-y-10">
+                        MU'ALLIMIN
+                    </h1>
+                </div>
+                
+                <div class="mt-20 relative">
+                    <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent to-accent-500"></div>
+                    <div class="bg-gradient-to-b from-white/10 to-black/30 backdrop-blur-xl px-12 py-6 rounded-[2rem] border border-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] flex flex-col items-center">
+                        <div class="text-accent-400 text-2xl mb-2 opacity-80">
+                            <i class="ri-double-quotes-l"></i>
+                        </div>
+                        <p class="text-4xl text-slate-100 font-serif italic tracking-wide text-glow text-center leading-relaxed">
+                            "Luruskan dan Rapatkan Shaf Sholat Anda"
+                        </p>
+                    </div>
+                </div>
             </div>
-            <p class="text-4xl text-slate-100 font-serif italic tracking-wide text-glow text-center leading-relaxed">
-                "Luruskan dan Rapatkan Shaf Sholat Anda"
-            </p>
-        </div>
-    </div>
 
-</div>
             <div id="scene-next-detail" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in relative">
                  <div class="absolute inset-0 bg-gradient-to-b from-brand-900/20 to-transparent pointer-events-none"></div>
-                 
                  <div class="flex flex-col items-center z-10">
                     <div class="bg-black/30 px-8 py-2 rounded-full border border-brand-500/30 mb-10 shadow-[0_0_30px_rgba(20,184,166,0.2)]">
                         <p class="text-brand-400 text-xl font-cinzel uppercase tracking-[0.2em] font-bold">Waktu Berikutnya</p>
                     </div>
-
                     <h1 id="next-detail-name" class="text-[14vh] font-cinzel font-black text-white leading-none mb-6 uppercase tracking-tight text-outline">...</h1>
-                    
                     <div class="relative">
                         <div class="absolute -inset-10 bg-brand-500/20 blur-[60px] rounded-full animate-pulse-glow"></div>
                         <span id="next-detail-time" class="relative z-10 text-[18vh] font-mono font-bold text-white tracking-tighter tabular-nums drop-shadow-2xl">--:--</span>
@@ -333,14 +316,11 @@
             <div id="scene-ayat" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-20">
                 <div class="text-center w-full max-w-7xl relative">
                     <i class="ri-double-quotes-l text-9xl text-white/5 absolute -top-20 -left-20"></i>
-                    
                     <div class="mb-12 inline-flex items-center justify-center px-6 py-2 rounded-full bg-accent-500/10 text-accent-500 text-lg font-bold uppercase tracking-widest border border-accent-500/20">
                         <i class="ri-book-open-line mr-3"></i> <span class="font-cinzel">Kalamullah</span>
                     </div>
-                    
                     <p id="ayat-arabic" class="text-7xl font-serif text-white leading-[2.5] mb-12 dir-rtl text-glow-accent" style="direction: rtl;">...</p>
                     <p id="ayat-text" class="text-5xl font-sans font-medium text-slate-300 leading-relaxed italic tracking-tight">...</p>
-                    
                     <div class="mt-16 inline-block border-t border-accent-500/50 pt-6">
                         <p id="ayat-source" class="text-3xl font-cinzel font-black text-accent-500 uppercase tracking-widest">...</p>
                     </div>
@@ -350,91 +330,14 @@
             <div id="scene-hadits" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-20">
                 <div class="text-center w-full max-w-7xl relative">
                     <i class="ri-double-quotes-l text-9xl text-white/5 absolute -top-20 -left-20"></i>
-
                     <div class="mb-12 inline-flex items-center justify-center px-6 py-2 rounded-full bg-brand-500/10 text-brand-500 text-lg font-bold uppercase tracking-widest border border-brand-500/20">
                         <i class="ri-chat-quote-line mr-3"></i> <span class="font-cinzel">Hadits</span>
                     </div>
-                    
                     <p id="hadits-arabic" class="text-7xl font-serif text-white leading-[2.5] mb-12 dir-rtl text-glow-brand" style="direction: rtl;">...</p>
                     <p id="hadits-text" class="text-5xl font-sans font-medium text-slate-300 leading-relaxed tracking-tight">...</p>
-                    
                     <div class="mt-16 flex justify-center items-center gap-6">
                         <span class="px-4 py-2 bg-slate-800 rounded-lg text-lg text-slate-400 uppercase font-bold tracking-wide border border-white/10">Riwayat</span>
                         <p id="hadits-source" class="text-3xl font-cinzel font-black text-white uppercase tracking-widest">...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="scene-info" class="hidden-slide w-full h-full flex flex-col p-10 animate-fade-in">
-                <div class="flex items-end justify-between mb-10 border-b border-white/10 pb-6">
-                    <h2 class="text-6xl font-cinzel font-black text-white uppercase tracking-tight">Informasi <span class="text-brand-500">Masjid</span></h2>
-                    <i class="ri-information-line text-6xl text-white/20"></i>
-                </div>
-                
-                <style>
-                    #info-grid > div {
-                        background: rgba(255,255,255,0.03) !important;
-                        border: 1px solid rgba(255,255,255,0.05) !important;
-                        backdrop-filter: blur(10px);
-                        transition: transform 0.3s;
-                    }
-                    #info-grid > div:hover {
-                        transform: translateY(-5px);
-                        background: rgba(255,255,255,0.06) !important;
-                        border-color: rgba(20, 184, 166, 0.3) !important;
-                    }
-                </style>
-                <div id="info-grid" class="flex-1 grid grid-cols-2 gap-8 content-start"></div>
-            </div>
-
-            <div id="scene-donation" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in">
-                <h2 class="text-6xl font-cinzel font-black text-white mb-16 uppercase tracking-tight text-glow">Infaq & Shodaqoh</h2>
-                
-                <div class="flex gap-12 w-full max-w-[85%]">
-                    <div class="flex-1 bg-gradient-to-br from-[#00a39e] to-[#0f172a] p-10 rounded-[2.5rem] border border-white/20 flex flex-col justify-between h-[420px] shadow-2xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
-                        <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-                        <div class="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                        
-                        <div class="flex justify-between items-start z-10 mb-8">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Bank_Syariah_Indonesia_Logo.png" class="h-16 bg-white p-3 rounded-xl object-contain" alt="BSI">
-                            <i class="ri-wifi-line text-4xl text-white/50 rotate-90"></i>
-                        </div>
-                        
-                        <div class="z-10">
-                            <p class="text-white/70 font-mono text-lg mb-2 tracking-[0.2em] uppercase">Nomor Rekening</p>
-                            <p class="text-7xl font-mono font-black text-white tracking-tighter drop-shadow-md">7930030303</p>
-                        </div>
-                        
-                        <div class="z-10 flex justify-between items-end">
-                            <div>
-                                <p class="text-white/50 text-sm uppercase tracking-widest mb-1">Atas Nama</p>
-                                <p class="text-2xl font-bold text-white uppercase tracking-wide">LAZISMU MUALLIMIN</p>
-                            </div>
-                            <span class="text-white/30 font-black text-4xl">PLATINUM</span>
-                        </div>
-                    </div>
-
-                    <div class="flex-1 bg-gradient-to-br from-[#f59e0b] to-[#451a03] p-10 rounded-[2.5rem] border border-white/20 flex flex-col justify-between h-[420px] shadow-2xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
-                        <div class="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
-                        <div class="absolute -right-20 -top-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-
-                        <div class="flex justify-between items-start z-10 mb-8">
-                            <img src="https://upload.wikimedia.org/wikipedia/id/thumb/5/55/BNI_logo.svg/1200px-BNI_logo.svg.png" class="h-16 bg-white p-3 rounded-xl object-contain" alt="BNI">
-                            <i class="ri-wifi-line text-4xl text-white/50 rotate-90"></i>
-                        </div>
-                        
-                        <div class="z-10">
-                            <p class="text-white/70 font-mono text-lg mb-2 tracking-[0.2em] uppercase">Nomor Rekening</p>
-                            <p class="text-7xl font-mono font-black text-white tracking-tighter drop-shadow-md">3440000348</p>
-                        </div>
-                        
-                        <div class="z-10 flex justify-between items-end">
-                            <div>
-                                <p class="text-white/50 text-sm uppercase tracking-widest mb-1">Atas Nama</p>
-                                <p class="text-2xl font-bold text-white uppercase tracking-wide">LAZISMU MADRASAH</p>
-                            </div>
-                            <span class="text-white/30 font-black text-4xl">GOLD</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -448,8 +351,11 @@
 
             <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center px-20">
                 <div class="absolute inset-0 bg-brand-900/10 animate-pulse"></div>
+                
                 <i class="ri-notification-off-fill text-[15vh] text-brand-500 mb-8"></i>
+                
                 <h1 class="text-[12vh] font-cinzel font-black text-white uppercase tracking-wider mb-12 leading-none">Sholat Berlangsung</h1>
+                
                 <div class="bg-white/5 px-20 py-10 rounded-[3rem] border border-white/10 backdrop-blur-md">
                     <p class="text-7xl text-brand-400 font-bold mb-6">Luruskan & Rapatkan Shaf</p>
                     <p class="text-4xl text-slate-400 uppercase tracking-[0.2em] font-bold">Mohon Matikan Alat Komunikasi</p>
