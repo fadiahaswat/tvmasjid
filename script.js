@@ -7,7 +7,9 @@ const CONFIG = {
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
     runningText: "Selamat Datang di Masjid Jami' Mu'allimin • Mohon luruskan shaf • Matikan HP saat sholat berlangsung",
     
+    // Durasi slide
     duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 25, hadits: 20, info: 10, donation: 10 },
+    // Thresholds (menit)
     thresholds: { preAdzan: 12, preIqamah: 10, inPrayer: 20, dzikir: 10, jumatPrep: 30 },
     
     defaultPrayerTimes: {
@@ -19,8 +21,8 @@ const CONFIG = {
     currentHijriDate: "" 
 };
 
+// --- DATA CONTENT (DEFAULT/FALLBACK) ---
 const DATA_CONTENT = {
-    // UPDATED: Tambahkan field 'arabic' pada data default
     ayat: [
         { 
             text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", 
@@ -40,13 +42,6 @@ const DATA_CONTENT = {
             source: "HR. Ahmad",
             grade: "Hasan",
             hikmah: null
-        },
-        { 
-            text: "Shalat berjamaah lebih utama 27 derajat.", 
-            arabic: "صَلاةُ الْجَمَاعَةِ تَفْضُلُ صَلاةَ الْفَذِّ بِسَبْعٍ وَعِشْرِينَ دَرَجَةً",
-            source: "HR. Bukhari Muslim",
-            grade: "Muttafaq Alaih",
-            hikmah: "Pentingnya kebersamaan umat."
         }
     ],
     info: [
@@ -68,7 +63,7 @@ function calculateTahajjud(shubuhTime) {
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210);
+    date.setMinutes(date.getMinutes() - 210); // -3.5 jam
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -81,10 +76,9 @@ function getFormattedDate(dateObj) {
 
 // --- DATA FETCHING FUNCTIONS ---
 
-// 1. Fetch Ayat Acak (NEW)
+// 1. Fetch Ayat Acak
 async function fetchRandomAyat() {
     try {
-        console.log("[API] Mengambil Ayat Acak...");
         const url = "https://api.myquran.com/v2/quran/ayat/acak";
         const res = await fetch(url);
         const json = await res.json();
@@ -93,7 +87,7 @@ async function fetchRandomAyat() {
             const ayat = json.data.ayat;
             const info = json.data.info.surat;
 
-            // Bersihkan teks Indonesia dari karakter \n
+            // Bersihkan teks Indonesia (\n -> <br>)
             const textId = (ayat.text || "").replace(/\n/g, "<br>");
             
             const newAyat = {
@@ -102,9 +96,8 @@ async function fetchRandomAyat() {
                 source: `QS. ${info.nama.id} (${info.id}): ${ayat.ayah}` 
             };
 
-            // Timpa array yang lama agar hanya ada 1 ayat acak yang tampil
+            // Timpa array yang lama (hanya 1 ayat acak yang tampil)
             DATA_CONTENT.ayat = [newAyat];
-            console.log("[API] Ayat berhasil diupdate:", newAyat.source);
         }
     } catch (e) {
         console.warn("[API] Gagal ambil ayat acak.", e);
@@ -112,7 +105,7 @@ async function fetchRandomAyat() {
 }
 
 
-// 2. Fetch Hadis Random
+// 2. Fetch Hadis Random (Lengkap dengan Grade & Hikmah)
 async function fetchRandomHadith() {
     try {
         const res = await fetch("https://api.myquran.com/v3/hadis/enc/random");
@@ -121,11 +114,14 @@ async function fetchRandomHadith() {
         if (json.status && json.data?.text) {
             const d = json.data;
 
+            // Ambil Data
             const arabicText = d.text?.ar || "";
             let indoText = d.text?.id || "";
             
-            indoText = indoText.replace(/\n/g, "<br>"); // Format HTML
+            // Format HTML
+            indoText = indoText.replace(/\n/g, "<br>");
 
+            // Bersihkan Takhrij
             let sourceName = d.takhrij || "Muttafaq Alaihi";
             sourceName = sourceName.replace("Diriwayatkan oleh", "").trim();
 
@@ -137,8 +133,8 @@ async function fetchRandomHadith() {
                 hikmah: d.hikmah || null
             };
             
+            // Masukkan ke array konten
             DATA_CONTENT.hadits.unshift(newHadith);
-            console.log("[API] Hadis berhasil update:", sourceName);
         }
     } catch (e) {
         console.warn("[API] Gagal ambil hadis.", e);
@@ -164,7 +160,7 @@ async function fetchHijriDate(dateString) {
     } catch (e) { console.warn("[API] Gagal ambil Hijriah.", e); }
 }
 
-// 4. Main Schedule Loader
+// 4. Main Schedule Loader (Offline-First Logic)
 async function loadSchedule() {
     const now = new Date();
     const dateKey = getFormattedDate(now); 
@@ -223,7 +219,7 @@ async function loadSchedule() {
     // Load Extra Content
     await fetchHijriDate(dateKey); 
     await fetchRandomHadith();
-    await fetchRandomAyat(); // NEW: Fetch Ayat
+    await fetchRandomAyat(); 
 }
 
 // --- INITIALIZATION ---
@@ -231,6 +227,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log("Memulai Sistem...");
         
+        // MAPPING ELEMENT ID DARI INDEX.HTML
         els = {
             masjidName: document.getElementById('masjid-name'),
             address: document.getElementById('masjid-address'),
@@ -248,9 +245,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             nextDetailTime: document.getElementById('next-detail-time'),
             scheduleGridFull: document.getElementById('schedule-grid-full'),
             
-            // AYAT (Tambahkan elemen Arabic)
+            // AYAT
             ayatText: document.getElementById('ayat-text'),
-            ayatArabic: document.getElementById('ayat-arabic'), // NEW ID
+            ayatArabic: document.getElementById('ayat-arabic'), 
             ayatSource: document.getElementById('ayat-source'),
             
             // HADITS
@@ -457,19 +454,23 @@ function nextNormalSlide() {
     else if (key === 'hadits' && els.haditsText) {
         const item = DATA_CONTENT.hadits[Math.floor(Math.random() * DATA_CONTENT.hadits.length)];
         
+        // 1. Tampilkan Arab
         if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
         
+        // 2. Tampilkan Indo (HTML)
         let contentHTML = `"${item.text}"`;
         if (item.hikmah) {
             contentHTML += `<br><br><span class="text-3xl text-emerald-400 font-sans tracking-wide block mt-4 pt-4 border-t border-emerald-500/30">💡 Hikmah: ${item.hikmah}</span>`;
         }
         els.haditsText.innerHTML = contentHTML;
         
+        // 3. Tampilkan Sumber + Grade
         let sourceInfo = item.source;
         if (item.grade) {
             sourceInfo += ` • (${item.grade})`;
         }
         els.haditsSource.textContent = sourceInfo;
+
     } 
     
     // --- RENDERING INFO/DONATION ---
