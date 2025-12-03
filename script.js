@@ -75,8 +75,8 @@ function log(funcName, msg, type = 'info') {
 
 function getFormattedDate(dateObj) {
     const y = dateObj.getFullYear();
-    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const d = String(dateObj.getDate()).padStart(2, '0');
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0'); // 01, 02, ... 12
+    const d = String(dateObj.getDate()).padStart(2, '0');      // 01, 02, ... 31
     return `${y}-${m}-${d}`;
 }
 
