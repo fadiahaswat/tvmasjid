@@ -96,16 +96,23 @@ async function fetchSingleRandomHadith() {
     } catch (e) { return null; }
 }
 
-async function fetchHijriDate(dateString) {
-    try {
-        const res = await fetch(`https://api.myquran.com/v3/cal/hijr/${dateString}`);
-        const json = await res.json();
-        if (json.status && json.data?.date) {
-            const d = json.data.date;
-            CONFIG.currentHijriDate = `${d.day || ""} ${d.month?.en || ""} ${d.year || ""} H`;
-            updateClock();
-        }
-    } catch (e) { console.warn("Hijri Error", e); }
+async function fetchHijriDate() {
+    try {
+        // Menggunakan endpoint /cal/today yang otomatis deteksi hari ini
+        const res = await fetch('https://api.myquran.com/v3/cal/today');
+        const json = await res.json();
+        
+        // Cek struktur data baru (data.hijr)
+        if (json.status && json.data?.hijr) {
+            const h = json.data.hijr;
+            // Format: "13 Jumadilakhir 1447 H"
+            CONFIG.currentHijriDate = `${h.day} ${h.monthName} ${h.year} H`;
+            updateClock();
+        }
+    } catch (e) { 
+        console.warn("Hijri Error", e); 
+        // Opsional: Jika error, biarkan teks "Memuat..." atau set default
+    }
 }
 
 async function loadMonthlyContent() {
