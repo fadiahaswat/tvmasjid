@@ -193,7 +193,7 @@ async function loadSchedule() {
     
     renderFooterSchedule(); // Render Footer setiap load jadwal
     
-    await fetchHijriDate(dateKey);
+    await fetchHijriDate();
     await loadMonthlyContent();
 }
 
