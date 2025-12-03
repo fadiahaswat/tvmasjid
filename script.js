@@ -165,7 +165,7 @@ async function loadSchedule() {
 
     if (!todaySchedule) {
         try {
-            const res = await fetch(`https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}`);
+            const res = await fetch(`https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`);
             const json = await res.json();
             if (json.status && json.data?.jadwal) {
                 let storage = {};
