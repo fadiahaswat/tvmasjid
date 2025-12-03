@@ -3,10 +3,12 @@ const CONFIG = {
     cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
     masjidName: "MASJID JAMI' MU'ALLIMIN",
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
-    runningText: "Selamat Datang di Masjid Jami' Mu'allimin",
+    runningText: "Selamat Datang di Masjid Jami' Mu'allimin • Mohon luruskan shaf • Matikan HP saat sholat berlangsung • Jagalah kebersihan masjid",
     
-    // Slide Info dan Donation ditambahkan durasinya
+    // Durasi (detik)
     duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 25, hadits: 25, info: 15, donation: 15 },
+    
+    // Thresholds (menit)
     thresholds: { preAdzan: 12, preIqamah: 10, inPrayer: 20, dzikir: 10, jumatPrep: 30 },
     
     defaultPrayerTimes: {
@@ -15,12 +17,14 @@ const CONFIG = {
     },
 
     prayerTimes: {},
-    currentHijriDate: "Memuat..." 
+    currentHijriDate: "..." 
 };
 
-// --- DATA CONTENT ---
-const CONTENT_BATCH_SIZE_TOTAL = 60; 
+// --- BATCH CONFIG ---
+// Kita mulai dengan 10 dulu biar ringan dan tidak timeout
+const CONTENT_BATCH_SIZE_TOTAL = 10; 
 
+// --- CONTENT STORE ---
 const DATA_CONTENT = {
     ayat: [
         { text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", source: "QS. Al-Insyirah: 5" },
@@ -29,12 +33,11 @@ const DATA_CONTENT = {
     hadits: [
         { text: "Sebaik-baik manusia adalah yang paling bermanfaat bagi manusia lain.", arabic: "خَيْرُ الناسِ أَنْفَعُهُمْ لِلناسِ", source: "HR. Ahmad", grade: "Hasan", hikmah: null }
     ],
-    // NEW: Daftar Kegiatan Masjid
     infoList: [
-        { title: "Kajian Ahad Pagi", time: "Ahad, 06:00 WIB", desc: "Tafsir Jalalain bersama Ust. Fulan", icon: "📖" },
-        { title: "Tahajjud Berjamaah", time: "Setiap Malam Jumat", desc: "Mulai pukul 03:00 WIB dilanjutkan Sahur", icon: "🌙" },
-        { title: "Jumat Berkah", time: "Jumat, 11:00 WIB", desc: "Berbagi Nasi Bungkus untuk Jamaah", icon: "🍱" },
-        { title: "TPA Anak-Anak", time: "Senin - Kamis, 16:00", desc: "Belajar Al-Qur'an dan Akhlak", icon: "🧒" }
+        { title: "Kajian Ahad Pagi", time: "Ahad, 06:00 - 07:00 WIB", desc: "Tafsir Jalalain bersama Ust. Fulan", icon: "📖", color: "text-cyan-300" },
+        { title: "Tahajjud Berjamaah", time: "Setiap Malam Jumat", desc: "Mulai pukul 03:00 WIB dilanjutkan Sahur Bersama", icon: "🌙", color: "text-emerald-300" },
+        { title: "Jumat Berkah", time: "Jumat, 11:00 WIB", desc: "Berbagi Nasi Bungkus untuk Jamaah & Dhuafa", icon: "🍱", color: "text-gold-300" },
+        { title: "TPA Anak-Anak", time: "Senin - Kamis, 16:00", desc: "Belajar Al-Qur'an, Fiqih, dan Akhlak", icon: "🧒", color: "text-rose-300" }
     ]
 };
 
@@ -51,6 +54,7 @@ let els = {};
 let lastDateString = ""; 
 
 // --- HELPERS ---
+
 function calculateTahajjud(shubuhTime) {
     if (!shubuhTime) return "03:00";
     const [h, m] = shubuhTime.split(':').map(Number);
@@ -67,7 +71,8 @@ function getFormattedDate(dateObj) {
     return `${y}-${m}-${d}`;
 }
 
-// --- FETCHERS ---
+// --- FETCHERS (DENGAN LOGGING) ---
+
 async function fetchSingleRandomAyat() {
     try {
         const res = await fetch("https://api.myquran.com/v2/quran/ayat/acak");
@@ -79,7 +84,10 @@ async function fetchSingleRandomAyat() {
             return { text: textId, arabic: ayat.arab || "", source: `QS. ${info.nama.id} (${info.id}): ${ayat.ayah}` };
         }
         return null;
-    } catch (e) { return null; }
+    } catch (e) { 
+        console.warn("[API ERROR] Ayat:", e);
+        return null; 
+    }
 }
 
 async function fetchSingleRandomHadith() {
@@ -93,57 +101,89 @@ async function fetchSingleRandomHadith() {
             return { text: indoText, arabic: d.text?.ar || "", source: sourceName, grade: d.grade || "", hikmah: d.hikmah || null };
         }
         return null;
-    } catch (e) { return null; }
+    } catch (e) { 
+        console.warn("[API ERROR] Hadis:", e);
+        return null; 
+    }
 }
 
 async function fetchHijriDate(dateString) {
     try {
+        console.log(`[API] Fetching Hijri for: ${dateString}`);
         const res = await fetch(`https://api.myquran.com/v3/cal/hijr/${dateString}`);
         const json = await res.json();
+        
+        console.log("[API] Hijri Response:", json);
+
         if (json.status && json.data?.date) {
             const d = json.data.date;
-            CONFIG.currentHijriDate = `${d.day || ""} ${d.month?.en || ""} ${d.year || ""} H`;
-            updateClock();
+            // Handle struktur data yang mungkin beda
+            const dDay = d.day || "";
+            const dMonth = (typeof d.month === 'object') ? d.month.en : d.month;
+            const dYear = d.year || "";
+            
+            CONFIG.currentHijriDate = `${dDay} ${dMonth} ${dYear} H`;
+            console.log("[SYSTEM] Hijriah Updated:", CONFIG.currentHijriDate);
+            
+            // Langsung update UI
+            if(els.headerDateHijri) els.headerDateHijri.textContent = CONFIG.currentHijriDate;
+            if(els.homeDateHijri) els.homeDateHijri.textContent = CONFIG.currentHijriDate;
         }
-    } catch (e) { console.warn("Hijri Error", e); }
+    } catch (e) { console.error("[API ERROR] Hijri:", e); }
 }
+
+// --- LOADERS ---
 
 async function loadMonthlyContent() {
     const now = new Date();
-    const monthKey = `monthly_content_${now.getFullYear()}_${now.getMonth()}`;
+    const monthKey = `batch_content_${now.getFullYear()}_${now.getMonth()}`;
     let cached = localStorage.getItem(monthKey);
 
     if (cached) {
         try {
             const parsed = JSON.parse(cached);
-            if (parsed.ayat && parsed.hadits) {
+            if (parsed.ayat && parsed.hadits && parsed.ayat.length > 0) {
                 DATA_CONTENT.ayat = parsed.ayat;
                 DATA_CONTENT.hadits = parsed.hadits;
+                console.log("[CACHE] Konten batch loaded from storage.");
                 return;
             }
         } catch(e) { localStorage.removeItem(monthKey); }
     }
     
-    console.log("Downloading Monthly Batch...");
-    const ayatPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomAyat());
-    const hadithPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomHadith());
-    const [ayats, hadiths] = await Promise.all([Promise.all(ayatPromises), Promise.all(hadithPromises)]);
+    console.log("[API] Downloading New Content Batch...");
     
-    const validAyats = ayats.filter(i => i);
-    const validHadiths = hadiths.filter(i => i);
+    // Gunakan loop sederhana dulu untuk debugging, Promise.all kadang fail jika satu request fail
+    let newAyats = [];
+    let newHadits = [];
+
+    // Ambil 5 Ayat
+    for (let i = 0; i < 5; i++) {
+        const a = await fetchSingleRandomAyat();
+        if(a) newAyats.push(a);
+    }
     
-    if (validAyats.length > 0) DATA_CONTENT.ayat = validAyats;
-    if (validHadiths.length > 0) DATA_CONTENT.hadits = validHadiths;
+    // Ambil 5 Hadis
+    for (let i = 0; i < 5; i++) {
+        const h = await fetchSingleRandomHadith();
+        if(h) newHadits.push(h);
+    }
     
-    if (validAyats.length > 0 || validHadiths.length > 0) {
+    if (newAyats.length > 0) DATA_CONTENT.ayat = newAyats;
+    if (newHadits.length > 0) DATA_CONTENT.hadits = newHadits;
+    
+    if (newAyats.length > 0 || newHadits.length > 0) {
         localStorage.setItem(monthKey, JSON.stringify({ ayat: DATA_CONTENT.ayat, hadits: DATA_CONTENT.hadits }));
+        console.log(`[API] Batch Success: ${newAyats.length} Ayat, ${newHadits.length} Hadis`);
+    } else {
+        console.warn("[API] Batch failed, using default data.");
     }
 }
 
 async function loadSchedule() {
     const now = new Date();
     const dateKey = getFormattedDate(now);
-    const monthKey = `jadwal_bulan_${now.getFullYear()}_${now.getMonth()+1}`;
+    const monthKey = `jadwal_${now.getFullYear()}_${now.getMonth()+1}`;
     
     let monthlyData = localStorage.getItem(monthKey);
     let todaySchedule = null;
@@ -157,18 +197,44 @@ async function loadSchedule() {
 
     if (!todaySchedule) {
         try {
-            const res = await fetch(`https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}`);
+            console.log("[API] Fetching Schedule...");
+            // Gunakan format YYYY-MM (Strip)
+            const y = now.getFullYear();
+            const m = String(now.getMonth()+1).padStart(2,'0');
+            const d = String(now.getDate()).padStart(2,'0');
+            
+            // Coba Fetch Bulanan
+            const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}-${m}`;
+            const res = await fetch(url);
             const json = await res.json();
+            
+            console.log("[API] Schedule Response:", json);
+
             if (json.status && json.data?.jadwal) {
                 let storage = {};
-                (Array.isArray(json.data.jadwal) ? json.data.jadwal : [json.data.jadwal]).forEach(day => storage[day.date] = day);
+                if (Array.isArray(json.data.jadwal)) {
+                    json.data.jadwal.forEach(day => storage[day.date] = day);
+                } else {
+                    // Fallback jika API return object single (kadang terjadi di v3 jika parameter hari salah)
+                    storage[json.data.jadwal.date] = json.data.jadwal;
+                }
                 localStorage.setItem(monthKey, JSON.stringify(storage));
                 todaySchedule = storage[dateKey];
+            } else {
+                // Fallback Harian jika Bulanan Gagal
+                console.warn("[API] Bulanan gagal/kosong, coba harian...");
+                const urlDaily = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${y}-${m}-${d}`;
+                const resDaily = await fetch(urlDaily);
+                const jsonDaily = await resDaily.json();
+                if(jsonDaily.status && jsonDaily.data?.jadwal) {
+                    todaySchedule = jsonDaily.data.jadwal;
+                }
             }
-        } catch (e) { console.error("Schedule Error", e); }
+        } catch (e) { console.error("[API ERROR] Schedule:", e); }
     }
 
     if (todaySchedule) {
+        console.log("[SYSTEM] Schedule Data Loaded:", todaySchedule);
         CONFIG.prayerTimes = {
             tahajjud: calculateTahajjud(todaySchedule.subuh),
             imsak: todaySchedule.imsak,
@@ -181,11 +247,13 @@ async function loadSchedule() {
             isya: todaySchedule.isya
         };
     } else {
+        console.warn("[SYSTEM] Using Default Schedule.");
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
     }
     
-    renderFooterSchedule(); // Render Footer setiap load jadwal
+    renderFooterSchedule(); 
     
+    // Panggil Fetcher Lainnya
     await fetchHijriDate(dateKey);
     await loadMonthlyContent();
 }
@@ -193,6 +261,8 @@ async function loadSchedule() {
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        console.log("🚀 Starting Smart Masjid System...");
+        
         els = {
             // Header
             headerClock: document.getElementById('header-clock'),
@@ -201,41 +271,40 @@ document.addEventListener('DOMContentLoaded', async () => {
             headerNextName: document.getElementById('header-next-name'),
             headerCountdown: document.getElementById('header-countdown'),
             
-            // Home (Beranda)
+            // Home
             homeDateMasehi: document.getElementById('home-date-masehi'),
             homeDateHijri: document.getElementById('home-date-hijri'),
             homeNextName: document.getElementById('home-next-name'),
             homeNextTime: document.getElementById('home-next-time'),
-            homePrayerList: document.getElementById('home-prayer-list'), // Small Grid in Home (Optional)
+            homePrayerList: document.getElementById('home-prayer-list'),
             
             // Next Detail
             nextDetailName: document.getElementById('next-detail-name'),
             nextDetailTime: document.getElementById('next-detail-time'),
             
-            // Content Elements
+            // Content
             ayatText: document.getElementById('ayat-text'),
             ayatArabic: document.getElementById('ayat-arabic'),
             ayatSource: document.getElementById('ayat-source'),
             haditsText: document.getElementById('hadits-text'),
             haditsArabic: document.getElementById('hadits-arabic'),
             haditsSource: document.getElementById('hadits-source'),
-            
-            // Info Grid
             infoGrid: document.getElementById('info-grid'),
             
-            // Countdown Full
+            // Countdown
             countdownTitle: document.getElementById('countdown-title'),
             countdownName: document.getElementById('countdown-name'),
             countdownTimer: document.getElementById('countdown-timer'),
             
             // Footer
             footerSchedule: document.getElementById('footer-schedule'),
-            
             progressBar: document.getElementById('slide-progress'),
+            runningText: document.getElementById('running-text'),
+            runningTextDup: document.getElementById('running-text-duplicate'),
+            
             scenes: {
                 home: document.getElementById('scene-home'),
                 nextDetail: document.getElementById('scene-next-detail'),
-                // scheduleFull removed/skipped in loop as per request to focus on others
                 ayat: document.getElementById('scene-ayat'),
                 hadits: document.getElementById('scene-hadits'),
                 info: document.getElementById('scene-info'),
@@ -244,6 +313,19 @@ document.addEventListener('DOMContentLoaded', async () => {
                 prayer: document.getElementById('scene-prayer')
             }
         };
+
+        // SET RUNNING TEXT LANGSUNG (Debugging: Pastikan ini jalan)
+        if(els.runningText) {
+            console.log("[UI] Setting Running Text 1...");
+            els.runningText.textContent = CONFIG.runningText;
+        } else {
+            console.error("[UI ERROR] Element #running-text not found!");
+        }
+        
+        if(els.runningTextDup) {
+            console.log("[UI] Setting Running Text 2...");
+            els.runningTextDup.textContent = CONFIG.runningText;
+        }
 
         await loadSchedule();
         updateClock();
@@ -259,6 +341,7 @@ function updateClock() {
     const now = new Date();
     const currentDateString = getFormattedDate(now);
     if (lastDateString !== "" && lastDateString !== currentDateString) {
+        console.log("[SYSTEM] New Day Detected. Refreshing...");
         loadSchedule();
         currentState.currentAyatIndex = 0;
         currentState.currentHadithIndex = 0;
@@ -268,18 +351,15 @@ function updateClock() {
     const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
     const masehiDate = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-    // Update Header
     if(els.headerClock) els.headerClock.textContent = timeStr;
     if(els.headerDateMasehi) els.headerDateMasehi.textContent = masehiDate;
     if(els.headerDateHijri) els.headerDateHijri.textContent = CONFIG.currentHijriDate;
-
-    // Update Home Slide
+    
     if(els.homeDateMasehi) els.homeDateMasehi.textContent = masehiDate;
     if(els.homeDateHijri) els.homeDateHijri.textContent = CONFIG.currentHijriDate;
 
     const next = getNextPrayer(now);
     if(next) {
-        // Header Countdown Logic
         const [h, m] = next.timeStr.split(':').map(Number);
         let targetTime = new Date(now);
         targetTime.setHours(h, m, 0, 0);
@@ -292,8 +372,7 @@ function updateClock() {
         
         if(els.headerCountdown) els.headerCountdown.textContent = `-${hh}:${mm}:${ss}`;
         if(els.headerNextName) els.headerNextName.textContent = next.name;
-
-        // Update Slides
+        
         if(els.homeNextName) els.homeNextName.textContent = next.name;
         if(els.homeNextTime) els.homeNextTime.textContent = next.timeStr;
         if(els.nextDetailName) els.nextDetailName.textContent = next.name;
@@ -307,7 +386,6 @@ function getNextPrayer(now) {
     const keys = ['shubuh', 'syuruq', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     let found = null;
     let minDiff = 9999;
-    
     keys.forEach(key => {
         if(CONFIG.prayerTimes[key]) {
             const [h, m] = CONFIG.prayerTimes[key].split(':').map(Number);
@@ -391,8 +469,6 @@ function setMode(mode, data = {}) {
     }
 }
 
-// URUTAN SLIDE (SESUAI REQUEST)
-// Beranda -> Next Detail -> Ayat -> Hadist -> Info -> Donasi
 const SLIDES_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'info', 'donation'];
 
 function nextNormalSlide() {
@@ -400,7 +476,6 @@ function nextNormalSlide() {
     const key = SLIDES_ORDER[currentState.slideIndex];
     let duration = CONFIG.duration[key] || 10;
 
-    // RENDER LOGIC
     if (key === 'ayat' && els.ayatText) {
         const item = DATA_CONTENT.ayat[currentState.currentAyatIndex % DATA_CONTENT.ayat.length];
         if (els.ayatArabic) els.ayatArabic.textContent = item.arabic || "";
@@ -420,16 +495,15 @@ function nextNormalSlide() {
         currentState.currentHadithIndex++;
     }
     else if (key === 'info' && els.infoGrid) {
-        // Render Info Grid
         els.infoGrid.innerHTML = '';
         DATA_CONTENT.infoList.forEach(item => {
             const card = document.createElement('div');
-            card.className = "bg-white/5 border border-white/10 rounded-2xl p-6 flex items-start gap-4 backdrop-blur-md";
+            card.className = "bg-white/5 border border-white/10 rounded-2xl p-6 flex items-start gap-4 backdrop-blur-md transform hover:scale-105 transition duration-500 hover:bg-white/10";
             card.innerHTML = `
-                <div class="text-4xl bg-white/10 w-16 h-16 rounded-full flex items-center justify-center">${item.icon}</div>
+                <div class="text-4xl bg-white/10 w-16 h-16 rounded-full flex items-center justify-center shadow-lg">${item.icon}</div>
                 <div>
-                    <h3 class="text-2xl font-bold text-cyan-300 mb-1">${item.title}</h3>
-                    <p class="text-sm font-bold text-gold-400 uppercase tracking-widest mb-2">${item.time}</p>
+                    <h3 class="text-2xl font-bold ${item.color || 'text-white'} mb-1">${item.title}</h3>
+                    <p class="text-sm font-bold text-gray-400 uppercase tracking-widest mb-2">${item.time}</p>
                     <p class="text-lg text-gray-300 leading-snug">${item.desc}</p>
                 </div>
             `;
@@ -452,7 +526,6 @@ function nextNormalSlide() {
     }, duration * 1000);
 }
 
-// RENDER FOOTER SCHEDULE (Horizontal)
 function renderFooterSchedule() {
     if (!els.footerSchedule) return;
     const keys = ['tahajjud', 'imsak', 'shubuh', 'syuruq', 'dhuha', 'dzuhur', 'ashar', 'maghrib', 'isya'];
@@ -460,16 +533,15 @@ function renderFooterSchedule() {
     
     keys.forEach(key => {
         const div = document.createElement('div');
-        // Logic highlight next prayer in footer
         const now = new Date();
         const next = getNextPrayer(now);
         const isNext = next && next.name === key.toUpperCase();
         
-        const activeClass = isNext ? "bg-emerald-600 border-emerald-400 scale-105 shadow-[0_0_20px_rgba(16,185,129,0.5)]" : "bg-white/5 border-white/5";
+        const activeClass = isNext ? "bg-emerald-600 border-emerald-400 scale-110 shadow-[0_0_20px_rgba(16,185,129,0.5)] z-10" : "bg-white/5 border-white/5 opacity-70 hover:opacity-100";
         const textClass = isNext ? "text-white" : "text-gray-400";
         const timeClass = isNext ? "text-white font-black" : "text-emerald-400";
 
-        div.className = `flex flex-col items-center justify-center rounded-xl border h-full transition-all duration-300 ${activeClass}`;
+        div.className = `flex flex-col items-center justify-center rounded-2xl border h-full transition-all duration-500 transform ${activeClass}`;
         div.innerHTML = `
             <span class="text-[0.6rem] uppercase tracking-widest font-bold mb-0.5 ${textClass}">${key}</span>
             <span class="text-lg font-mono ${timeClass}">${CONFIG.prayerTimes[key] || '--:--'}</span>
