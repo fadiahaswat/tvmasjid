@@ -20,27 +20,22 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: { 
-                        sans: ['Outfit', 'sans-serif'], 
-                        serif: ['Amiri', 'serif'], 
-                        mono: ['JetBrains Mono', 'monospace'],
-                        cinzel: ['Cinzel', 'serif']
-                    },
+                    fontFamily: { sans: ['Outfit', 'sans-serif'], serif: ['Amiri', 'serif'], mono: ['JetBrains Mono', 'monospace'], cinzel: ['Cinzel', 'serif'] },
                     colors: { 
                         dark: { 900: '#050505', 800: '#0a0a0a', card: '#111111' },
-                        brand: { 400: '#2dd4bf', 500: '#14b8a6', glow: '#0ff2ea' }, 
-                        accent: { 400: '#fbbf24', 500: '#f59e0b', glow: '#ffaa00' }
+                        brand: { 400: '#2dd4bf', 500: '#14b8a6' }, 
+                        accent: { 400: '#fbbf24', 500: '#f59e0b' }
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'float': 'float 6s ease-in-out infinite',
                         'pulse-glow': 'pulseGlow 3s infinite',
-                        'spin-slow': 'spin 30s linear infinite',
+                        'spin-slow': 'spin 20s linear infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0', transform: 'scale(0.98) translateY(10px)' }, '100%': { opacity: '1', transform: 'scale(1) translateY(0)' } },
                         float: { '0%, 100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } },
-                        pulseGlow: { '0%, 100%': { opacity: '1', boxShadow: '0 0 20px rgba(20, 184, 166, 0.2)' }, '50%': { opacity: '0.8', boxShadow: '0 0 40px rgba(20, 184, 166, 0.5)' } }
+                        pulseGlow: { '0%, 100%': { opacity: '1', boxShadow: '0 0 20px currentColor' }, '50%': { opacity: '0.8', boxShadow: '0 0 40px currentColor' } }
                     }
                 }
             }
@@ -48,124 +43,42 @@
     </script>
 
     <style>
-        body { 
-            background-color: #050505; 
-            color: #ffffff;
-            overflow: hidden; 
-            font-family: 'Outfit', sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        body::before {
-            content: '';
-            position: absolute;
-            top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at 50% 50%, rgba(20, 184, 166, 0.08), transparent 40%),
-                        radial-gradient(circle at 80% 20%, rgba(251, 191, 36, 0.05), transparent 30%);
-            z-index: -2;
-            animation: float 20s infinite alternate;
-        }
-
-        body::after {
-            content: "";
-            position: absolute; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        .bento-card {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1.5rem;
-            box-shadow: 
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
-                0 20px 50px -12px rgba(0, 0, 0, 0.8);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .bento-card::before {
-            content: '';
-            position: absolute; top: 0; left: 0; right: 0; height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-        }
-
+        body { background-color: #050505; color: #ffffff; overflow: hidden; font-family: 'Outfit', sans-serif; -webkit-font-smoothing: antialiased; }
+        .bento-card { background: rgba(20, 20, 20, 0.6); backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 1.5rem; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05), 0 20px 50px -12px rgba(0, 0, 0, 0.8); position: relative; overflow: hidden; }
         .hidden-slide { display: none !important; }
+        .main-layout { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; padding: 1.5rem; gap: 1.25rem; }
         
-        .main-layout {
-            display: grid;
-            grid-template-rows: auto 1fr auto; 
-            height: 100vh;
-            padding: 1.5rem;
-            gap: 1.25rem;
-        }
-
+        /* Typography Effects */
         .text-glow { text-shadow: 0 0 20px rgba(255,255,255,0.3); }
-        .text-glow-brand { text-shadow: 0 0 30px rgba(20, 184, 166, 0.6); }
-        .text-glow-accent { text-shadow: 0 0 30px rgba(251, 191, 36, 0.6); }
-        
-        .text-outline {
-            -webkit-text-stroke: 2px rgba(255,255,255,0.2);
-            color: transparent;
-        }
+        .text-outline { -webkit-text-stroke: 2px rgba(255,255,255,0.2); color: transparent; }
 
-        #footer-schedule {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 0.75rem;
-            height: 100%;
-            width: 100%;
-        }
-        
-        #footer-schedule > div {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(255,255,255,0.03);
-            border-radius: 1rem;
-            height: 100%;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-        }
-        
-        #footer-schedule > div h3 { 
-            font-family: 'Cinzel', serif;
-            font-size: 0.85rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #64748b;
-            margin-bottom: 0.25rem;
-        }
+        /* THEME VARIABLES (Untuk Override Overlay) */
+        :root { --theme-color: #ef4444; --theme-bg: #450a0a; } /* Default Red */
 
-        #footer-schedule > div p { 
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #e2e8f0;
-            line-height: 1;
-            letter-spacing: -0.05em;
-        }
+        /* Theme Classes Applied via JS to #scene-prayer or #scene-countdown */
+        .theme-red { --theme-color: #ef4444; --theme-bg: #450a0a; --theme-gradient: radial-gradient(circle, #450a0a 0%, #000 100%); }
+        .theme-yellow { --theme-color: #eab308; --theme-bg: #422006; --theme-gradient: radial-gradient(circle, #422006 0%, #000 100%); }
+        .theme-green { --theme-color: #10b981; --theme-bg: #064e3b; --theme-gradient: radial-gradient(circle, #022c22 0%, #000 100%); }
+        .theme-blue { --theme-color: #3b82f6; --theme-bg: #1e3a8a; --theme-gradient: radial-gradient(circle, #172554 0%, #000 100%); }
+        .theme-gold { --theme-color: #f59e0b; --theme-bg: #78350f; --theme-gradient: radial-gradient(circle, #451a03 0%, #000 100%); }
+        .theme-silver { --theme-color: #cbd5e1; --theme-bg: #334155; --theme-gradient: radial-gradient(circle, #1e293b 0%, #000 100%); }
+
+        /* Dynamic Styling based on Variables */
+        .dynamic-text { color: var(--theme-color); text-shadow: 0 0 30px var(--theme-color); }
+        .dynamic-bg { background: var(--theme-gradient); }
+        .dynamic-border { border-color: var(--theme-color); }
+        .dynamic-pulse { animation: pulseGlow 3s infinite; color: var(--theme-color); }
+
+        /* Footer Grid */
+        #footer-schedule { display: grid; grid-template-columns: repeat(8, 1fr); gap: 0.75rem; height: 100%; width: 100%; }
+        #footer-schedule > div { display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.03); border-radius: 1rem; height: 100%; border: 1px solid rgba(255,255,255,0.05); transition: all 0.4s ease; }
+        #footer-schedule > div h3 { font-family: 'Cinzel', serif; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; margin-bottom: 0.25rem; }
+        #footer-schedule > div p { font-family: 'JetBrains Mono', monospace; font-size: 2.5rem; font-weight: 800; color: #e2e8f0; line-height: 1; letter-spacing: -0.05em; }
         
-        #footer-schedule > div[style*="background"] { 
-            background: linear-gradient(145deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05)) !important;
-            border: 1px solid #2dd4bf !important;
-            box-shadow: 0 0 30px rgba(20, 184, 166, 0.2), inset 0 0 20px rgba(20, 184, 166, 0.1) !important;
-            transform: translateY(-5px);
-        }
-        
-        #footer-schedule > div[style*="background"] h3 {
-            color: #2dd4bf !important;
-            text-shadow: 0 0 10px rgba(45, 212, 191, 0.5);
-        }
-        #footer-schedule > div[style*="background"] p {
-            color: #ffffff !important;
-            text-shadow: 0 0 20px rgba(45, 212, 191, 0.8);
-        }
+        /* Active Footer */
+        #footer-schedule > div[style*="background"] { background: linear-gradient(145deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05)) !important; border: 1px solid #2dd4bf !important; box-shadow: 0 0 30px rgba(20, 184, 166, 0.2) !important; transform: translateY(-5px); }
+        #footer-schedule > div[style*="background"] h3 { color: #2dd4bf !important; }
+        #footer-schedule > div[style*="background"] p { color: #ffffff !important; }
     </style>
 </head>
 <body>
@@ -176,70 +89,54 @@
         <div id="slide-progress" class="h-full bg-gradient-to-r from-brand-500 to-accent-500 shadow-[0_0_15px_rgba(20,184,166,0.8)] transition-all duration-300 ease-linear w-0"></div>
     </div>
 
-    <div class="fixed top-20 right-20 w-64 h-64 bg-brand-500/10 rounded-full blur-[100px] animate-pulse"></div>
-    <div class="fixed bottom-20 left-20 w-80 h-80 bg-accent-500/5 rounded-full blur-[120px] animate-pulse" style="animation-delay: 2s"></div>
+    <div id="ambient-bg">
+        <div class="fixed top-20 right-20 w-64 h-64 bg-brand-500/10 rounded-full blur-[100px] animate-pulse"></div>
+        <div class="fixed bottom-20 left-20 w-80 h-80 bg-accent-500/5 rounded-full blur-[120px] animate-pulse" style="animation-delay: 2s"></div>
+        <div class="fixed inset-0 bg-gradient-to-br from-dark-900 via-dark-800 to-dark-900 -z-50"></div>
+    </div>
 
     <div class="main-layout relative z-10">
         
-        <header class="bento-card h-36 px-8 grid grid-cols-12 gap-6 items-center relative z-20 overflow-hidden border-t border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)]">
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 opacity-20"></div>
-
+        <header class="bento-card h-36 px-8 grid grid-cols-12 gap-6 items-center relative z-20 overflow-hidden border-t border-white/10 shadow-2xl">
             <div class="col-span-4 flex items-center gap-6 border-r border-white/5 pr-6 relative">
                 <div class="relative group">
-                    <div class="absolute inset-0 bg-gradient-to-tr from-brand-500/30 to-accent-500/10 blur-2xl rounded-full group-hover:scale-110 transition duration-700"></div>
-                    <div class="relative z-10 p-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-sm shadow-inner">
-                        <img src="logo-putih-muallimin.webp" alt="Logo" class="h-20 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-                        <i class="ri-mosque-fill text-5xl text-brand-500 hidden"></i>
-                    </div>
+                    <div class="absolute inset-0 bg-brand-500/20 blur-xl rounded-full"></div>
+                    <img src="logo-putih-muallimin.webp" alt="Logo" class="h-20 w-auto object-contain relative z-10 drop-shadow-md" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <i class="ri-mosque-fill text-5xl text-brand-500 hidden"></i>
                 </div>
-                
                 <div class="flex flex-col">
-                    <h1 id="masjid-name" class="font-cinzel font-black text-2xl tracking-tight uppercase leading-none mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 drop-shadow-sm">
-                        Masjid Mu'allimin
-                    </h1>
+                    <h1 id="masjid-name" class="font-cinzel font-black text-2xl tracking-tight uppercase leading-none mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 drop-shadow-sm">Masjid Mu'allimin</h1>
                     <div class="flex items-center gap-2">
-                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/20">
-                            <i class="ri-map-pin-line text-[10px]"></i>
-                        </span>
+                        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/20"><i class="ri-map-pin-line text-[10px]"></i></span>
                         <span id="masjid-address" class="text-slate-400 font-bold text-xs tracking-[0.25em] uppercase font-sans">Yogyakarta</span>
                     </div>
                 </div>
             </div>
 
             <div class="col-span-4 flex flex-col items-center justify-center relative">
-                <div class="absolute inset-x-4 inset-y-2 bg-gradient-to-b from-white/5 to-transparent rounded-2xl border border-white/5 -z-10"></div>
                 <div class="flex items-center gap-3 mb-2">
-                    <i class="ri-calendar-event-fill text-brand-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]"></i>
-                    <span id="header-date-masehi" class="font-sans font-bold text-xl text-white tracking-wide drop-shadow-md">...</span>
+                    <i class="ri-calendar-event-fill text-brand-400"></i>
+                    <span id="header-date-masehi" class="font-sans font-bold text-xl text-white tracking-wide">...</span>
                 </div>
-                <div class="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent my-1"></div>
+                <div class="w-32 h-[1px] bg-white/10 my-1"></div>
                 <div class="flex items-center gap-3">
-                    <i class="ri-moon-cloudy-fill text-accent-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"></i>
+                    <i class="ri-moon-cloudy-fill text-accent-400"></i>
                     <span id="header-date-hijri" class="font-sans font-semibold text-lg text-accent-100 tracking-wide">...</span>
                 </div>
             </div>
 
             <div class="col-span-4 flex flex-col items-end justify-center pl-6 border-l border-white/5 relative">
-                 <div class="flex items-center gap-3 mb-2 bg-black/40 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-lg absolute top-3 right-8 overflow-hidden group">
-                    <div class="absolute inset-0 bg-gradient-to-r from-brand-500/0 via-brand-500/10 to-brand-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                 <div class="flex items-center gap-3 mb-2 bg-black/40 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-lg absolute top-3 right-8">
                     <span class="relative flex h-2.5 w-2.5">
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-br from-red-400 to-red-600 border border-white/20"></span>
+                        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
                     </span>
-                    <span class="text-[0.65rem] font-bold text-slate-300 uppercase tracking-widest relative z-10">
-                        Menuju <span id="header-next-name" class="text-brand-400 ml-1 font-cinzel text-glow-brand">...</span>
-                    </span>
+                    <span class="text-[0.65rem] font-bold text-slate-300 uppercase tracking-widest">Menuju <span id="header-next-name" class="text-brand-400 ml-1 font-cinzel">...</span></span>
                 </div>
-
-                <div id="header-clock" class="text-7xl font-mono font-black text-white tracking-tighter leading-none mt-8 drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] tabular-nums scale-y-110">
-                    00:00
-                </div>
-                
+                <div id="header-clock" class="text-7xl font-mono font-black text-white tracking-tighter leading-none mt-8 drop-shadow-lg tabular-nums">00:00</div>
                 <div class="flex items-center gap-2 mt-1 opacity-90">
                     <i class="ri-timer-flash-line text-accent-500 animate-pulse"></i>
-                    <div id="header-countdown" class="text-xl font-mono font-bold text-accent-400 tracking-widest tabular-nums drop-shadow-sm">
-                        -00:00:00
-                    </div>
+                    <div id="header-countdown" class="text-xl font-mono font-bold text-accent-400 tracking-widest tabular-nums">-00:00:00</div>
                 </div>
             </div>
         </header>
@@ -249,20 +146,8 @@
             <div id="scene-home" class="w-full h-full flex flex-col items-center justify-center animate-fade-in relative px-10 overflow-hidden">
                 <div class="absolute inset-0 flex items-center justify-center opacity-20 pointer-events-none">
                     <div class="absolute w-[600px] h-[600px] bg-brand-500/20 rounded-full blur-[120px] animate-pulse"></div>
-                    <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" class="w-[120%] h-[120%] animate-spin-slow text-brand-500">
-                        <defs>
-                            <pattern id="pattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <path d="M20 0 L40 20 L20 40 L0 20 Z" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3"/>
-                            </pattern>
-                        </defs>
-                        <g transform="translate(250,250)">
-                            <circle cx="0" cy="0" r="200" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="10 10" opacity="0.5" />
-                            <circle cx="0" cy="0" r="160" fill="none" stroke="currentColor" stroke-width="1" opacity="0.3" />
-                            <path d="M0 -220 L50 -100 L180 -180 L100 -50 L220 0 L100 50 L180 180 L50 100 L0 220 L-50 100 L-180 180 L-100 50 L-220 0 L-100 -50 L-180 -180 L-50 -100 Z" fill="none" stroke="currentColor" stroke-width="2" opacity="0.2" />
-                        </g>
-                    </svg>
+                    <svg viewBox="0 0 500 500" class="w-[120%] h-[120%] animate-spin-slow text-brand-500 fill-current"><path d="M250 0 L260 220 L480 250 L260 280 L250 500 L240 280 L20 250 L240 220 Z" opacity="0.1"/></svg>
                 </div>
-                
                 <div class="relative z-10 mb-4">
                     <h2 class="text-3xl text-accent-400 font-cinzel font-bold tracking-[0.6em] uppercase flex items-center gap-8">
                         <div class="h-[2px] w-24 bg-gradient-to-l from-accent-400 to-transparent"></div>
@@ -270,76 +155,38 @@
                         <div class="h-[2px] w-24 bg-gradient-to-r from-accent-400 to-transparent"></div>
                     </h2>
                 </div>
-                
                 <div class="relative z-10 text-center group">
-                    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[50%] bg-brand-500/10 blur-3xl rounded-full"></div>
-                    <h1 class="text-[9rem] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-500 leading-[0.85] tracking-tight drop-shadow-[0_10px_10px_rgba(0,0,0,0.8)] relative z-20">
-                        MASJID JAMI'
-                    </h1>
+                    <h1 class="text-[9rem] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-500 leading-[0.85] tracking-tight drop-shadow-2xl relative z-20">MASJID JAMI'</h1>
                     <h1 class="text-[9rem] font-cinzel font-black leading-[0.85] tracking-tight relative z-20 mt-2">
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 via-white to-brand-500 drop-shadow-[0_0_25px_rgba(20,184,166,0.4)]">
-                            MU'ALLIMIN
-                        </span>
-                    </h1>
-                    <h1 class="text-[9rem] font-cinzel font-black text-white leading-[0.85] tracking-tight absolute top-full left-0 right-0 opacity-10 scale-y-[-0.5] blur-sm pointer-events-none bg-gradient-to-t from-transparent to-white bg-clip-text text-transparent transform -translate-y-10">
-                        MU'ALLIMIN
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 via-white to-brand-500">MU'ALLIMIN</span>
                     </h1>
                 </div>
-                
-                <div class="mt-20 relative">
-                    <div class="absolute -top-10 left-1/2 -translate-x-1/2 w-[1px] h-10 bg-gradient-to-b from-transparent to-accent-500"></div>
-                    <div class="bg-gradient-to-b from-white/10 to-black/30 backdrop-blur-xl px-12 py-6 rounded-[2rem] border border-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] flex flex-col items-center">
-                        <div class="text-accent-400 text-2xl mb-2 opacity-80">
-                            <i class="ri-double-quotes-l"></i>
-                        </div>
-                        <p class="text-4xl text-slate-100 font-serif italic tracking-wide text-glow text-center leading-relaxed">
-                            "Luruskan dan Rapatkan Shaf Sholat Anda"
-                        </p>
-                    </div>
+                <div class="mt-20 bg-gradient-to-b from-white/10 to-black/30 backdrop-blur-xl px-12 py-6 rounded-[2rem] border border-white/10 shadow-2xl">
+                    <p class="text-4xl text-slate-100 font-serif italic tracking-wide text-center">"Luruskan dan Rapatkan Shaf Sholat Anda"</p>
                 </div>
             </div>
 
             <div id="scene-next-detail" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in relative">
                  <div class="absolute inset-0 bg-gradient-to-b from-brand-900/20 to-transparent pointer-events-none"></div>
-                 <div class="flex flex-col items-center z-10">
-                    <div class="bg-black/30 px-8 py-2 rounded-full border border-brand-500/30 mb-10 shadow-[0_0_30px_rgba(20,184,166,0.2)]">
-                        <p class="text-brand-400 text-xl font-cinzel uppercase tracking-[0.2em] font-bold">Waktu Berikutnya</p>
-                    </div>
-                    <h1 id="next-detail-name" class="text-[14vh] font-cinzel font-black text-white leading-none mb-6 uppercase tracking-tight text-outline">...</h1>
-                    <div class="relative">
-                        <div class="absolute -inset-10 bg-brand-500/20 blur-[60px] rounded-full animate-pulse-glow"></div>
-                        <span id="next-detail-time" class="relative z-10 text-[18vh] font-mono font-bold text-white tracking-tighter tabular-nums drop-shadow-2xl">--:--</span>
-                    </div>
+                 <div class="bg-black/30 px-8 py-2 rounded-full border border-brand-500/30 mb-10">
+                    <p class="text-brand-400 text-xl font-cinzel uppercase tracking-[0.2em] font-bold">Waktu Berikutnya</p>
                  </div>
+                 <h1 id="next-detail-name" class="text-[14vh] font-cinzel font-black text-white leading-none mb-6 uppercase tracking-tight">...</h1>
+                 <span id="next-detail-time" class="text-[18vh] font-mono font-bold text-white tracking-tighter tabular-nums drop-shadow-2xl">--:--</span>
             </div>
 
-            <div id="scene-ayat" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-20">
-                <div class="text-center w-full max-w-7xl relative">
-                    <i class="ri-double-quotes-l text-9xl text-white/5 absolute -top-20 -left-20"></i>
-                    <div class="mb-12 inline-flex items-center justify-center px-6 py-2 rounded-full bg-accent-500/10 text-accent-500 text-lg font-bold uppercase tracking-widest border border-accent-500/20">
-                        <i class="ri-book-open-line mr-3"></i> <span class="font-cinzel">Kalamullah</span>
-                    </div>
-                    <p id="ayat-arabic" class="text-7xl font-serif text-white leading-[2.5] mb-12 dir-rtl text-glow-accent" style="direction: rtl;">...</p>
-                    <p id="ayat-text" class="text-5xl font-sans font-medium text-slate-300 leading-relaxed italic tracking-tight">...</p>
-                    <div class="mt-16 inline-block border-t border-accent-500/50 pt-6">
-                        <p id="ayat-source" class="text-3xl font-cinzel font-black text-accent-500 uppercase tracking-widest">...</p>
-                    </div>
-                </div>
+            <div id="scene-ayat" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-20 text-center">
+                <div class="mb-12 inline-flex items-center justify-center px-6 py-2 rounded-full bg-accent-500/10 text-accent-500 text-lg font-bold uppercase tracking-widest border border-accent-500/20"><i class="ri-book-open-line mr-3"></i> <span class="font-cinzel">Kalamullah</span></div>
+                <p id="ayat-arabic" class="text-7xl font-serif text-white leading-[2.5] mb-12 dir-rtl text-glow-accent" style="direction: rtl;">...</p>
+                <p id="ayat-text" class="text-5xl font-sans font-medium text-slate-300 leading-relaxed italic">...</p>
+                <p id="ayat-source" class="mt-16 text-3xl font-cinzel font-black text-accent-500 uppercase tracking-widest">...</p>
             </div>
 
-            <div id="scene-hadits" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-20">
-                <div class="text-center w-full max-w-7xl relative">
-                    <i class="ri-double-quotes-l text-9xl text-white/5 absolute -top-20 -left-20"></i>
-                    <div class="mb-12 inline-flex items-center justify-center px-6 py-2 rounded-full bg-brand-500/10 text-brand-500 text-lg font-bold uppercase tracking-widest border border-brand-500/20">
-                        <i class="ri-chat-quote-line mr-3"></i> <span class="font-cinzel">Hadits</span>
-                    </div>
-                    <p id="hadits-arabic" class="text-7xl font-serif text-white leading-[2.5] mb-12 dir-rtl text-glow-brand" style="direction: rtl;">...</p>
-                    <p id="hadits-text" class="text-5xl font-sans font-medium text-slate-300 leading-relaxed tracking-tight">...</p>
-                    <div class="mt-16 flex justify-center items-center gap-6">
-                        <span class="px-4 py-2 bg-slate-800 rounded-lg text-lg text-slate-400 uppercase font-bold tracking-wide border border-white/10">Riwayat</span>
-                        <p id="hadits-source" class="text-3xl font-cinzel font-black text-white uppercase tracking-widest">...</p>
-                    </div>
-                </div>
+            <div id="scene-hadits" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-20 text-center">
+                <div class="mb-12 inline-flex items-center justify-center px-6 py-2 rounded-full bg-brand-500/10 text-brand-500 text-lg font-bold uppercase tracking-widest border border-brand-500/20"><i class="ri-chat-quote-line mr-3"></i> <span class="font-cinzel">Hadits</span></div>
+                <p id="hadits-arabic" class="text-7xl font-serif text-white leading-[2.5] mb-12 dir-rtl text-glow-brand" style="direction: rtl;">...</p>
+                <p id="hadits-text" class="text-5xl font-sans font-medium text-slate-300 leading-relaxed">...</p>
+                <p id="hadits-source" class="mt-16 text-3xl font-cinzel font-black text-white uppercase tracking-widest">...</p>
             </div>
 
         </main>
@@ -347,72 +194,57 @@
         <footer class="bento-card h-48 p-4 z-30">
             <div id="footer-schedule"></div>
         </footer>
-
     </div>
 
-    <div id="scene-countdown" class="hidden-slide fixed inset-0 z-50 bg-black flex flex-col items-center justify-center text-center overflow-hidden">
-         
-         <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-950/60 via-black to-black z-0"></div>
+    <div id="scene-countdown" class="hidden-slide fixed inset-0 z-50 bg-black flex flex-col items-center justify-center text-center overflow-hidden theme-red dynamic-bg">
          
          <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMCAwaDQwdjQwSDBVMHptMjAgMjBoMjB2MjBIMjVWMjB6TTEwIDEwaDIwdjIwSDEwVjEweiIvPjwvZz48L2c+PC9zdmc+')] animate-float z-0 scale-150"></div>
-         
-         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-red-600/10 rounded-full blur-[100px] animate-pulse z-0"></div>
+         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-20 rounded-full blur-[100px] animate-pulse z-0 dynamic-bg"></div>
 
          <div class="relative z-10 flex flex-col items-center">
-             
-             <div class="mb-8 border-b border-red-500/50 pb-2 px-10">
-                 <h2 id="countdown-title" class="text-4xl font-cinzel font-bold uppercase tracking-[0.5em] text-red-400 drop-shadow-md">
-                     Menuju Adzan
-                 </h2>
+             <div class="mb-8 border-b border-white/20 pb-2 px-10">
+                 <h2 id="countdown-title" class="text-4xl font-cinzel font-bold uppercase tracking-[0.5em] dynamic-text drop-shadow-md">Menuju Adzan</h2>
              </div>
-
-             <h1 id="countdown-name" class="text-[18vh] font-cinzel font-black text-white leading-none tracking-tight drop-shadow-2xl mb-4 scale-y-110 bg-gradient-to-b from-white to-gray-400 bg-clip-text text-transparent">
-                 ...
-             </h1>
-
+             <h1 id="countdown-name" class="text-[18vh] font-cinzel font-black text-white leading-none tracking-tight drop-shadow-2xl mb-4">...</h1>
+             
              <div class="relative flex items-center justify-center mt-4">
-                 <div class="absolute w-[45vh] h-[45vh] border border-red-500/20 rounded-full animate-spin-slow border-dashed"></div>
-                 <div class="absolute w-[40vh] h-[40vh] border border-white/5 rounded-full animate-spin-slow" style="animation-direction: reverse;"></div>
-                 
-                 <span id="countdown-timer" class="text-[25vh] font-mono font-bold text-red-500 tabular-nums leading-none tracking-tighter drop-shadow-[0_0_30px_rgba(239,68,68,0.6)]">
-                     00:00
-                 </span>
+                 <div class="absolute w-[45vh] h-[45vh] border rounded-full animate-spin-slow border-dashed dynamic-border opacity-30"></div>
+                 <div class="absolute w-[40vh] h-[40vh] border border-white/10 rounded-full animate-spin-slow" style="animation-direction: reverse;"></div>
+                 <span id="countdown-timer" class="text-[25vh] font-mono font-bold tabular-nums leading-none tracking-tighter dynamic-text">00:00</span>
              </div>
-             
              <p class="mt-8 text-slate-400 text-lg uppercase tracking-[0.3em] font-sans">Persiapkan Diri Menghadap Sang Khaliq</p>
          </div>
     </div>
-    
-    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center px-10 overflow-hidden">
-        
-        <div class="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-brand-950/40 via-black to-black z-0"></div>
-        
-        <div class="absolute inset-0 bg-brand-900/5 animate-pulse z-0"></div>
 
+    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center px-10 overflow-hidden theme-green dynamic-bg">
+        
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-10 select-none pointer-events-none">
+            <span class="mini-clock text-[40vw] font-mono font-bold text-white tracking-tighter leading-none">00:00</span>
+        </div>
+
+        <div class="absolute inset-0 opacity-20 animate-pulse dynamic-bg z-0"></div>
         <div class="absolute inset-0 opacity-5 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgdmlld0JveD0iMCAwIDQwIDQwIj48ZyBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMCAwaDQwdjQwSDBVMHptMjAgMjBoMjB2MjBIMjVWMjB6TTEwIDEwaDIwdjIwSDEwVjEweiIvPjwvZz48L2c+PC9zdmc+')] z-0"></div>
 
-        <div class="relative z-10 flex flex-col items-center w-full max-w-7xl">
+        <div class="relative z-10 flex flex-col items-center w-full max-w-7xl h-full justify-between py-20">
             
-            <div class="mb-10 relative">
-                <div class="absolute inset-0 bg-brand-500/20 blur-xl rounded-full animate-pulse"></div>
-                <div class="relative w-32 h-32 rounded-full border-2 border-brand-500/30 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-                    <i class="ri-notification-off-fill text-6xl text-brand-400 drop-shadow-[0_0_15px_rgba(45,212,191,0.5)]"></i>
-                </div>
+            <div class="flex flex-col items-center">
+                <i class="ri-notification-off-fill text-6xl mb-6 dynamic-text animate-pulse"></i>
+                <h1 class="text-[10vh] font-cinzel font-black text-white uppercase tracking-widest leading-none drop-shadow-2xl dynamic-text-shadow" id="prayer-title">
+                    Sholat Berlangsung
+                </h1>
+            </div>
+
+            <div class="my-auto relative">
+                <div class="absolute inset-0 blur-3xl opacity-30 dynamic-bg rounded-full"></div>
+                <span class="mini-clock relative z-10 text-[20vh] font-mono font-black text-white tracking-tighter tabular-nums drop-shadow-2xl">00:00</span>
             </div>
             
-            <h1 class="text-[10vh] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white via-slate-200 to-slate-500 uppercase tracking-widest mb-12 leading-none drop-shadow-2xl">
-                Sholat Berlangsung
-            </h1>
-            
-            <div class="w-full border-t border-b border-white/10 py-10 bg-gradient-to-r from-transparent via-white/5 to-transparent backdrop-blur-md">
-                
-                <p class="text-6xl text-slate-100 font-sans font-bold tracking-wide mb-6 drop-shadow-md">
+            <div class="w-full border-t border-b border-white/10 py-10 bg-black/40 backdrop-blur-md rounded-3xl dynamic-border border-y-2">
+                <p class="text-5xl text-white font-sans font-bold tracking-wide mb-4" id="prayer-sub">
                     Luruskan & Rapatkan Shaf
                 </p>
-                
-                <div class="w-20 h-1 bg-brand-500 mx-auto rounded-full mb-6 opacity-50"></div>
-
-                <p class="text-3xl text-brand-400 uppercase tracking-[0.3em] font-bold animate-pulse">
+                <div class="w-32 h-1 mx-auto rounded-full mb-4 dynamic-bg"></div>
+                <p class="text-2xl text-slate-300 uppercase tracking-[0.3em] font-bold" id="prayer-note">
                     Mohon Matikan Alat Komunikasi
                 </p>
             </div>
@@ -421,5 +253,87 @@
     </div>
 
     <script src="script.js"></script>
+    
+    <script>
+        // Overwrite fungsi applyMode di script.js agar bisa ganti warna
+        const originalApplyMode = window.applyMode;
+        
+        window.applyMode = function(mode, type, target, meta) {
+            // Panggil logika asli untuk hide header/footer
+            STATE.mode = mode;
+            STATE.overrideType = type;
+            STATE.activeEventTarget = target;
+
+            clearTimeout(slideTimer);
+            els.progress.style.width = '0';
+            Object.values(els.scenes).forEach(el => el.classList.add('hidden-slide'));
+
+            if (mode === 'NORMAL') {
+                els.header.style.display = 'grid';
+                els.footer.style.display = 'grid';
+                els.scenes.home.classList.remove('hidden-slide');
+                STATE.slideIndex = 0;
+                renderSlide();
+            } else {
+                els.header.style.display = 'none';
+                els.footer.style.display = 'none';
+
+                // LOGIKA GANTI WARNA TEMA
+                const countdownEl = document.getElementById('scene-countdown');
+                const prayerEl = document.getElementById('scene-prayer');
+                
+                // Reset Classes
+                countdownEl.className = 'hidden-slide fixed inset-0 z-50 bg-black flex flex-col items-center justify-center text-center overflow-hidden dynamic-bg';
+                prayerEl.className = 'hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center px-10 overflow-hidden dynamic-bg';
+
+                if (type === 'ADZAN') {
+                    countdownEl.classList.remove('hidden-slide');
+                    countdownEl.classList.add('theme-red'); // Merah
+                    els.cdTitle.innerText = 'MENUJU ADZAN';
+                    els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
+                    if(target) updateOverlayTimer(target - new Date());
+                } 
+                else if (type === 'IQAMAH') {
+                    countdownEl.classList.remove('hidden-slide');
+                    countdownEl.classList.add('theme-yellow'); // Kuning
+                    els.cdTitle.innerText = 'MENUJU IQAMAH';
+                    els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
+                    if(target) updateOverlayTimer(target - new Date());
+                }
+                else {
+                    prayerEl.classList.remove('hidden-slide');
+                    // Setup konten teks & warna
+                    const pTitle = document.querySelector('#prayer-title');
+                    const pSub = document.querySelector('#prayer-sub');
+                    const pNote = document.querySelector('#prayer-note');
+
+                    if (type === 'PRAYER') {
+                        prayerEl.classList.add('theme-green'); // Hijau
+                        pTitle.innerText = "SHOLAT BERLANGSUNG";
+                        pSub.innerText = "Luruskan & Rapatkan Shaf";
+                        pNote.innerText = "Mohon Matikan Alat Komunikasi";
+                    } 
+                    else if (type === 'DZIKIR') {
+                        prayerEl.classList.add('theme-blue'); // Biru
+                        pTitle.innerText = "DZIKIR BA'DA SHOLAT";
+                        pSub.innerText = "Astaghfirullah...";
+                        pNote.innerText = "Harap Tenang & Khusyuk";
+                    }
+                    else if (type === 'KAJIAN') {
+                        prayerEl.classList.add('theme-gold'); // Emas
+                        pTitle.innerText = DATA_CONTENT.kajianAhad.title;
+                        pSub.innerText = DATA_CONTENT.kajianAhad.desc;
+                        pNote.innerText = DATA_CONTENT.kajianAhad.sub;
+                    }
+                    else if (type === 'JUMAT') {
+                        prayerEl.classList.add('theme-silver'); // Silver
+                        pTitle.innerText = DATA_CONTENT.jumat.title;
+                        pSub.innerText = DATA_CONTENT.jumat.desc;
+                        pNote.innerText = DATA_CONTENT.jumat.sub;
+                    }
+                }
+            }
+        };
+    </script>
 </body>
 </html>
