@@ -7,9 +7,7 @@ const CONFIG = {
     address: "Jl. Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
     runningText: "Selamat Datang di Masjid Jami' Mu'allimin • Mohon luruskan shaf • Matikan HP saat sholat berlangsung",
     
-    // Durasi slide
     duration: { home: 15, nextDetail: 10, scheduleFull: 10, ayat: 25, hadits: 20, info: 10, donation: 10 },
-    // Thresholds (menit)
     thresholds: { preAdzan: 12, preIqamah: 10, inPrayer: 20, dzikir: 10, jumatPrep: 30 },
     
     defaultPrayerTimes: {
@@ -105,7 +103,7 @@ async function fetchRandomAyat() {
 }
 
 
-// 2. Fetch Hadis Random (Lengkap dengan Grade & Hikmah)
+// 2. Fetch Hadis Random (FIXED: Hanya simpan 1 data terbaru)
 async function fetchRandomHadith() {
     try {
         const res = await fetch("https://api.myquran.com/v3/hadis/enc/random");
@@ -114,14 +112,11 @@ async function fetchRandomHadith() {
         if (json.status && json.data?.text) {
             const d = json.data;
 
-            // Ambil Data
             const arabicText = d.text?.ar || "";
             let indoText = d.text?.id || "";
             
-            // Format HTML
-            indoText = indoText.replace(/\n/g, "<br>");
+            indoText = indoText.replace(/\n/g, "<br>"); // Format HTML
 
-            // Bersihkan Takhrij
             let sourceName = d.takhrij || "Muttafaq Alaihi";
             sourceName = sourceName.replace("Diriwayatkan oleh", "").trim();
 
@@ -133,11 +128,12 @@ async function fetchRandomHadith() {
                 hikmah: d.hikmah || null
             };
             
-            // Masukkan ke array konten
-            DATA_CONTENT.hadits.unshift(newHadith);
+            // LOGIKA PENTING: Hanya simpan Hadis API ini, hapus yang lama/statis
+            DATA_CONTENT.hadits = [newHadith];
         }
     } catch (e) {
         console.warn("[API] Gagal ambil hadis.", e);
+        // Jika gagal, array Hadis akan kembali ke data statis
     }
 }
 
@@ -438,15 +434,11 @@ function nextNormalSlide() {
     if (key === 'ayat' && els.ayatText) {
         const item = DATA_CONTENT.ayat[Math.floor(Math.random() * DATA_CONTENT.ayat.length)];
         
-        // 1. Teks Arab
         if (els.ayatArabic) {
              els.ayatArabic.textContent = item.arabic || "";
         }
         
-        // 2. Teks Indonesia (Gunakan innerHTML untuk <br> dari API)
         els.ayatText.innerHTML = `"${item.text}"`;
-        
-        // 3. Sumber
         els.ayatSource.textContent = item.source;
     } 
     
@@ -454,17 +446,14 @@ function nextNormalSlide() {
     else if (key === 'hadits' && els.haditsText) {
         const item = DATA_CONTENT.hadits[Math.floor(Math.random() * DATA_CONTENT.hadits.length)];
         
-        // 1. Tampilkan Arab
         if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
         
-        // 2. Tampilkan Indo (HTML)
         let contentHTML = `"${item.text}"`;
         if (item.hikmah) {
             contentHTML += `<br><br><span class="text-3xl text-emerald-400 font-sans tracking-wide block mt-4 pt-4 border-t border-emerald-500/30">💡 Hikmah: ${item.hikmah}</span>`;
         }
         els.haditsText.innerHTML = contentHTML;
         
-        // 3. Tampilkan Sumber + Grade
         let sourceInfo = item.source;
         if (item.grade) {
             sourceInfo += ` • (${item.grade})`;
