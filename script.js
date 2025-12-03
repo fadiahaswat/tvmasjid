@@ -5,7 +5,7 @@
 
 // --- 1. CONFIGURATION ---
 const CONFIG = {
-    cityId: '1638', 
+    cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
     masjidName: "MASJID MU'ALLIMIN",
     address: "Yogyakarta, Indonesia",
     
