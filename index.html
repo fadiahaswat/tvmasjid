@@ -181,49 +181,74 @@
 
     <div class="main-layout">
         
-        <header class="bento-card h-36 px-8 grid grid-cols-12 gap-6 items-center relative z-20">
+        <header class="bento-card h-36 px-8 grid grid-cols-12 gap-6 items-center relative z-20 overflow-hidden border-t border-white/10 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.5)]">
+    
+    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 opacity-20"></div>
+
+    <div class="col-span-4 flex items-center gap-6 border-r border-white/5 pr-6 relative">
+        <div class="relative group">
+            <div class="absolute inset-0 bg-gradient-to-tr from-brand-500/30 to-accent-500/10 blur-2xl rounded-full group-hover:scale-110 transition duration-700"></div>
+            <div class="relative z-10 p-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-sm shadow-inner">
+                <img src="logo-putih-muallimin.webp" alt="Logo" class="h-20 w-auto object-contain drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                <i class="ri-mosque-fill text-5xl text-brand-500 hidden"></i>
+            </div>
+        </div>
+        
+        <div class="flex flex-col">
+            <h1 id="masjid-name" class="font-cinzel font-black text-2xl tracking-tight uppercase leading-none mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 drop-shadow-sm">
+                Masjid Mu'allimin
+            </h1>
+            <div class="flex items-center gap-2">
+                <span class="flex items-center justify-center w-5 h-5 rounded-full bg-brand-500/20 text-brand-400 border border-brand-500/20">
+                    <i class="ri-map-pin-line text-[10px]"></i>
+                </span>
+                <span id="masjid-address" class="text-slate-400 font-bold text-xs tracking-[0.25em] uppercase font-sans">Yogyakarta</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-span-4 flex flex-col items-center justify-center relative">
+        <div class="absolute inset-x-4 inset-y-2 bg-gradient-to-b from-white/5 to-transparent rounded-2xl border border-white/5 -z-10"></div>
+        
+        <div class="flex items-center gap-3 mb-2">
+            <i class="ri-calendar-event-fill text-brand-400 drop-shadow-[0_0_8px_rgba(45,212,191,0.5)]"></i>
+            <span id="header-date-masehi" class="font-sans font-bold text-xl text-white tracking-wide drop-shadow-md">...</span>
+        </div>
+        
+        <div class="w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent my-1"></div>
+        
+        <div class="flex items-center gap-3">
+            <i class="ri-moon-cloudy-fill text-accent-400 drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"></i>
+            <span id="header-date-hijri" class="font-sans font-semibold text-lg text-accent-100 tracking-wide">...</span>
+        </div>
+    </div>
+
+    <div class="col-span-4 flex flex-col items-end justify-center pl-6 border-l border-white/5 relative">
+         <div class="flex items-center gap-3 mb-2 bg-black/40 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md shadow-lg absolute top-3 right-8 overflow-hidden group">
+            <div class="absolute inset-0 bg-gradient-to-r from-brand-500/0 via-brand-500/10 to-brand-500/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
             
-            <div class="col-span-4 flex items-center gap-6 border-r border-white/5 pr-6">
-                <div class="relative group">
-                    <div class="absolute inset-0 bg-brand-500/20 blur-xl rounded-full group-hover:bg-brand-500/40 transition"></div>
-                    <img src="logo-putih-muallimin.webp" alt="Logo" class="h-24 w-auto object-contain relative z-10 drop-shadow-2xl transform group-hover:scale-105 transition duration-500" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-                    <i class="ri-mosque-fill text-6xl text-brand-500 hidden"></i>
-                </div>
-                
-                <div class="flex flex-col">
-                    <h1 id="masjid-name" class="font-cinzel font-bold text-2xl tracking-tight text-white uppercase leading-none mb-1">Masjid Mu'allimin</h1>
-                    <div class="flex items-center gap-2 text-brand-400 font-bold text-xs tracking-[0.2em] uppercase">
-                        <i class="ri-map-pin-line"></i>
-                        <span id="masjid-address">Yogyakarta</span>
-                    </div>
-                </div>
-            </div>
+            <span class="relative flex h-2.5 w-2.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-br from-red-400 to-red-600 border border-white/20"></span>
+            </span>
+            <span class="text-[0.65rem] font-bold text-slate-300 uppercase tracking-widest relative z-10">
+                Menuju <span id="header-next-name" class="text-brand-400 ml-1 font-cinzel text-glow-brand">...</span>
+            </span>
+        </div>
 
-            <div class="col-span-4 flex flex-col items-center justify-center">
-                <div class="flex items-baseline gap-3 mb-1">
-                    <i class="ri-calendar-event-line text-slate-400"></i>
-                    <span id="header-date-masehi" class="font-sans font-bold text-xl text-white tracking-wide">...</span>
-                </div>
-                <div class="w-12 h-px bg-white/10 my-1"></div>
-                <div class="flex items-baseline gap-3">
-                    <i class="ri-moon-line text-accent-400"></i>
-                    <span id="header-date-hijri" class="font-sans font-semibold text-lg text-accent-400 tracking-wide">...</span>
-                </div>
+        <div id="header-clock" class="text-7xl font-mono font-black text-white tracking-tighter leading-none mt-8 drop-shadow-[0_0_25px_rgba(255,255,255,0.15)] tabular-nums scale-y-110">
+            00:00
+        </div>
+        
+        <div class="flex items-center gap-2 mt-1 opacity-90">
+            <i class="ri-timer-flash-line text-accent-500 animate-pulse"></i>
+            <div id="header-countdown" class="text-xl font-mono font-bold text-accent-400 tracking-widest tabular-nums drop-shadow-sm">
+                -00:00:00
             </div>
+        </div>
+    </div>
 
-            <div class="col-span-4 flex flex-col items-end justify-center pl-6 border-l border-white/5 relative">
-                 <div class="flex items-center gap-2 mb-0 bg-white/5 px-3 py-1 rounded-full border border-white/5 backdrop-blur-sm absolute top-4 right-8">
-                    <span class="relative flex h-2 w-2">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
-                    </span>
-                    <span class="text-[0.6rem] font-bold text-slate-400 uppercase tracking-widest">Menuju <span id="header-next-name" class="text-white ml-1 font-cinzel">...</span></span>
-                </div>
-                <div id="header-clock" class="text-7xl font-mono font-black text-white tracking-tighter leading-none text-glow tabular-nums mt-6">00:00</div>
-                <div id="header-countdown" class="text-xl font-mono font-bold text-accent-400 tracking-widest tabular-nums opacity-80 mt-1">-00:00:00</div>
-            </div>
-
-        </header>
+</header>
 
         <main class="relative z-10 w-full h-full overflow-hidden bento-card flex flex-col justify-center items-center">
             
