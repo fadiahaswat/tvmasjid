@@ -199,7 +199,7 @@ async function loadSchedule() {
     if (navigator.onLine) {
         log('loadSchedule', 'Online. Fetch API Kemenag/MyQuran...');
         try {
-            const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;
+            const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}-${now.getMonth() + 1}`;
             const res = await fetch(url);
             const json = await res.json();
 
