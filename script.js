@@ -20,12 +20,10 @@ const CONFIG = {
 };
 
 // --- BATCH CONFIGURATION ---
-// Total item yang di-fetch sekali sebulan untuk rotasi
 const CONTENT_BATCH_SIZE_TOTAL = 60; 
 
 // --- DATA CONTENT (DEFAULT/FALLBACK) ---
 const DATA_CONTENT = {
-    // Konten ini akan di-replace oleh cache bulanan
     ayat: [
         { text: "Maka sesungguhnya bersama kesulitan ada kemudahan.", arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", source: "QS. Al-Insyirah: 5" },
         { text: "Dan dirikanlah shalat, tunaikanlah zakat.", arabic: "وَأَقِيمُوا الصَّلَاةَ وَآتُوا الزَّكَاةَ", source: "QS. Al-Baqarah: 43" }
@@ -51,14 +49,14 @@ let slideTimer = null;
 let els = {};
 let lastDateString = ""; 
 
-// --- HELPER FUNCTIONS ---
+// --- BLOCK 1: SIMPLE HELPERS ---
 
 function calculateTahajjud(shubuhTime) {
     if (!shubuhTime) return "03:00";
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210);
+    date.setMinutes(date.getMinutes() - 210); // -3.5 jam
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -69,8 +67,7 @@ function getFormattedDate(dateObj) {
     return `${y}-${m}-${d}`;
 }
 
-// --- DATA FETCHING FUNCTIONS (SINGLE ITEM) ---
-// Fungsi ini mengambil 1 item, digunakan dalam loop batch loader
+// --- BLOCK 2: INDEPENDENT FETCHERS ---
 
 async function fetchSingleRandomAyat() {
     try {
@@ -124,7 +121,26 @@ async function fetchSingleRandomHadith() {
     }
 }
 
-// --- CONTENT BATCH LOADER (BULANAN) ---
+async function fetchHijriDate(dateString) {
+    try {
+        const url = `https://api.myquran.com/v3/cal/hijr/${dateString}`;
+        const res = await fetch(url);
+        const json = await res.json();
+        
+        if (json.status && json.data?.date) {
+            const d = json.data.date;
+            const day = d.day || "";
+            const month = (d.month?.en) ? d.month.en : (d.month || "");
+            const year = d.year || "";
+
+            CONFIG.currentHijriDate = `${day} ${month} ${year} H`;
+            updateClock();
+        }
+    } catch (e) { console.warn("[API] Gagal ambil Hijriah.", e); }
+}
+
+// --- BLOCK 3: COMPLEX LOADERS ---
+
 async function loadMonthlyContent() {
     const now = new Date();
     const y = now.getFullYear();
@@ -150,7 +166,6 @@ async function loadMonthlyContent() {
     // FETCH NEW BATCH (Hanya jika cache bulanan kosong / expired)
     console.log(`[API] Mengunduh batch konten baru (${CONTENT_BATCH_SIZE_TOTAL} item/tipe)...`);
     
-    // Fetch 60 items of each type concurrently
     const ayatPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomAyat());
     const hadithPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomHadith());
 
@@ -175,7 +190,6 @@ async function loadMonthlyContent() {
 }
 
 
-// 4. Main Schedule Loader (Offline-First Logic)
 async function loadSchedule() {
     const now = new Date();
     const dateKey = getFormattedDate(now); 
@@ -236,7 +250,8 @@ async function loadSchedule() {
     await loadMonthlyContent(); 
 }
 
-// --- INITIALIZATION ---
+// --- BLOCK 4: CORE LOGIC & RENDERING (Depend on functions above) ---
+
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log("Memulai Sistem...");
@@ -305,15 +320,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch(e) { console.error("Init Error:", e); }
 });
 
-// --- CORE LOGIC ---
-
 function updateClock() {
     const now = new Date();
     
     const currentDateString = getFormattedDate(now);
     if (lastDateString !== "" && lastDateString !== currentDateString) {
         loadSchedule(); 
-        // Reset index rotasi konten saat ganti hari
         currentState.currentAyatIndex = 0;
         currentState.currentHadithIndex = 0;
     }
@@ -450,19 +462,13 @@ function nextNormalSlide() {
 
     // --- RENDERING AYAT ---
     if (key === 'ayat' && els.ayatText) {
-        // Ambil data berdasarkan index yang dirotasi
         const totalAyat = DATA_CONTENT.ayat.length;
         const item = DATA_CONTENT.ayat[currentState.currentAyatIndex % totalAyat];
         
         if (totalAyat > 0) {
-             // 1. Teks Arab
             if (els.ayatArabic) els.ayatArabic.textContent = item.arabic || "";
-            
-            // 2. Teks Indonesia
             els.ayatText.innerHTML = `"${item.text}"`;
             els.ayatSource.textContent = item.source;
-            
-            // Increment index untuk slide berikutnya
             currentState.currentAyatIndex = (currentState.currentAyatIndex + 1) % totalAyat;
         } else {
             // Fallback jika array kosong
@@ -473,29 +479,24 @@ function nextNormalSlide() {
     
     // --- RENDERING HADITS ---
     else if (key === 'hadits' && els.haditsText) {
-        // Ambil data berdasarkan index yang dirotasi
         const totalHadith = DATA_CONTENT.hadits.length;
         const item = DATA_CONTENT.hadits[currentState.currentHadithIndex % totalHadith];
         
         if (totalHadith > 0) {
-            // 1. Tampilkan Arab
             if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
             
-            // 2. Tampilkan Indo + Hikmah
             let contentHTML = `"${item.text}"`;
             if (item.hikmah) {
                 contentHTML += `<br><br><span class="text-3xl text-emerald-400 font-sans tracking-wide block mt-4 pt-4 border-t border-emerald-500/30">💡 Hikmah: ${item.hikmah}</span>`;
             }
             els.haditsText.innerHTML = contentHTML;
             
-            // 3. Tampilkan Sumber + Grade
             let sourceInfo = item.source;
             if (item.grade) {
                 sourceInfo += ` • (${item.grade})`;
             }
             els.haditsSource.textContent = sourceInfo;
-            
-            // Increment index untuk slide berikutnya
+
             currentState.currentHadithIndex = (currentState.currentHadithIndex + 1) % totalHadith;
         } else {
              els.haditsText.innerHTML = '"Gagal memuat hadis acak."';
