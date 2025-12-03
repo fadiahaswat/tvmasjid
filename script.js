@@ -148,32 +148,7 @@ async function loadMonthlyContent() {
 }
 
 async function loadSchedule() {
-    const now = new Date();
-    const dateKey = getFormattedDate(now);
-    const monthKey = `jadwal_bulan_${now.getFullYear()}_${now.getMonth()+1}`;
-    
-    let monthlyData = localStorage.getItem(monthKey);
-    let todaySchedule = null;
-
-    if (monthlyData) {
-        try {
-            const parsed = JSON.parse(monthlyData);
-            if (parsed[dateKey]) todaySchedule = parsed[dateKey];
-        } catch (e) { localStorage.removeItem(monthKey); }
-    }
-
-    if (!todaySchedule) {
-        try {
-            const res = await fetch(`https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}`);
-            const json = await res.json();
-            if (json.status && json.data?.jadwal) {
-                let storage = {};
-                (Array.isArray(json.data.jadwal) ? json.data.jadwal : [json.data.jadwal]).forEach(day => storage[day.date] = day);
-                localStorage.setItem(monthKey, JSON.stringify(storage));
-                todaySchedule = storage[dateKey];
-            }
-        } catch (e) { console.error("Schedule Error", e); }
-    }
+    // ... (kode bagian atas loadSchedule tetap sama, jangan diubah) ...
 
     if (todaySchedule) {
         CONFIG.prayerTimes = {
@@ -191,9 +166,13 @@ async function loadSchedule() {
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
     }
     
-    renderFooterSchedule(); // Render Footer setiap load jadwal
+    renderFooterSchedule(); 
     
-    await fetchHijriDate(dateKey);
+    // --- PERUBAHAN DI SINI ---
+    // Hapus parameter dateKey, panggil kosong saja
+    await fetchHijriDate(); 
+    // -------------------------
+
     await loadMonthlyContent();
 }
 
