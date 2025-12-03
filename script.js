@@ -555,11 +555,25 @@ function renderSlide() {
 function renderFooter() {
     els.footer.innerHTML = '';
     const keys = ['imsak', 'shubuh', 'syuruq', 'dhuha', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+    
     keys.forEach(k => {
         const div = document.createElement('div');
         div.dataset.key = k; 
-        div.className = "flex flex-col items-center justify-center rounded-xl transition-all duration-300 bg-white/5 border border-white/5";
-        div.innerHTML = `<h3>${k}</h3><p>${CONFIG.prayerTimes[k] || '--:--'}</p>`;
+        
+        // Style Container: Glassy, Rounded, dan Transisi Halus
+        div.className = "relative flex flex-col items-center justify-center rounded-2xl transition-all duration-500 bg-white/5 border border-white/5 backdrop-blur-sm overflow-hidden group";
+        
+        div.innerHTML = `
+            <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            
+            <h3 class="relative z-10 text-xs text-slate-400 uppercase tracking-[0.25em] font-cinzel font-bold mb-1 transition-colors duration-300 group-hover:text-brand-400">
+                ${k}
+            </h3>
+            
+            <p class="relative z-10 text-4xl text-white font-mono font-black tracking-tighter leading-none transition-transform duration-300 group-hover:scale-110 drop-shadow-md">
+                ${CONFIG.prayerTimes[k] || '--:--'}
+            </p>
+        `;
         els.footer.appendChild(div);
     });
 }
