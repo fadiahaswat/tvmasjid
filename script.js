@@ -191,12 +191,10 @@ async function loadContentData() {
 async function loadSchedule() {
     log('loadSchedule', 'Memulai pemuatan jadwal sholat...');
     const now = new Date();
+    const dateKey = getFormattedDate(now); // Format: "2025-12-05"
     
-    // Format tanggal hari ini: "2023-12-05" (Sesuai permintaan format -)
-    const dateKey = getFormattedDate(now); 
-    
-    // Key untuk cache bulanan di LocalStorage
-    const cacheKey = `jadwal_${now.getFullYear()}_${now.getMonth() + 1}`;
+    // Key Cache: jadwal_2025_12
+    const cacheKey = `jadwal_${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}`;
     
     let schedule = null;
 
@@ -204,41 +202,31 @@ async function loadSchedule() {
     if (navigator.onLine) {
         log('loadSchedule', 'Online. Fetch API...');
         try {
-            // URL sesuai permintaan Anda (menggunakan pemisah -)
-            // Pastikan API Endpoint ini benar-benar support format YYYY-MM
-            const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}-${now.getMonth() + 1}`;
+            // URL: .../2025-12
+            const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
             
             const res = await fetch(url);
             const json = await res.json();
 
+            // Cek apakah struktur sesuai dengan contoh yang Anda berikan
             if (json.status && json.data?.jadwal) {
-                // PERBAIKAN DISINI:
-                // json.data.jadwal adalah ARRAY (Daftar sebulan).
-                // Kita harus mengubahnya menjadi Object Map agar mudah diambil berdasarkan tanggal.
+                const monthlyData = json.data.jadwal; // Ini adalah OBJECT, bukan Array
                 
-                const rawData = json.data.jadwal; // Ini Array
-                let monthlyMap = {};
-
-                if (Array.isArray(rawData)) {
-                    rawData.forEach(day => {
-                        // Asumsi API mengembalikan property 'date' dengan format "YYYY-MM-DD"
-                        // Jika API mengembalikan "YYYY/MM/DD", kita replace dulu agar cocok dengan dateKey
-                        // Kita paksa format key-nya menjadi YYYY-MM-DD
-                        const safeDate = day.date.replace(/\//g, '-'); 
-                        monthlyMap[safeDate] = day;
-                    });
-                } else {
-                    // Jaga-jaga jika API ternyata mengembalikan object tunggal (bukan array)
-                    monthlyMap[rawData.date] = rawData;
+                // KARENA DATA DARI API SUDAH BERUPA MAP { "2025-12-01": {...} }
+                // KITA BISA LANGSUNG SIMPAN KE CACHE
+                
+                // Validasi sedikit: pastikan ini Object dan bukan Array kosong
+                if (typeof monthlyData === 'object' && monthlyData !== null) {
+                    localStorage.setItem(cacheKey, JSON.stringify(monthlyData));
+                    
+                    // Ambil data hari ini langsung menggunakan key tanggal
+                    if (monthlyData[dateKey]) {
+                        schedule = monthlyData[dateKey];
+                        log('loadSchedule', 'Sukses: Data hari ini ditemukan di API', 'success');
+                    } else {
+                        log('loadSchedule', `Data untuk tanggal ${dateKey} tidak ada di respon API`, 'error');
+                    }
                 }
-
-                // Simpan Map Bulanan ke Cache
-                localStorage.setItem(cacheKey, JSON.stringify(monthlyMap));
-                
-                // Ambil jadwal HARI INI dari Map yang baru dibuat
-                schedule = monthlyMap[dateKey];
-                
-                log('loadSchedule', 'Sukses Fetch API & Update Cache', 'success');
             }
         } catch (e) {
             log('loadSchedule', 'Gagal Fetch API: ' + e, 'error');
@@ -252,7 +240,8 @@ async function loadSchedule() {
         if (cachedData) {
             try {
                 const parsedMap = JSON.parse(cachedData);
-                // Coba ambil data hari ini dari cache
+                // Karena struktur cache kita sekarang sama persis dengan API (Object Map)
+                // Kita tinggal panggil key-nya
                 if (parsedMap[dateKey]) {
                     schedule = parsedMap[dateKey];
                     log('loadSchedule', 'Berhasil load dari Cache', 'success');
@@ -265,7 +254,7 @@ async function loadSchedule() {
         }
     }
 
-    // --- 3. APPLY DATA (OR DEFAULT) ---
+    // --- 3. APPLY DATA ---
     if (schedule) {
         CONFIG.prayerTimes = {
             tahajjud: calculateTahajjud(schedule.subuh),
@@ -278,10 +267,10 @@ async function loadSchedule() {
             maghrib: schedule.maghrib,
             isya: schedule.isya
         };
-        // Log untuk memastikan data masuk
-        console.table(CONFIG.prayerTimes); 
+        // Debug di console untuk memastikan
+        console.log("Jadwal Terpasang:", CONFIG.prayerTimes);
     } else {
-        log('loadSchedule', 'Gagal semua metode. Menggunakan Default Hardcoded.', 'error');
+        log('loadSchedule', 'Gagal total. Menggunakan Default.', 'error');
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
     }
 
