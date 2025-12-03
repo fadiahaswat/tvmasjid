@@ -16,7 +16,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=JetBrains+Mono:wght@500;700;800&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -28,20 +28,17 @@
                         mono: ['JetBrains Mono', 'monospace'] 
                     },
                     colors: { 
-                        // Palet Warna: Modern Slate & Vibrant Teal
-                        dark: { 900: '#0f172a', 800: '#1e293b', 700: '#334155' },
-                        brand: { 400: '#2dd4bf', 500: '#14b8a6', 600: '#0d9488' }, // Teal
-                        accent: { 400: '#fbbf24', 500: '#f59e0b' } // Warm Amber
+                        slate: { 850: '#151f32', 900: '#0f172a' },
+                        brand: { 500: '#14b8a6', 600: '#0d9488' }, // Teal Modern
+                        accent: { 400: '#fbbf24', 500: '#f59e0b' } // Amber/Gold
                     },
                     animation: {
                         'marquee': 'marquee 30s linear infinite',
                         'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'pulse-subtle': 'pulseSubtle 3s infinite',
                     },
                     keyframes: {
                         marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } },
-                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                        pulseSubtle: { '0%, 100%': { opacity: '1' }, '50%': { opacity: '0.8' } }
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
                     }
                 }
             }
@@ -49,33 +46,22 @@
     </script>
 
     <style>
-        /* Base Setup untuk TV 1920x1080 */
         body { 
-            background-color: #0f172a; /* Slate 900 - Matte Dark */
+            background-color: #0f172a; 
             color: #f1f5f9; 
             overflow: hidden; 
         }
 
-        /* Background Pattern - Modern Islamic Geometry (Subtle) */
-        .bg-pattern {
-            position: fixed; inset: 0; z-index: -1;
-            background-image: radial-gradient(#1e293b 1px, transparent 1px);
-            background-size: 40px 40px;
-            opacity: 0.3;
-        }
-        
-        /* Modern Card Styling (Bento Grid) */
+        /* Card Style: Bersih, Flat, Modern */
         .card {
-            background: rgba(30, 41, 59, 0.7); /* Slate 800 with opacity */
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            border-radius: 1.5rem; /* Rounded Corners Modern */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
         }
 
         /* Utilities */
         .hidden-slide { display: none !important; }
-        .text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
         
         /* Layout Grid Utama */
         .main-layout {
@@ -83,125 +69,151 @@
             grid-template-rows: auto 1fr auto auto; /* Header, Content, Footer, RunningText */
             height: 100vh;
             padding: 1.5rem;
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
 
-        /* Footer Schedule Styling khusus untuk Script.js */
+        /* ====== FOOTER SCHEDULE STYLING (THE BIG CHANGE) ====== */
         #footer-schedule {
             display: grid;
-            grid-template-columns: repeat(8, 1fr); /* Asumsi ada 8 slot (Imsak-Isya) */
-            gap: 0.75rem;
+            grid-template-columns: repeat(8, 1fr); /* 8 Kolom Presisi */
+            gap: 0.5rem;
             height: 100%;
+            width: 100%;
         }
         
-        /* Target child divs yang dibuat oleh JS di footer */
+        /* Kotak Jadwal Individual */
         #footer-schedule > div {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(255,255,255,0.03);
-            border-radius: 1rem;
-            transition: all 0.3s;
+            background: rgba(255,255,255,0.03); /* Background tipis */
+            border-radius: 0.75rem;
+            height: 100%;
         }
         
-        /* Style untuk "Active" state jika JS menambah kelas aktif */
-        #footer-schedule > div.active, 
+        /* Nama Sholat (Subuh, Dzuhur, dll) */
+        #footer-schedule > div h3 { 
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.2rem; /* Besar agar terbaca */
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8; /* Slate 400 */
+            margin-bottom: 0.2rem;
+        }
+
+        /* Jam Sholat (04:15, etc) */
+        #footer-schedule > div p { 
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem; /* SANGAT BESAR */
+            font-weight: 800; /* BOLD */
+            color: white;
+            line-height: 1;
+        }
+        
+        /* Style untuk "Active/Next Prayer" */
         #footer-schedule > div[style*="background"] { 
             background: #14b8a6 !important; /* Brand Teal */
-            color: #0f172a !important;
-            transform: scale(1.05);
-            box-shadow: 0 10px 15px -3px rgba(20, 184, 166, 0.3);
-            border: none;
+            box-shadow: 0 0 20px rgba(20, 184, 166, 0.4);
+        }
+        
+        /* Warna teks saat aktif menjadi gelap agar kontras */
+        #footer-schedule > div[style*="background"] h3,
+        #footer-schedule > div[style*="background"] p {
+            color: #0f172a !important; /* Dark Slate */
         }
     </style>
 </head>
 <body>
 
     <div id="error-overlay"></div>
-    <div class="bg-pattern"></div>
     
-    <div class="fixed top-0 left-0 w-full h-1 z-50 bg-slate-800">
+    <div class="fixed top-0 left-0 w-full h-1.5 z-50 bg-slate-800">
         <div id="slide-progress" class="h-full bg-brand-500 transition-all duration-300 ease-linear w-0"></div>
     </div>
 
     <div class="main-layout">
         
-        <header class="card h-24 flex items-center justify-between px-8 py-2 relative z-20">
-            <div class="flex items-center gap-6">
-                <div class="h-14 w-14 bg-white/10 rounded-xl flex items-center justify-center border border-white/5">
-                    <img src="logo-putih-muallimin.webp" alt="Logo" class="h-10 w-auto object-contain" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-                    <i class="ri-mosque-fill text-3xl text-brand-400 hidden"></i>
-                </div>
-                <div>
-                    <h1 id="masjid-name" class="font-sans font-bold text-2xl tracking-tight text-white uppercase">Masjid Mu'allimin</h1>
-                    <div class="flex items-center gap-2 text-slate-400 text-sm font-medium tracking-widest uppercase">
-                        <i class="ri-map-pin-2-line text-brand-500"></i>
+        <header class="card h-32 flex items-center justify-between px-10 relative z-20">
+            
+            <div class="flex items-center gap-6 w-[35%]">
+                <img src="logo-putih-muallimin.webp" alt="Logo" class="h-24 w-auto object-contain drop-shadow-xl" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                <i class="ri-mosque-fill text-6xl text-brand-500 hidden"></i>
+                
+                <div class="flex flex-col justify-center">
+                    <h1 id="masjid-name" class="font-sans font-extrabold text-3xl tracking-tight text-white uppercase leading-tight">Masjid Mu'allimin</h1>
+                    <div class="flex items-center gap-2 text-brand-500 font-bold text-base tracking-widest uppercase mt-1">
+                        <i class="ri-map-pin-fill"></i>
                         <span id="masjid-address">Yogyakarta</span>
                     </div>
                 </div>
             </div>
 
-            <div class="hidden xl:flex bg-slate-900/50 px-6 py-3 rounded-full border border-white/5 gap-4 items-center">
-                <div class="flex items-center gap-2">
-                    <i class="ri-calendar-line text-slate-400"></i>
-                    <span id="header-date-masehi" class="font-sans font-semibold text-slate-200">...</span>
-                </div>
-                <div class="w-px h-4 bg-white/10"></div>
-                <div class="flex items-center gap-2">
-                    <i class="ri-moon-clear-line text-accent-500"></i>
-                    <span id="header-date-hijri" class="font-serif font-bold text-accent-400 text-lg">...</span>
+            <div class="hidden xl:flex flex-col items-center justify-center w-[30%]">
+                <div class="bg-slate-950/40 border border-white/10 px-8 py-3 rounded-2xl flex flex-col items-center gap-1 w-full max-w-md">
+                    <div class="flex items-center gap-2">
+                        <i class="ri-calendar-fill text-slate-400"></i>
+                        <span id="header-date-masehi" class="font-sans font-bold text-xl text-slate-200">...</span>
+                    </div>
+                    <div class="w-full h-px bg-white/10"></div>
+                    <div class="flex items-center gap-2">
+                        <i class="ri-moon-fill text-accent-500"></i>
+                        <span id="header-date-hijri" class="font-sans font-semibold text-accent-400 text-lg">...</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="text-right">
-                <div id="header-clock" class="text-6xl font-mono font-bold text-white tracking-tighter leading-none">00:00</div>
+            <div class="w-[35%] text-right flex flex-col items-end justify-center">
+                <div id="header-clock" class="text-8xl font-mono font-bold text-white tracking-tighter leading-none drop-shadow-2xl">00:00</div>
             </div>
         </header>
 
-        <main class="relative z-10 w-full h-full overflow-hidden">
+        <main class="relative z-10 w-full h-full overflow-hidden rounded-2xl bg-slate-900/0">
             
             <div id="scene-home" class="w-full h-full flex items-center justify-center animate-fade-in relative">
-                <div class="absolute right-0 top-0 w-96 h-96 bg-brand-500/10 rounded-full blur-[100px]"></div>
+                <div class="absolute inset-0 flex items-center justify-center opacity-5">
+                    <img src="logo-putih-muallimin.webp" class="h-[80%] opacity-20 grayscale">
+                </div>
                 
-                <div class="text-center z-10">
-                    <span class="inline-block py-1 px-4 rounded-full bg-slate-800 border border-slate-700 text-brand-400 text-sm font-bold tracking-[0.3em] uppercase mb-8">
-                        Waktu Sholat
-                    </span>
-                    <h1 class="text-[15vh] font-sans font-extrabold text-white leading-none tracking-tight mb-4">
-                        JADWAL
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-brand-600">SHOLAT</span>
+                <div class="text-center z-10 max-w-5xl">
+                    <h2 class="text-3xl text-brand-500 font-sans font-bold tracking-[0.2em] mb-4 uppercase">
+                        Ahlan Wa Sahlan
+                    </h2>
+                    
+                    <h1 class="text-7xl font-sans font-black text-white leading-tight mb-4 drop-shadow-lg">
+                        MASJID JAMI' <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-white">MU'ALLIMIN</span>
                     </h1>
                     
-                    <div class="flex justify-center gap-12 mt-12">
-                        <div class="text-center px-8 border-r border-slate-700/50">
-                            <p class="text-slate-400 text-sm uppercase tracking-widest mb-2">Hari Ini</p>
-                            <p id="home-date-masehi" class="text-4xl font-semibold text-slate-100">...</p>
+                    <p class="text-2xl text-slate-400 font-light mt-4">
+                        "Luruskan dan Rapatkan Shaf Sholat Anda"
+                    </p>
+
+                    <div class="flex justify-center gap-8 mt-12">
+                        <div class="px-6 py-2 bg-white/5 rounded-lg border border-white/5">
+                            <span id="home-date-masehi" class="text-3xl font-bold text-white">...</span>
                         </div>
-                        <div class="text-center px-8">
-                            <p class="text-slate-400 text-sm uppercase tracking-widest mb-2">Hijriah</p>
-                            <p id="home-date-hijri" class="text-4xl font-serif text-accent-400">...</p>
+                        <div class="px-6 py-2 bg-accent-500/10 rounded-lg border border-accent-500/20">
+                            <span id="home-date-hijri" class="text-3xl font-bold text-accent-400 font-sans">...</span>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="scene-next-detail" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in">
-                 <div class="card p-12 w-full max-w-4xl text-center border-t-4 border-t-brand-500 relative overflow-hidden">
-                    <div class="absolute -right-20 -top-20 text-[20rem] text-white/5 rotate-12">
-                        <i class="ri-time-line"></i>
-                    </div>
-
-                    <p class="text-slate-400 text-xl uppercase tracking-[0.4em] mb-4">Menuju Waktu</p>
-                    <h1 id="next-detail-name" class="text-[12vh] font-sans font-black text-white leading-none mb-2">...</h1>
+                 <div class="bg-slate-800/80 p-12 w-full max-w-5xl text-center rounded-[2rem] border border-white/10 shadow-2xl relative">
                     
-                    <div class="bg-slate-950/50 rounded-2xl py-2 px-10 inline-block my-8 border border-white/5">
-                         <span id="next-detail-time" class="text-[12vh] font-mono font-bold text-brand-400 tracking-tighter tabular-nums">--:--</span>
+                    <p class="text-slate-400 text-2xl uppercase tracking-[0.3em] font-bold mb-6">Menuju Waktu</p>
+                    <h1 id="next-detail-name" class="text-[12vh] font-sans font-black text-white leading-none mb-4 uppercase">...</h1>
+                    
+                    <div class="inline-block px-12 py-4 bg-black/30 rounded-2xl mb-8 border border-white/5">
+                         <span id="next-detail-time" class="text-[10vh] font-mono font-bold text-brand-400 tracking-tighter tabular-nums">--:--</span>
                     </div>
 
-                    <div class="flex flex-col items-center mt-6">
-                        <p class="text-sm text-slate-500 uppercase tracking-widest mb-2">Sisa Waktu</p>
-                        <div id="header-countdown" class="text-5xl font-mono font-bold text-white tracking-wide">
+                    <div class="flex flex-col items-center mt-2 p-6 bg-brand-900/20 rounded-xl border border-brand-500/20">
+                        <p class="text-base text-brand-400 uppercase tracking-widest font-bold mb-2">Sisa Waktu</p>
+                        <div id="header-countdown" class="text-7xl font-mono font-bold text-white tracking-wide tabular-nums">
                             -00:00:00
                         </div>
                         <span id="header-next-name" class="hidden">...</span>
@@ -209,118 +221,117 @@
                  </div>
             </div>
 
-            <div id="scene-ayat" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-12">
-                <div class="text-center max-w-6xl">
-                    <div class="mb-10 inline-flex items-center justify-center w-20 h-20 rounded-full bg-accent-500/10 text-accent-500 text-4xl mb-6">
-                        <i class="ri-book-open-fill"></i>
+            <div id="scene-ayat" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-20">
+                <div class="text-center w-full">
+                    <div class="mb-8 inline-flex items-center justify-center px-6 py-2 rounded-full bg-accent-500/10 text-accent-500 text-lg font-bold uppercase tracking-widest border border-accent-500/20">
+                        <i class="ri-book-open-fill mr-2"></i> Kalamullah
                     </div>
                     
-                    <p id="ayat-arabic" class="text-6xl font-serif text-white leading-[2] mb-10 dir-rtl" style="direction: rtl;">...</p>
+                    <p id="ayat-arabic" class="text-6xl font-serif text-white leading-[2.2] mb-12 dir-rtl" style="direction: rtl;">...</p>
                     
-                    <div class="h-px w-32 bg-slate-700 mx-auto mb-10"></div>
-                    
-                    <p id="ayat-text" class="text-3xl font-sans font-light text-slate-300 leading-relaxed italic">...</p>
-                    <p id="ayat-source" class="mt-8 text-xl font-bold text-brand-500 uppercase tracking-widest">...</p>
+                    <p id="ayat-text" class="text-4xl font-sans font-medium text-slate-300 leading-relaxed">...</p>
+                    <p id="ayat-source" class="mt-8 text-2xl font-bold text-brand-500 uppercase tracking-widest">...</p>
                 </div>
             </div>
 
-            <div id="scene-hadits" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-12">
-                <div class="text-center max-w-6xl">
-                    <div class="mb-10 inline-flex items-center justify-center w-20 h-20 rounded-full bg-brand-500/10 text-brand-500 text-4xl mb-6">
-                        <i class="ri-double-quotes-l"></i>
+            <div id="scene-hadits" class="hidden-slide w-full h-full flex items-center justify-center animate-fade-in px-20">
+                <div class="text-center w-full">
+                    <div class="mb-8 inline-flex items-center justify-center px-6 py-2 rounded-full bg-brand-500/10 text-brand-500 text-lg font-bold uppercase tracking-widest border border-brand-500/20">
+                        <i class="ri-double-quotes-l mr-2"></i> Hadits
                     </div>
                     
-                    <p id="hadits-arabic" class="text-5xl font-serif text-white leading-[2] mb-10 dir-rtl" style="direction: rtl;">...</p>
+                    <p id="hadits-arabic" class="text-6xl font-serif text-white leading-[2.2] mb-12 dir-rtl" style="direction: rtl;">...</p>
                     
-                    <div class="h-px w-32 bg-slate-700 mx-auto mb-10"></div>
+                    <p id="hadits-text" class="text-4xl font-sans font-medium text-slate-300 leading-relaxed">...</p>
                     
-                    <p id="hadits-text" class="text-3xl font-sans font-light text-slate-300 leading-relaxed">...</p>
-                    
-                    <div class="mt-8 flex justify-center items-center gap-3">
-                        <span class="px-2 py-1 bg-slate-800 rounded text-xs text-slate-400 uppercase">Riwayat</span>
-                        <p id="hadits-source" class="text-xl font-bold text-brand-500 uppercase tracking-widest">...</p>
+                    <div class="mt-10 flex justify-center items-center gap-4">
+                        <span class="px-3 py-1 bg-slate-700 rounded text-sm text-slate-300 uppercase font-bold">Riwayat</span>
+                        <p id="hadits-source" class="text-2xl font-bold text-brand-500 uppercase tracking-widest">...</p>
                     </div>
                 </div>
             </div>
 
             <div id="scene-info" class="hidden-slide w-full h-full flex flex-col p-4 animate-fade-in">
-                <div class="flex items-center gap-4 mb-6">
-                    <div class="w-2 h-10 bg-brand-500 rounded-full"></div>
-                    <h2 class="text-4xl font-bold text-white uppercase">Informasi Masjid</h2>
+                <div class="flex items-center gap-6 mb-8 border-b border-white/10 pb-4">
+                    <i class="ri-information-fill text-5xl text-brand-500"></i>
+                    <h2 class="text-5xl font-bold text-white uppercase tracking-tight">Informasi Masjid</h2>
                 </div>
-                <div id="info-grid" class="flex-1 grid grid-cols-2 gap-6 content-start">
+                <div id="info-grid" class="flex-1 grid grid-cols-2 gap-8 content-start">
                     </div>
             </div>
 
             <div id="scene-donation" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in">
-                <h2 class="text-5xl font-bold text-white mb-12 uppercase tracking-wide">Infaq & Shodaqoh</h2>
+                <h2 class="text-6xl font-black text-white mb-16 uppercase tracking-tight">Infaq & Shodaqoh</h2>
                 
-                <div class="flex gap-10 w-full max-w-6xl">
-                    <div class="flex-1 bg-gradient-to-br from-slate-700 to-slate-800 p-8 rounded-[2rem] border border-white/10 flex flex-col justify-between h-80 relative overflow-hidden group">
-                        <div class="absolute right-0 top-0 p-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                <div class="flex gap-12 w-full max-w-7xl px-8">
+                    <div class="flex-1 bg-gradient-to-br from-slate-800 to-slate-900 p-10 rounded-[2.5rem] border border-white/10 flex flex-col justify-between h-[400px] shadow-2xl relative overflow-hidden">
+                        <div class="absolute right-0 top-0 p-40 bg-brand-500/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
                         
-                        <div class="flex justify-between items-start z-10">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Bank_Syariah_Indonesia_Logo.png" class="h-10 bg-white/90 p-2 rounded-lg" alt="BSI">
-                            <i class="ri-rfid-line text-4xl text-white/20"></i>
+                        <div class="flex justify-between items-start z-10 mb-8">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/4/44/Bank_Syariah_Indonesia_Logo.png" class="h-16 bg-white p-3 rounded-xl object-contain" alt="BSI">
+                            <span class="text-3xl text-white/50 font-mono">Debit</span>
                         </div>
                         
                         <div class="z-10">
-                            <p class="text-brand-400 font-mono text-sm mb-1">NO. REKENING</p>
-                            <p class="text-6xl font-mono font-bold text-white tracking-tighter">7930030303</p>
+                            <p class="text-brand-400 font-bold text-lg mb-2 tracking-widest uppercase">Nomor Rekening</p>
+                            <p class="text-7xl font-mono font-bold text-white tracking-tighter drop-shadow-lg">7930030303</p>
                         </div>
                         
-                        <div class="z-10">
-                            <p class="text-slate-400 text-xs uppercase tracking-widest mb-1">Atas Nama</p>
-                            <p class="text-xl font-bold text-white uppercase truncate">LAZISMU MUALLIMIN</p>
+                        <div class="z-10 border-t border-white/10 pt-6 mt-4">
+                            <p class="text-slate-400 text-sm uppercase tracking-widest mb-1">Atas Nama</p>
+                            <p class="text-2xl font-bold text-white uppercase truncate">LAZISMU MUALLIMIN</p>
                         </div>
                     </div>
 
-                    <div class="flex-1 bg-gradient-to-br from-slate-700 to-slate-800 p-8 rounded-[2rem] border border-white/10 flex flex-col justify-between h-80 relative overflow-hidden group">
-                        <div class="absolute right-0 top-0 p-32 bg-accent-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                    <div class="flex-1 bg-gradient-to-br from-slate-800 to-slate-900 p-10 rounded-[2.5rem] border border-white/10 flex flex-col justify-between h-[400px] shadow-2xl relative overflow-hidden">
+                        <div class="absolute right-0 top-0 p-40 bg-accent-500/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
                         
-                        <div class="flex justify-between items-start z-10">
-                            <img src="https://upload.wikimedia.org/wikipedia/id/thumb/5/55/BNI_logo.svg/1200px-BNI_logo.svg.png" class="h-10 bg-white/90 p-2 rounded-lg" alt="BNI">
-                            <i class="ri-rfid-line text-4xl text-white/20"></i>
+                        <div class="flex justify-between items-start z-10 mb-8">
+                            <img src="https://upload.wikimedia.org/wikipedia/id/thumb/5/55/BNI_logo.svg/1200px-BNI_logo.svg.png" class="h-16 bg-white p-3 rounded-xl object-contain" alt="BNI">
+                            <span class="text-3xl text-white/50 font-mono">Debit</span>
                         </div>
                         
                         <div class="z-10">
-                            <p class="text-accent-400 font-mono text-sm mb-1">NO. REKENING</p>
-                            <p class="text-6xl font-mono font-bold text-white tracking-tighter">3440000348</p>
+                            <p class="text-accent-400 font-bold text-lg mb-2 tracking-widest uppercase">Nomor Rekening</p>
+                            <p class="text-7xl font-mono font-bold text-white tracking-tighter drop-shadow-lg">3440000348</p>
                         </div>
                         
-                        <div class="z-10">
-                            <p class="text-slate-400 text-xs uppercase tracking-widest mb-1">Atas Nama</p>
-                            <p class="text-xl font-bold text-white uppercase truncate">LAZISMU MADRASAH</p>
+                        <div class="z-10 border-t border-white/10 pt-6 mt-4">
+                            <p class="text-slate-400 text-sm uppercase tracking-widest mb-1">Atas Nama</p>
+                            <p class="text-2xl font-bold text-white uppercase truncate">LAZISMU MADRASAH</p>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div id="scene-countdown" class="hidden-slide fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center text-center">
-                 <div class="absolute inset-0 bg-red-900/20 animate-pulse-subtle"></div>
-                 <h2 id="countdown-title" class="text-4xl font-bold uppercase tracking-[0.5em] text-accent-500 mb-8 animate-pulse">Menuju Adzan</h2>
-                 <h1 id="countdown-name" class="text-[12vh] font-black text-white mb-4">...</h1>
-                 <span id="countdown-timer" class="text-[25vh] font-mono font-bold text-white tabular-nums leading-none">00:00</span>
+                 <div class="absolute inset-0 bg-red-900/10 animate-pulse"></div>
+                 <h2 id="countdown-title" class="text-5xl font-black uppercase tracking-[0.2em] text-accent-500 mb-10 border-b-4 border-accent-500 pb-2">Menuju Adzan</h2>
+                 <h1 id="countdown-name" class="text-[15vh] font-black text-white mb-4 drop-shadow-2xl">...</h1>
+                 <span id="countdown-timer" class="text-[30vh] font-mono font-bold text-white tabular-nums leading-none tracking-tighter">00:00</span>
             </div>
 
-            <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center text-center">
-                <i class="ri-notification-badge-fill text-9xl text-brand-500 mb-8 animate-bounce"></i>
-                <h1 class="text-[10vh] font-bold text-white uppercase tracking-wider mb-4">Sholat Berlangsung</h1>
-                <p class="text-4xl text-slate-400">Harap Luruskan & Rapatkan Shaf</p>
+            <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center text-center px-20">
+                <i class="ri-notification-3-fill text-[15vh] text-brand-500 mb-8 animate-bounce"></i>
+                <h1 class="text-[12vh] font-black text-white uppercase tracking-wider mb-8 leading-none">Sholat Berlangsung</h1>
+                <div class="bg-slate-800 px-12 py-6 rounded-2xl border border-white/10">
+                    <p class="text-5xl text-brand-400 font-bold">Luruskan & Rapatkan Shaf</p>
+                    <p class="text-2xl text-slate-500 mt-4 uppercase tracking-widest">Matikan Alat Komunikasi</p>
+                </div>
             </div>
 
         </main>
 
-        <footer class="h-32 card p-3 z-30">
+        <footer class="h-40 card p-2 z-30">
             <div id="footer-schedule"></div>
         </footer>
 
-        <div class="h-12 bg-slate-900/80 border-t border-white/5 flex items-center overflow-hidden relative z-20">
-            <div class="px-4 bg-brand-600 h-full flex items-center justify-center z-10 shadow-lg">
-                <i class="ri-information-line text-xl text-white"></i>
+        <div class="h-16 bg-slate-950 border-t border-white/10 flex items-center overflow-hidden relative z-20">
+            <div class="px-6 bg-brand-600 h-full flex items-center justify-center z-10 shadow-[4px_0_15px_rgba(0,0,0,0.5)]">
+                <i class="ri-information-line text-3xl text-white"></i>
             </div>
-            <div class="w-full absolute flex whitespace-nowrap animate-marquee pl-20">
-                <span id="running-text" class="text-2xl font-light text-slate-100 tracking-wide font-sans">Memuat informasi...</span>
+            <div class="w-full absolute flex whitespace-nowrap animate-marquee pl-24">
+                <span id="running-text" class="text-3xl font-normal text-slate-100 tracking-wide font-sans py-2">Memuat informasi...</span>
             </div>
         </div>
 
