@@ -191,46 +191,81 @@ async function loadContentData() {
 async function loadSchedule() {
     log('loadSchedule', 'Memulai pemuatan jadwal sholat...');
     const now = new Date();
-    const dateKey = getFormattedDate(now); // "2023-12-05"
+    
+    // Format tanggal hari ini: "2023-12-05" (Sesuai permintaan format -)
+    const dateKey = getFormattedDate(now); 
+    
+    // Key untuk cache bulanan di LocalStorage
     const cacheKey = `jadwal_${now.getFullYear()}_${now.getMonth() + 1}`;
+    
     let schedule = null;
 
-    // 1. NETWORK ATTEMPT
+    // --- 1. NETWORK ATTEMPT ---
     if (navigator.onLine) {
-        log('loadSchedule', 'Online. Fetch API Kemenag/MyQuran...');
+        log('loadSchedule', 'Online. Fetch API...');
         try {
+            // URL sesuai permintaan Anda (menggunakan pemisah -)
+            // Pastikan API Endpoint ini benar-benar support format YYYY-MM
             const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}-${now.getMonth() + 1}`;
+            
             const res = await fetch(url);
             const json = await res.json();
 
             if (json.status && json.data?.jadwal) {
-                schedule = json.data.jadwal;
-                // Simpan Cache Harian ke dalam Object Bulanan (agar support offline besoknya)
-                let monthlyCache = JSON.parse(localStorage.getItem(cacheKey) || "{}");
-                monthlyCache[dateKey] = schedule;
-                localStorage.setItem(cacheKey, JSON.stringify(monthlyCache));
+                // PERBAIKAN DISINI:
+                // json.data.jadwal adalah ARRAY (Daftar sebulan).
+                // Kita harus mengubahnya menjadi Object Map agar mudah diambil berdasarkan tanggal.
+                
+                const rawData = json.data.jadwal; // Ini Array
+                let monthlyMap = {};
+
+                if (Array.isArray(rawData)) {
+                    rawData.forEach(day => {
+                        // Asumsi API mengembalikan property 'date' dengan format "YYYY-MM-DD"
+                        // Jika API mengembalikan "YYYY/MM/DD", kita replace dulu agar cocok dengan dateKey
+                        // Kita paksa format key-nya menjadi YYYY-MM-DD
+                        const safeDate = day.date.replace(/\//g, '-'); 
+                        monthlyMap[safeDate] = day;
+                    });
+                } else {
+                    // Jaga-jaga jika API ternyata mengembalikan object tunggal (bukan array)
+                    monthlyMap[rawData.date] = rawData;
+                }
+
+                // Simpan Map Bulanan ke Cache
+                localStorage.setItem(cacheKey, JSON.stringify(monthlyMap));
+                
+                // Ambil jadwal HARI INI dari Map yang baru dibuat
+                schedule = monthlyMap[dateKey];
                 
                 log('loadSchedule', 'Sukses Fetch API & Update Cache', 'success');
             }
         } catch (e) {
-            log('loadSchedule', 'Gagal Fetch API', 'error');
+            log('loadSchedule', 'Gagal Fetch API: ' + e, 'error');
         }
     }
 
-    // 2. CACHE FALLBACK
+    // --- 2. CACHE FALLBACK ---
     if (!schedule) {
         log('loadSchedule', 'Cek LocalStorage...', 'info');
         const cachedData = localStorage.getItem(cacheKey);
         if (cachedData) {
-            const parsed = JSON.parse(cachedData);
-            if (parsed[dateKey]) {
-                schedule = parsed[dateKey];
-                log('loadSchedule', 'Berhasil load dari Cache', 'success');
+            try {
+                const parsedMap = JSON.parse(cachedData);
+                // Coba ambil data hari ini dari cache
+                if (parsedMap[dateKey]) {
+                    schedule = parsedMap[dateKey];
+                    log('loadSchedule', 'Berhasil load dari Cache', 'success');
+                } else {
+                    log('loadSchedule', 'Cache ada tapi data tanggal ini tidak ditemukan', 'error');
+                }
+            } catch (e) {
+                log('loadSchedule', 'Cache Corrupt', 'error');
             }
         }
     }
 
-    // 3. APPLY DATA (OR DEFAULT)
+    // --- 3. APPLY DATA (OR DEFAULT) ---
     if (schedule) {
         CONFIG.prayerTimes = {
             tahajjud: calculateTahajjud(schedule.subuh),
@@ -243,6 +278,8 @@ async function loadSchedule() {
             maghrib: schedule.maghrib,
             isya: schedule.isya
         };
+        // Log untuk memastikan data masuk
+        console.table(CONFIG.prayerTimes); 
     } else {
         log('loadSchedule', 'Gagal semua metode. Menggunakan Default Hardcoded.', 'error');
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
@@ -251,7 +288,6 @@ async function loadSchedule() {
     renderFooter();
     fetchHijriDate();
 }
-
 
 // --- 4. CORE LOGIC (CLOCK & SLIDESHOW) ---
 
