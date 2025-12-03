@@ -56,7 +56,7 @@ function calculateTahajjud(shubuhTime) {
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210); // -3.5 jam
+    date.setMinutes(date.getMinutes() - 210); 
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
@@ -79,7 +79,6 @@ async function fetchSingleRandomAyat() {
             const ayat = json.data.ayat;
             const info = json.data.info.surat;
             const textId = (ayat.text || "").replace(/\n/g, "<br>");
-            
             return {
                 text: textId,
                 arabic: ayat.arab || "",
@@ -87,9 +86,7 @@ async function fetchSingleRandomAyat() {
             };
         }
         return null;
-    } catch (e) {
-        return null;
-    }
+    } catch (e) { return null; }
 }
 
 async function fetchSingleRandomHadith() {
@@ -99,11 +96,9 @@ async function fetchSingleRandomHadith() {
         
         if (json.status && json.data?.text) {
             const d = json.data;
-
             const arabicText = d.text?.ar || "";
             let indoText = d.text?.id || "";
             indoText = indoText.replace(/\n/g, "<br>");
-
             let sourceName = d.takhrij || "Muttafaq Alaihi";
             sourceName = sourceName.replace("Diriwayatkan oleh", "").trim();
 
@@ -116,9 +111,7 @@ async function fetchSingleRandomHadith() {
             };
         }
         return null;
-    } catch (e) {
-        return null;
-    }
+    } catch (e) { return null; }
 }
 
 async function fetchHijriDate(dateString) {
@@ -145,7 +138,7 @@ async function loadMonthlyContent() {
     const now = new Date();
     const y = now.getFullYear();
     const m = String(now.getMonth() + 1).padStart(2, '0');
-    const monthKey = `monthly_content_${y}_${m}`; // Key cache bulanan untuk konten
+    const monthKey = `monthly_content_${y}_${m}`; 
 
     let cachedContent = localStorage.getItem(monthKey);
 
@@ -158,14 +151,10 @@ async function loadMonthlyContent() {
                 console.log("[CACHE] Konten bulanan dimuat dari cache.");
                 return; 
             }
-        } catch(e) {
-            localStorage.removeItem(monthKey);
-        }
+        } catch(e) { localStorage.removeItem(monthKey); }
     }
     
-    // FETCH NEW BATCH (Hanya jika cache bulanan kosong / expired)
-    console.log(`[API] Mengunduh batch konten baru (${CONTENT_BATCH_SIZE_TOTAL} item/tipe)...`);
-    
+    console.log(`[API] Mengunduh batch konten baru...`);
     const ayatPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomAyat());
     const hadithPromises = Array(CONTENT_BATCH_SIZE_TOTAL).fill(0).map(() => fetchSingleRandomHadith());
 
@@ -180,15 +169,10 @@ async function loadMonthlyContent() {
     if (finalAyat.length > 0 || finalHadith.length > 0) {
         if (finalAyat.length > 0) DATA_CONTENT.ayat = finalAyat;
         if (finalHadith.length > 0) DATA_CONTENT.hadits = finalHadith;
-        
         const payload = JSON.stringify({ ayat: DATA_CONTENT.ayat, hadits: DATA_CONTENT.hadits });
         localStorage.setItem(monthKey, payload);
-        console.log(`[CACHE] Konten bulanan (${finalAyat.length} Ayat, ${finalHadith.length} Hadis) disimpan.`);
-    } else {
-        console.warn("[API] Gagal mendapatkan konten bulanan. Menggunakan data statis.");
     }
 }
-
 
 async function loadSchedule() {
     const now = new Date();
@@ -245,26 +229,27 @@ async function loadSchedule() {
         renderFullScheduleGrid();
     }
 
-    // Load Extra Content (Hijri Date dan Konten Bulanan)
     await fetchHijriDate(dateKey); 
     await loadMonthlyContent(); 
 }
 
-// --- BLOCK 4: CORE LOGIC & RENDERING (Depend on functions above) ---
+// --- BLOCK 4: CORE LOGIC & RENDERING ---
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         console.log("Memulai Sistem...");
         
         els = {
-            masjidName: document.getElementById('masjid-name'),
-            address: document.getElementById('masjid-address'),
+            // HEADER ELEMENTS (NEW)
+            headerClock: document.getElementById('header-clock'),
+            headerDate: document.getElementById('header-date'),
+            headerNextName: document.getElementById('header-next-name'),
+            headerCountdown: document.getElementById('header-countdown'),
+            
+            masjidName: document.getElementById('masjid-name'), // Note: di HTML baru diganti Logo, tapi mungkin ID masih ada
+            address: document.getElementById('masjid-address'), // Note: di HTML baru diganti Logo, tapi mungkin ID masih ada
             runningText: document.getElementById('running-text'),
             progressBar: document.getElementById('slide-progress'),
-            
-            homeClock: document.getElementById('home-clock'),
-            homeClockReflect: document.getElementById('home-clock-reflect'),
-            homeDate: document.getElementById('home-date'),
             
             homeNextName: document.getElementById('home-next-name'),
             homeNextTime: document.getElementById('home-next-time'),
@@ -305,8 +290,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         };
 
-        if(els.masjidName) els.masjidName.textContent = CONFIG.masjidName;
-        if(els.address) els.address.textContent = CONFIG.address;
         if(els.runningText) els.runningText.textContent = CONFIG.runningText;
 
         await loadSchedule();
@@ -331,25 +314,47 @@ function updateClock() {
     }
     lastDateString = currentDateString;
 
-    const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit' });
-    if(els.homeClock) els.homeClock.textContent = timeStr;
-    if(els.homeClockReflect) els.homeClockReflect.textContent = timeStr;
+    // UPDATE CLOCK (Header)
+    const timeStr = now.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    if(els.headerClock) els.headerClock.textContent = timeStr;
     
-    if(els.homeDate) {
+    // UPDATE DATE (Header)
+    if(els.headerDate) {
         const masehi = now.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
         if (CONFIG.currentHijriDate) {
-            els.homeDate.textContent = `${masehi} • ${CONFIG.currentHijriDate}`;
+            els.headerDate.textContent = `${masehi} • ${CONFIG.currentHijriDate}`;
         } else {
-            els.homeDate.textContent = masehi;
+            els.headerDate.textContent = masehi;
         }
     }
     
+    // HEADER COUNTDOWN LOGIC
     const next = getNextPrayer(now);
     if(next) {
+        // Update Names
+        if(els.headerNextName) els.headerNextName.textContent = next.name;
         if(els.homeNextName) els.homeNextName.textContent = next.name;
         if(els.homeNextTime) els.homeNextTime.textContent = next.timeStr;
         if(els.nextDetailName) els.nextDetailName.textContent = next.name;
         if(els.nextDetailTime) els.nextDetailTime.textContent = next.timeStr;
+
+        // Calculate Header Countdown
+        const [h, m] = next.timeStr.split(':').map(Number);
+        let targetTime = new Date(now);
+        targetTime.setHours(h, m, 0, 0);
+        
+        if (targetTime < now) {
+            targetTime.setDate(targetTime.getDate() + 1);
+        }
+        
+        const diff = targetTime - now;
+        const hh = Math.floor(diff / 3600000).toString().padStart(2, '0');
+        const mm = Math.floor((diff % 3600000) / 60000).toString().padStart(2, '0');
+        const ss = Math.floor((diff % 60000) / 1000).toString().padStart(2, '0');
+        
+        if(els.headerCountdown) {
+            els.headerCountdown.textContent = `-${hh}:${mm}:${ss}`;
+        }
     }
 }
 
@@ -471,7 +476,6 @@ function nextNormalSlide() {
             els.ayatSource.textContent = item.source;
             currentState.currentAyatIndex = (currentState.currentAyatIndex + 1) % totalAyat;
         } else {
-            // Fallback jika array kosong
             els.ayatText.innerHTML = '"Gagal memuat ayat acak."';
             els.ayatSource.textContent = 'Membutuhkan koneksi internet untuk fetch bulanan.';
         }
@@ -484,7 +488,6 @@ function nextNormalSlide() {
         
         if (totalHadith > 0) {
             if (els.haditsArabic) els.haditsArabic.textContent = item.arabic || "";
-            
             let contentHTML = `"${item.text}"`;
             if (item.hikmah) {
                 contentHTML += `<br><br><span class="text-3xl text-emerald-400 font-sans tracking-wide block mt-4 pt-4 border-t border-emerald-500/30">💡 Hikmah: ${item.hikmah}</span>`;
@@ -492,11 +495,8 @@ function nextNormalSlide() {
             els.haditsText.innerHTML = contentHTML;
             
             let sourceInfo = item.source;
-            if (item.grade) {
-                sourceInfo += ` • (${item.grade})`;
-            }
+            if (item.grade) sourceInfo += ` • (${item.grade})`;
             els.haditsSource.textContent = sourceInfo;
-
             currentState.currentHadithIndex = (currentState.currentHadithIndex + 1) % totalHadith;
         } else {
              els.haditsText.innerHTML = '"Gagal memuat hadis acak."';
