@@ -14,7 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=JetBrains+Mono:wght@500;700;800&family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cinzel:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700;800&family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -23,10 +23,10 @@
                     fontFamily: { 
                         sans: ['Outfit', 'sans-serif'], 
                         serif: ['Amiri', 'serif'], 
-                        mono: ['JetBrains Mono', 'monospace'] 
+                        mono: ['JetBrains Mono', 'monospace'],
+                        cinzel: ['Cinzel', 'serif'] /* Font Baru Registered */
                     },
                     colors: { 
-                        // Darker, Richer colors for OLED screens
                         dark: { 900: '#050505', 800: '#0a0a0a', card: '#111111' },
                         brand: { 400: '#2dd4bf', 500: '#14b8a6', glow: '#0ff2ea' }, 
                         accent: { 400: '#fbbf24', 500: '#f59e0b', glow: '#ffaa00' }
@@ -35,6 +35,7 @@
                         'fade-in': 'fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                         'float': 'float 6s ease-in-out infinite',
                         'pulse-glow': 'pulseGlow 3s infinite',
+                        'spin-slow': 'spin 20s linear infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0', transform: 'scale(0.98) translateY(10px)' }, '100%': { opacity: '1', transform: 'scale(1) translateY(0)' } },
@@ -47,16 +48,14 @@
     </script>
 
     <style>
-        /* --- GLOBAL & BACKGROUND --- */
         body { 
-            background-color: #050505; /* True Dark for OLED */
+            background-color: #050505; 
             color: #ffffff;
             overflow: hidden; 
             font-family: 'Outfit', sans-serif;
             -webkit-font-smoothing: antialiased;
         }
 
-        /* Ambient Mesh Gradient Background */
         body::before {
             content: '';
             position: absolute;
@@ -67,7 +66,6 @@
             animation: float 20s infinite alternate;
         }
 
-        /* Grain Texture untuk kesan 'Material' dan cegah banding */
         body::after {
             content: "";
             position: absolute; inset: 0;
@@ -76,7 +74,6 @@
             pointer-events: none;
         }
 
-        /* --- BENTO CARD DESIGN (Glassmorphism + Neumorphism) --- */
         .bento-card {
             background: rgba(20, 20, 20, 0.6);
             backdrop-filter: blur(20px);
@@ -84,13 +81,12 @@
             border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.5rem;
             box-shadow: 
-                inset 0 0 0 1px rgba(255, 255, 255, 0.05), /* Inner light border */
-                0 20px 50px -12px rgba(0, 0, 0, 0.8); /* Deep shadow */
+                inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 20px 50px -12px rgba(0, 0, 0, 0.8);
             position: relative;
             overflow: hidden;
         }
 
-        /* Subtle shine effect on cards */
         .bento-card::before {
             content: '';
             position: absolute; top: 0; left: 0; right: 0; height: 1px;
@@ -99,7 +95,6 @@
 
         .hidden-slide { display: none !important; }
         
-        /* --- LAYOUT --- */
         .main-layout {
             display: grid;
             grid-template-rows: auto 1fr auto; 
@@ -108,18 +103,15 @@
             gap: 1.25rem;
         }
 
-        /* --- TYPOGRAPHY STYLES (Brutalist) --- */
         .text-glow { text-shadow: 0 0 20px rgba(255,255,255,0.3); }
         .text-glow-brand { text-shadow: 0 0 30px rgba(20, 184, 166, 0.6); }
         .text-glow-accent { text-shadow: 0 0 30px rgba(251, 191, 36, 0.6); }
         
-        /* Outline Text Effect */
         .text-outline {
             -webkit-text-stroke: 2px rgba(255,255,255,0.2);
             color: transparent;
         }
 
-        /* --- FOOTER SCHEDULE (Interactive Neon) --- */
         #footer-schedule {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -141,11 +133,11 @@
         }
         
         #footer-schedule > div h3 { 
-            font-family: 'Outfit', sans-serif;
-            font-size: 0.9rem;
+            font-family: 'Cinzel', serif; /* Footer titles use Cinzel */
+            font-size: 0.85rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.1em;
             color: #64748b;
             margin-bottom: 0.25rem;
         }
@@ -159,7 +151,6 @@
             letter-spacing: -0.05em;
         }
         
-        /* ACTIVE STATE (Override inline styles from script) */
         #footer-schedule > div[style*="background"] { 
             background: linear-gradient(145deg, rgba(20, 184, 166, 0.1), rgba(20, 184, 166, 0.05)) !important;
             border: 1px solid #2dd4bf !important;
@@ -200,7 +191,7 @@
                 </div>
                 
                 <div class="flex flex-col">
-                    <h1 id="masjid-name" class="font-sans font-black text-2xl tracking-tighter text-white uppercase leading-none mb-1">Masjid Mu'allimin</h1>
+                    <h1 id="masjid-name" class="font-cinzel font-bold text-2xl tracking-tight text-white uppercase leading-none mb-1">Masjid Mu'allimin</h1>
                     <div class="flex items-center gap-2 text-brand-400 font-bold text-xs tracking-[0.2em] uppercase">
                         <i class="ri-map-pin-line"></i>
                         <span id="masjid-address">Yogyakarta</span>
@@ -226,7 +217,7 @@
                         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent-400 opacity-75"></span>
                         <span class="relative inline-flex rounded-full h-2 w-2 bg-accent-500"></span>
                     </span>
-                    <span class="text-[0.6rem] font-bold text-slate-400 uppercase tracking-widest">Menuju <span id="header-next-name" class="text-white ml-1">...</span></span>
+                    <span class="text-[0.6rem] font-bold text-slate-400 uppercase tracking-widest">Menuju <span id="header-next-name" class="text-white ml-1 font-cinzel">...</span></span>
                 </div>
                 <div id="header-clock" class="text-7xl font-mono font-black text-white tracking-tighter leading-none text-glow tabular-nums mt-6">00:00</div>
                 <div id="header-countdown" class="text-xl font-mono font-bold text-accent-400 tracking-widest tabular-nums opacity-80 mt-1">-00:00:00</div>
@@ -243,17 +234,17 @@
                       </svg>
                 </div>
                 
-                <h2 class="text-2xl text-brand-400 font-sans font-bold tracking-[0.8em] mb-6 uppercase flex items-center gap-6">
+                <h2 class="text-2xl text-brand-400 font-cinzel font-bold tracking-[0.8em] mb-6 uppercase flex items-center gap-6">
                     <span class="w-2 h-2 bg-brand-400 rounded-full"></span>
                     Ahlan Wa Sahlan
                     <span class="w-2 h-2 bg-brand-400 rounded-full"></span>
                 </h2>
                 
                 <div class="relative z-10 text-center">
-                    <h1 class="text-[8rem] font-sans font-black text-white leading-[0.85] tracking-tighter drop-shadow-2xl mix-blend-overlay opacity-50 absolute top-2 left-2 w-full select-none">
+                    <h1 class="text-[7.5rem] font-cinzel font-black text-white leading-[0.85] tracking-tight drop-shadow-2xl mix-blend-overlay opacity-50 absolute top-2 left-2 w-full select-none">
                         MASJID JAMI'<br>MU'ALLIMIN
                     </h1>
-                    <h1 class="text-[8rem] font-sans font-black text-white leading-[0.85] tracking-tighter drop-shadow-2xl relative z-20">
+                    <h1 class="text-[7.5rem] font-cinzel font-black text-white leading-[0.85] tracking-tight drop-shadow-2xl relative z-20">
                         MASJID JAMI'<br>
                         <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-400 to-white">MU'ALLIMIN</span>
                     </h1>
@@ -271,10 +262,10 @@
                  
                  <div class="flex flex-col items-center z-10">
                     <div class="bg-black/30 px-8 py-2 rounded-full border border-brand-500/30 mb-10 shadow-[0_0_30px_rgba(20,184,166,0.2)]">
-                        <p class="text-brand-400 text-xl uppercase tracking-[0.4em] font-bold">Waktu Berikutnya</p>
+                        <p class="text-brand-400 text-xl font-cinzel uppercase tracking-[0.2em] font-bold">Waktu Berikutnya</p>
                     </div>
 
-                    <h1 id="next-detail-name" class="text-[15vh] font-sans font-black text-white leading-none mb-6 uppercase tracking-tighter text-outline">...</h1>
+                    <h1 id="next-detail-name" class="text-[14vh] font-cinzel font-black text-white leading-none mb-6 uppercase tracking-tight text-outline">...</h1>
                     
                     <div class="relative">
                         <div class="absolute -inset-10 bg-brand-500/20 blur-[60px] rounded-full animate-pulse-glow"></div>
@@ -288,14 +279,14 @@
                     <i class="ri-double-quotes-l text-9xl text-white/5 absolute -top-20 -left-20"></i>
                     
                     <div class="mb-12 inline-flex items-center justify-center px-6 py-2 rounded-full bg-accent-500/10 text-accent-500 text-lg font-bold uppercase tracking-widest border border-accent-500/20">
-                        <i class="ri-book-open-line mr-3"></i> Kalamullah
+                        <i class="ri-book-open-line mr-3"></i> <span class="font-cinzel">Kalamullah</span>
                     </div>
                     
                     <p id="ayat-arabic" class="text-7xl font-serif text-white leading-[2.5] mb-12 dir-rtl text-glow-accent" style="direction: rtl;">...</p>
                     <p id="ayat-text" class="text-5xl font-sans font-medium text-slate-300 leading-relaxed italic tracking-tight">...</p>
                     
                     <div class="mt-16 inline-block border-t border-accent-500/50 pt-6">
-                        <p id="ayat-source" class="text-3xl font-black text-accent-500 uppercase tracking-widest">...</p>
+                        <p id="ayat-source" class="text-3xl font-cinzel font-black text-accent-500 uppercase tracking-widest">...</p>
                     </div>
                 </div>
             </div>
@@ -305,7 +296,7 @@
                     <i class="ri-double-quotes-l text-9xl text-white/5 absolute -top-20 -left-20"></i>
 
                     <div class="mb-12 inline-flex items-center justify-center px-6 py-2 rounded-full bg-brand-500/10 text-brand-500 text-lg font-bold uppercase tracking-widest border border-brand-500/20">
-                        <i class="ri-chat-quote-line mr-3"></i> Hadits
+                        <i class="ri-chat-quote-line mr-3"></i> <span class="font-cinzel">Hadits</span>
                     </div>
                     
                     <p id="hadits-arabic" class="text-7xl font-serif text-white leading-[2.5] mb-12 dir-rtl text-glow-brand" style="direction: rtl;">...</p>
@@ -313,16 +304,17 @@
                     
                     <div class="mt-16 flex justify-center items-center gap-6">
                         <span class="px-4 py-2 bg-slate-800 rounded-lg text-lg text-slate-400 uppercase font-bold tracking-wide border border-white/10">Riwayat</span>
-                        <p id="hadits-source" class="text-3xl font-black text-white uppercase tracking-widest">...</p>
+                        <p id="hadits-source" class="text-3xl font-cinzel font-black text-white uppercase tracking-widest">...</p>
                     </div>
                 </div>
             </div>
 
             <div id="scene-info" class="hidden-slide w-full h-full flex flex-col p-10 animate-fade-in">
                 <div class="flex items-end justify-between mb-10 border-b border-white/10 pb-6">
-                    <h2 class="text-6xl font-black text-white uppercase tracking-tighter">Informasi <span class="text-brand-500">Masjid</span></h2>
+                    <h2 class="text-6xl font-cinzel font-black text-white uppercase tracking-tight">Informasi <span class="text-brand-500">Masjid</span></h2>
                     <i class="ri-information-line text-6xl text-white/20"></i>
                 </div>
+                
                 <style>
                     #info-grid > div {
                         background: rgba(255,255,255,0.03) !important;
@@ -340,7 +332,7 @@
             </div>
 
             <div id="scene-donation" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in">
-                <h2 class="text-6xl font-black text-white mb-16 uppercase tracking-tight text-glow">Infaq & Shodaqoh</h2>
+                <h2 class="text-6xl font-cinzel font-black text-white mb-16 uppercase tracking-tight text-glow">Infaq & Shodaqoh</h2>
                 
                 <div class="flex gap-12 w-full max-w-[85%]">
                     <div class="flex-1 bg-gradient-to-br from-[#00a39e] to-[#0f172a] p-10 rounded-[2.5rem] border border-white/20 flex flex-col justify-between h-[420px] shadow-2xl relative overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
@@ -393,15 +385,15 @@
 
             <div id="scene-countdown" class="hidden-slide fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-center text-center backdrop-blur-xl">
                  <div class="absolute inset-0 bg-red-600/10 animate-pulse"></div>
-                 <h2 id="countdown-title" class="text-5xl font-black uppercase tracking-[0.3em] text-accent-500 mb-12 border-b-8 border-accent-500 pb-4">Menuju Adzan</h2>
-                 <h1 id="countdown-name" class="text-[18vh] font-black text-white mb-6 drop-shadow-2xl animate-bounce">...</h1>
+                 <h2 id="countdown-title" class="text-5xl font-cinzel font-black uppercase tracking-[0.2em] text-accent-500 mb-12 border-b-8 border-accent-500 pb-4">Menuju Adzan</h2>
+                 <h1 id="countdown-name" class="text-[18vh] font-cinzel font-black text-white mb-6 drop-shadow-2xl animate-bounce">...</h1>
                  <span id="countdown-timer" class="text-[35vh] font-mono font-black text-white tabular-nums leading-none tracking-tighter text-glow-accent">00:00</span>
             </div>
 
             <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center px-20">
                 <div class="absolute inset-0 bg-brand-900/10 animate-pulse"></div>
                 <i class="ri-notification-off-fill text-[15vh] text-brand-500 mb-8"></i>
-                <h1 class="text-[14vh] font-black text-white uppercase tracking-wider mb-12 leading-none">Sholat Berlangsung</h1>
+                <h1 class="text-[12vh] font-cinzel font-black text-white uppercase tracking-wider mb-12 leading-none">Sholat Berlangsung</h1>
                 <div class="bg-white/5 px-20 py-10 rounded-[3rem] border border-white/10 backdrop-blur-md">
                     <p class="text-7xl text-brand-400 font-bold mb-6">Luruskan & Rapatkan Shaf</p>
                     <p class="text-4xl text-slate-400 uppercase tracking-[0.2em] font-bold">Mohon Matikan Alat Komunikasi</p>
