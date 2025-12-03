@@ -1,6 +1,6 @@
 /**
- * SMART MASJID DIGITAL SIGNAGE V2.0
- * Fitur: Network First Strategy, Auto Cache, Debug Console
+ * SMART MASJID DIGITAL SIGNAGE V2.1 (LOGIC UPGRADE)
+ * Fitur: Complex Timeline (Adzan->Iqamah->Prayer->Dzikir), Fullscreen Overrides
  */
 
 // --- 1. CONFIGURATION & STATE ---
@@ -8,9 +8,9 @@ const CONFIG = {
     // ID Kota Yogyakarta (MyQuran API)
     cityId: '577ef1154f3240ad5b9b413aa7346a1e', 
     masjidName: "MASJID JAMI' MU'ALLIMIN",
-    address: "Jalan Letjend. S. Parman No. 68 Wirobrajan, Yogyakarta",
+    address: "Yogyakarta, Indonesia",
     
-    // Durasi Slide (detik)
+    // Durasi Slide Normal (detik)
     duration: { 
         home: 15, 
         nextDetail: 10, 
@@ -20,49 +20,66 @@ const CONFIG = {
         donation: 15 
     },
 
-    // Threshold Waktu (menit) untuk Trigger Mode
-    thresholds: { 
-        preAdzan: 10,    // Muncul countdown merah sebelum adzan
-        preIqamah: 10,   // Durasi hitung mundur iqomah setelah adzan
-        inPrayer: 10,    // Durasi mode "Sholat Berlangsung" (layar gelap)
-        dzikir: 5        // Durasi mode Dzikir setelah sholat
+    // DURASI & THRESHOLD (DALAM MENIT)
+    // Sesuai Request: 
+    // - Pre Adzan: 15 menit sebelum
+    // - Pre Iqamah: 10 menit setelah adzan
+    // - In Prayer: 20 menit setelah iqamah
+    // - Dzikir: 15 menit setelah prayer time selesai
+    // - Jumat: 45 menit sebelum dzuhur
+    timeRules: { 
+        preAdzan: 15,    
+        preIqamah: 10,   
+        inPrayer: 20,    
+        dzikir: 15,
+        jumatPrep: 45
     },
     
-    // Jadwal Default (Jika internet mati & cache kosong)
+    // Jadwal Default
     defaultPrayerTimes: {
         tahajjud: "03:00", imsak: "04:10", shubuh: "04:20", syuruq: "05:35",
         dhuha: "06:00", dzuhur: "11:45", ashar: "15:05", maghrib: "17:55", isya: "19:05"
     },
 
-    prayerTimes: {}, // Akan diisi oleh LoadSchedule
+    prayerTimes: {}, 
     currentHijriDate: "..." 
 };
 
-// Penyimpanan Data Konten
+// Data Konten (Termasuk konten override kajian)
 const DATA_CONTENT = {
-    ayat: [],   // Akan diisi fetch/cache
-    hadits: [], // Akan diisi fetch/cache
+    ayat: [],   
+    hadits: [], 
     infoList: [
-        { title: "Kajian Ahad Pagi", desc: "Tafsir Jalalain bersama Ust. Fulan", icon: "📖" },
-        { title: "Jumat Berkah", desc: "Makan siang gratis untuk jamaah Jumat", icon: "🍱" },
         { title: "Layanan Ambulans", desc: "Hubungi sekretariat untuk layanan gratis", icon: "🚑" },
         { title: "Kebersihan", desc: "Jagalah kebersihan area masjid", icon: "✨" }
-    ]
+    ],
+    // Konten Khusus Override
+    kajianAhad: {
+        title: "KAJIAN RUTIN AHAD PAGI",
+        desc: "Bersama Ust. Fulan | 05:30 - 07:00 WIB",
+        sub: "Silakan menempati tempat yang disediakan"
+    },
+    jumat: {
+        title: "SHOLAT JUMAT",
+        desc: "Persiapan Sholat Jumat",
+        sub: "Mari menyegerakan datang ke masjid"
+    }
 };
 
 // State Aplikasi
 let STATE = { 
-    mode: 'NORMAL',      // NORMAL | COUNTDOWN | PRAYER
-    subMode: null,       // ADZAN | IQAMAH
+    mode: 'NORMAL',      // NORMAL | OVERRIDE
+    overrideType: null,  // ADZAN, IQAMAH, PRAYER, DZIKIR, KAJIAN, JUMAT
     slideIndex: 0, 
     ayatIndex: 0, 
     haditsIndex: 0,
-    nextPrayer: null
+    nextPrayer: null,
+    activeEventTarget: null // Target waktu untuk countdown
 };
 
-// Cache DOM Elements
 let els = {}; 
-let slideTimer = null; // Timer Slide
+let slideTimer = null; 
+let clockInterval = null;
 
 // --- 2. HELPER FUNCTIONS ---
 
@@ -75,8 +92,8 @@ function log(funcName, msg, type = 'info') {
 
 function getFormattedDate(dateObj) {
     const y = dateObj.getFullYear();
-    const m = String(dateObj.getMonth() + 1).padStart(2, '0'); // 01, 02, ... 12
-    const d = String(dateObj.getDate()).padStart(2, '0');      // 01, 02, ... 31
+    const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const d = String(dateObj.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
 }
 
@@ -85,176 +102,102 @@ function calculateTahajjud(shubuhTime) {
     const [h, m] = shubuhTime.split(':').map(Number);
     let date = new Date();
     date.setHours(h, m, 0, 0);
-    date.setMinutes(date.getMinutes() - 210); // 3.5 jam sebelum subuh
+    date.setMinutes(date.getMinutes() - 210); 
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-// --- 3. DATA FETCHING (NETWORK FIRST) ---
+// --- 3. DATA FETCHING ---
 
 async function fetchHijriDate() {
-    log('fetchHijriDate', 'Memulai request...');
-    if (!navigator.onLine) {
-        log('fetchHijriDate', 'Offline. Skip.', 'error');
-        return;
-    }
+    if (!navigator.onLine) return;
     try {
         const res = await fetch('https://api.myquran.com/v3/cal/today');
         const json = await res.json();
         if (json.status && json.data?.hijr) {
             const h = json.data.hijr;
             CONFIG.currentHijriDate = `${h.day} ${h.monthName} ${h.year} H`;
-            log('fetchHijriDate', `Sukses: ${CONFIG.currentHijriDate}`, 'success');
             updateUIHeader();
         }
-    } catch (e) { log('fetchHijriDate', 'Gagal ambil data', 'error'); }
-}
-
-async function fetchRandomAyat() {
-    try {
-        const res = await fetch("https://api.myquran.com/v2/quran/ayat/acak");
-        const json = await res.json();
-        if (json.status && json.data?.ayat) {
-            const d = json.data;
-            return { 
-                text: d.ayat.text.replace(/\n/g, "<br>"), 
-                arabic: d.ayat.arab, 
-                source: `QS. ${d.info.surat.nama.id}: ${d.ayat.ayah}` 
-            };
-        }
-    } catch (e) { return null; }
-}
-
-async function fetchRandomHadith() {
-    try {
-        const res = await fetch("https://api.myquran.com/v3/hadis/enc/random");
-        const json = await res.json();
-        if (json.status && json.data?.text) {
-            const d = json.data;
-            return { 
-                text: d.text.id.replace(/\n/g, "<br>"), 
-                arabic: d.text.ar, 
-                source: (d.takhrij || "Hadits").replace("Diriwayatkan oleh", "").trim() 
-            };
-        }
-    } catch (e) { return null; }
+    } catch (e) { console.error("Hijri Error", e); }
 }
 
 async function loadContentData() {
-    log('loadContentData', 'Memeriksa konten (Ayat/Hadits)...');
     const cacheKey = 'smart_masjid_content_v3';
     let loadedFromNet = false;
 
-    // 1. NETWORK ATTEMPT
     if (navigator.onLine) {
-        log('loadContentData', 'Online. Mencoba unduh data baru (Batch 5 item)...');
         try {
-            // Ambil 5 ayat & 5 hadits sekaligus (Parallel)
-            const tasksAyat = Array(5).fill(0).map(fetchRandomAyat);
-            const tasksHadits = Array(5).fill(0).map(fetchRandomHadith);
+            const tasksAyat = Array(5).fill(0).map(async () => {
+                try {
+                    const r = await fetch("https://api.myquran.com/v2/quran/ayat/acak");
+                    const j = await r.json();
+                    return j.status ? { text: j.data.ayat.text.replace(/\n/g, "<br>"), arabic: j.data.ayat.arab, source: `QS. ${j.data.info.surat.nama.id}: ${j.data.ayat.ayah}` } : null;
+                } catch { return null; }
+            });
+            const tasksHadits = Array(5).fill(0).map(async () => {
+                try {
+                    const r = await fetch("https://api.myquran.com/v3/hadis/enc/random");
+                    const j = await r.json();
+                    return j.status ? { text: j.data.text.id.replace(/\n/g, "<br>"), arabic: j.data.text.ar, source: j.data.takhrij } : null;
+                } catch { return null; }
+            });
             
             const [resAyat, resHadits] = await Promise.all([Promise.all(tasksAyat), Promise.all(tasksHadits)]);
-            
             const validAyat = resAyat.filter(x => x);
             const validHadits = resHadits.filter(x => x);
 
-            if (validAyat.length > 0 && validHadits.length > 0) {
+            if (validAyat.length > 0) {
                 DATA_CONTENT.ayat = validAyat;
                 DATA_CONTENT.hadits = validHadits;
-                
-                // Simpan Cache
                 localStorage.setItem(cacheKey, JSON.stringify({ ayat: validAyat, hadits: validHadits }));
-                log('loadContentData', 'Sukses unduh & update cache.', 'success');
                 loadedFromNet = true;
             }
-        } catch (e) {
-            log('loadContentData', 'Gagal unduh batch.', 'error');
-        }
+        } catch (e) { console.warn("Fetch content failed"); }
     }
 
-    // 2. CACHE FALLBACK
     if (!loadedFromNet) {
-        log('loadContentData', 'Menggunakan Cache...', 'info');
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
-            try {
-                const parsed = JSON.parse(cached);
-                DATA_CONTENT.ayat = parsed.ayat || [];
-                DATA_CONTENT.hadits = parsed.hadits || [];
-                log('loadContentData', `Loaded from Cache: ${DATA_CONTENT.ayat.length} Ayat`, 'success');
-            } catch (e) { log('loadContentData', 'Cache Corrupt', 'error'); }
-        } else {
-            log('loadContentData', 'Cache Kosong & Offline. Slide Ayat akan diskip.', 'error');
+            const parsed = JSON.parse(cached);
+            DATA_CONTENT.ayat = parsed.ayat || [];
+            DATA_CONTENT.hadits = parsed.hadits || [];
         }
     }
 }
 
 async function loadSchedule() {
-    log('loadSchedule', 'Memulai pemuatan jadwal sholat...');
+    log('loadSchedule', 'Loading Jadwal...');
     const now = new Date();
-    const dateKey = getFormattedDate(now); // Format: "2025-12-05"
-    
-    // Key Cache: jadwal_2025_12
+    const dateKey = getFormattedDate(now); 
     const cacheKey = `jadwal_${now.getFullYear()}_${String(now.getMonth() + 1).padStart(2, '0')}`;
-    
     let schedule = null;
 
-    // --- 1. NETWORK ATTEMPT ---
     if (navigator.onLine) {
-        log('loadSchedule', 'Online. Fetch API...');
         try {
-            // URL: .../2025-12
             const url = `https://api.myquran.com/v3/sholat/jadwal/${CONFIG.cityId}/${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            
             const res = await fetch(url);
             const json = await res.json();
 
-            // Cek apakah struktur sesuai dengan contoh yang Anda berikan
             if (json.status && json.data?.jadwal) {
-                const monthlyData = json.data.jadwal; // Ini adalah OBJECT, bukan Array
-                
-                // KARENA DATA DARI API SUDAH BERUPA MAP { "2025-12-01": {...} }
-                // KITA BISA LANGSUNG SIMPAN KE CACHE
-                
-                // Validasi sedikit: pastikan ini Object dan bukan Array kosong
+                const monthlyData = json.data.jadwal;
                 if (typeof monthlyData === 'object' && monthlyData !== null) {
                     localStorage.setItem(cacheKey, JSON.stringify(monthlyData));
-                    
-                    // Ambil data hari ini langsung menggunakan key tanggal
-                    if (monthlyData[dateKey]) {
-                        schedule = monthlyData[dateKey];
-                        log('loadSchedule', 'Sukses: Data hari ini ditemukan di API', 'success');
-                    } else {
-                        log('loadSchedule', `Data untuk tanggal ${dateKey} tidak ada di respon API`, 'error');
-                    }
+                    if (monthlyData[dateKey]) schedule = monthlyData[dateKey];
                 }
             }
-        } catch (e) {
-            log('loadSchedule', 'Gagal Fetch API: ' + e, 'error');
-        }
+        } catch (e) { console.warn("Fetch Schedule Error", e); }
     }
 
-    // --- 2. CACHE FALLBACK ---
     if (!schedule) {
-        log('loadSchedule', 'Cek LocalStorage...', 'info');
         const cachedData = localStorage.getItem(cacheKey);
         if (cachedData) {
             try {
                 const parsedMap = JSON.parse(cachedData);
-                // Karena struktur cache kita sekarang sama persis dengan API (Object Map)
-                // Kita tinggal panggil key-nya
-                if (parsedMap[dateKey]) {
-                    schedule = parsedMap[dateKey];
-                    log('loadSchedule', 'Berhasil load dari Cache', 'success');
-                } else {
-                    log('loadSchedule', 'Cache ada tapi data tanggal ini tidak ditemukan', 'error');
-                }
-            } catch (e) {
-                log('loadSchedule', 'Cache Corrupt', 'error');
-            }
+                if (parsedMap[dateKey]) schedule = parsedMap[dateKey];
+            } catch (e) { localStorage.removeItem(cacheKey); }
         }
     }
 
-    // --- 3. APPLY DATA ---
     if (schedule) {
         CONFIG.prayerTimes = {
             tahajjud: calculateTahajjud(schedule.subuh),
@@ -267,10 +210,8 @@ async function loadSchedule() {
             maghrib: schedule.maghrib,
             isya: schedule.isya
         };
-        // Debug di console untuk memastikan
-        console.log("Jadwal Terpasang:", CONFIG.prayerTimes);
+        console.table(CONFIG.prayerTimes);
     } else {
-        log('loadSchedule', 'Gagal total. Menggunakan Default.', 'error');
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
     }
 
@@ -278,18 +219,18 @@ async function loadSchedule() {
     fetchHijriDate();
 }
 
-// --- 4. CORE LOGIC (CLOCK & SLIDESHOW) ---
+// --- 4. CORE LOGIC (SYSTEM BRAIN) ---
 
 function initElements() {
-    log('initElements', 'Mapping DOM Elements...');
     els = {
+        header: document.querySelector('header'),
+        footer: document.querySelector('footer'),
         clock: document.getElementById('header-clock'),
         dateMasehi: document.getElementById('header-date-masehi'),
         dateHijri: document.getElementById('header-date-hijri'),
         nextName: document.getElementById('header-next-name'),
         countdown: document.getElementById('header-countdown'),
         
-        // Scenes
         scenes: {
             home: document.getElementById('scene-home'),
             nextDetail: document.getElementById('scene-next-detail'),
@@ -297,11 +238,23 @@ function initElements() {
             hadits: document.getElementById('scene-hadits'),
             info: document.getElementById('scene-info'),
             donation: document.getElementById('scene-donation'),
-            countdown: document.getElementById('scene-countdown'),
-            prayer: document.getElementById('scene-prayer')
+            countdown: document.getElementById('scene-countdown'), // Used for Pre-Adzan/Iqamah
+            prayer: document.getElementById('scene-prayer') // Used for Prayer/Dzikir/Kajian/Jumat
         },
         
-        // Dynamic Content Containers
+        // Element Overlay
+        cdTitle: document.getElementById('countdown-title'),
+        cdName: document.getElementById('countdown-name'),
+        cdTimer: document.getElementById('countdown-timer'),
+        
+        prayerTitle: document.querySelector('#scene-prayer h1'),
+        prayerSub: document.querySelector('#scene-prayer p:first-of-type'),
+        prayerNote: document.querySelector('#scene-prayer p:last-of-type'),
+        
+        footer: document.getElementById('footer-schedule'),
+        progress: document.getElementById('slide-progress'),
+        
+        // Dynamic Content
         ayatText: document.getElementById('ayat-text'),
         ayatArabic: document.getElementById('ayat-arabic'),
         ayatSource: document.getElementById('ayat-source'),
@@ -309,33 +262,25 @@ function initElements() {
         haditsArabic: document.getElementById('hadits-arabic'),
         haditsSource: document.getElementById('hadits-source'),
         infoGrid: document.getElementById('info-grid'),
-        footer: document.getElementById('footer-schedule'),
-        progress: document.getElementById('slide-progress'),
-        
-        // Countdown Overlay
-        cdTitle: document.getElementById('countdown-title'),
-        cdName: document.getElementById('countdown-name'),
-        cdTimer: document.getElementById('countdown-timer')
     };
 }
 
 function updateClockAndLogic() {
-    // Fungsi ini dipanggil setiap detik (setInterval)
     const now = new Date();
     
-    // 1. Update Jam Header
-    if(els.clock) els.clock.innerText = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' }).replace(/\./g, ':');
+    // 1. Update Jam (Selalu update, meski di background)
+    const timeStr = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' }).replace(/\./g, ':');
+    if(els.clock) els.clock.innerText = timeStr;
     if(els.dateMasehi) els.dateMasehi.innerText = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
     
-    // 2. Hitung Next Prayer
+    // 2. Kalkulasi Sholat Berikutnya
     calculateNextPrayer(now);
     
-    // 3. Cek apakah masuk waktu Countdown/Sholat
+    // 3. Logic Check (Override Mode)
     checkSystemMode(now);
 }
 
 function updateUIHeader() {
-    log('updateUIHeader', 'Updating Hijri UI');
     if(els.dateHijri) els.dateHijri.innerText = CONFIG.currentHijriDate;
     const homeHijri = document.getElementById('home-date-hijri');
     if(homeHijri) homeHijri.innerText = CONFIG.currentHijriDate;
@@ -343,34 +288,27 @@ function updateUIHeader() {
 
 function calculateNextPrayer(now) {
     if (!CONFIG.prayerTimes.shubuh) return;
-    
     const curMins = now.getHours() * 60 + now.getMinutes();
     const keys = ['shubuh', 'syuruq', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     
     let found = null;
     let minDiff = 99999;
     
-    // Loop cari waktu terdekat yg belum lewat hari ini
     keys.forEach(k => {
         const [h, m] = CONFIG.prayerTimes[k].split(':').map(Number);
         const pMins = h * 60 + m;
         if (pMins > curMins && (pMins - curMins) < minDiff) {
             minDiff = pMins - curMins;
-            found = { name: k, time: CONFIG.prayerTimes[k], diffMins: minDiff };
+            found = { name: k, time: CONFIG.prayerTimes[k] };
         }
     });
 
-    // Kalau hari ini habis, berarti besok subuh
-    if (!found) {
-        found = { name: 'shubuh', time: CONFIG.prayerTimes.shubuh, diffMins: 999 }; // Diff dummy
-    }
-
+    if (!found) found = { name: 'shubuh', time: CONFIG.prayerTimes.shubuh };
     STATE.nextPrayer = found;
 
-    // Update Header Next
     if(els.nextName) els.nextName.innerText = found.name.toUpperCase();
     
-    // Update Header Countdown (-HH:MM:SS)
+    // Update Countdown Kecil di Header
     if(els.countdown) {
         const [targetH, targetM] = found.time.split(':').map(Number);
         let targetDate = new Date(now);
@@ -384,28 +322,20 @@ function calculateNextPrayer(now) {
         els.countdown.innerText = `-${hh}:${mm}:${ss}`;
     }
 
-    // Update DOM Element khusus Next Detail Slide (jika ada)
-    const ndName = document.getElementById('next-detail-name');
-    const ndTime = document.getElementById('next-detail-time');
-    if(ndName) ndName.innerText = found.name.toUpperCase();
-    if(ndTime) ndTime.innerText = found.time;
-
+    // Update Footer Highlight
     updateFooterHighlight(found.name);
 }
 
 function updateFooterHighlight(activeKey) {
     const items = els.footer.children;
     for (let item of items) {
-        // Reset style
         item.style.background = '';
         item.style.border = '1px solid transparent';
         item.style.transform = 'scale(1)';
         item.style.boxShadow = 'none';
         
-        // Highlight active
-        // Kita simpan key di attribute data-key saat render
         if (item.dataset.key === activeKey.toLowerCase()) {
-            item.style.background = '#14b8a6'; // Teal
+            item.style.background = '#14b8a6'; 
             item.style.borderColor = '#2dd4bf';
             item.style.transform = 'scale(1.05)';
             item.style.boxShadow = '0 0 30px rgba(20, 184, 166, 0.4)';
@@ -414,94 +344,201 @@ function updateFooterHighlight(activeKey) {
     }
 }
 
+// --- LOGIKA UTAMA OVERRIDE (IMPORTANT) ---
 function checkSystemMode(now) {
-    if (!STATE.nextPrayer) return;
+    let newMode = 'NORMAL';
+    let newType = null;
+    let target = null;
+    let metaData = {};
 
-    // Hitung ulang diff dalam milidetik akurat
-    const [h, m] = STATE.nextPrayer.time.split(':').map(Number);
-    let pDate = new Date(now);
-    pDate.setHours(h, m, 0, 0);
-    
-    // Logika Threshold
-    const diffMs = pDate - now;
-    const diffMins = diffMs / 60000;
-
-    // 1. Mode Countdown Menuju Adzan
-    if (diffMins > 0 && diffMins <= CONFIG.thresholds.preAdzan && STATE.nextPrayer.name !== 'syuruq') {
-        if (STATE.mode !== 'COUNTDOWN' || STATE.subMode !== 'ADZAN') {
-            log('checkSystemMode', `Masuk Mode Countdown ADZAN (${STATE.nextPrayer.name})`, 'info');
-            changeMode('COUNTDOWN', { sub: 'ADZAN', name: STATE.nextPrayer.name, target: pDate });
+    // 1. CEK OVERRIDE JADWAL TETAP (AHAD PAGI)
+    // Ahad (0) jam 05:30 - 07:00
+    if (now.getDay() === 0) {
+        const mins = now.getHours() * 60 + now.getMinutes();
+        if (mins >= (5*60 + 30) && mins < (7*60)) {
+            newMode = 'OVERRIDE';
+            newType = 'KAJIAN';
         }
-        // Update Timer Overlay
-        updateOverlayTimer(diffMs);
-        return;
     }
 
-    // 2. Mode Countdown Iqomah (Simulasi: Anggaplah pDate sudah lewat, kita tambah durasi iqomah)
-    // *Catatan: Logic iqomah butuh trigger setelah adzan selesai, disini kita simplifikasi:
-    // Jika waktu sekarang > waktu sholat && waktu sekarang < waktu sholat + iqomah
-    const iqomahDate = new Date(pDate.getTime() + (CONFIG.thresholds.preIqamah * 60000));
-    if (now >= pDate && now < iqomahDate && STATE.nextPrayer.name !== 'syuruq') {
-        if (STATE.mode !== 'COUNTDOWN' || STATE.subMode !== 'IQAMAH') {
-            log('checkSystemMode', 'Masuk Mode Countdown IQAMAH', 'info');
-            changeMode('COUNTDOWN', { sub: 'IQAMAH', name: STATE.nextPrayer.name, target: iqomahDate });
+    // 2. CEK TIMELINE SHOLAT (Hanya jika belum Kajian)
+    if (newMode === 'NORMAL' && STATE.nextPrayer) {
+        // Cek Jumat (Hari 5)
+        if (now.getDay() === 5) {
+            const [zh, zm] = CONFIG.prayerTimes.dzuhur.split(':').map(Number);
+            const dzuhurTime = new Date(now);
+            dzuhurTime.setHours(zh, zm, 0);
+            
+            const jumatStart = new Date(dzuhurTime.getTime() - CONFIG.timeRules.jumatPrep * 60000);
+            if (now >= jumatStart && now < dzuhurTime) {
+                newMode = 'OVERRIDE';
+                newType = 'JUMAT';
+            }
         }
-        updateOverlayTimer(iqomahDate - now);
-        return;
+
+        // Loop Waktu Sholat untuk Timeline Adzan -> Iqamah -> Sholat -> Dzikir
+        if (newMode === 'NORMAL') {
+            const sholatWajib = ['shubuh', 'dzuhur', 'ashar', 'maghrib', 'isya'];
+            
+            for (let name of sholatWajib) {
+                if (!CONFIG.prayerTimes[name]) continue;
+                
+                const [h, m] = CONFIG.prayerTimes[name].split(':').map(Number);
+                const tAdzan = new Date(now);
+                tAdzan.setHours(h, m, 0, 0);
+                
+                // Timeline Miliseconds
+                const msPreAdzan = CONFIG.timeRules.preAdzan * 60000;
+                const msPreIqamah = CONFIG.timeRules.preIqamah * 60000;
+                const msInPrayer = CONFIG.timeRules.inPrayer * 60000;
+                const msDzikir = CONFIG.timeRules.dzikir * 60000;
+
+                const tStartPreAdzan = new Date(tAdzan.getTime() - msPreAdzan);
+                const tEndPreIqamah = new Date(tAdzan.getTime() + msPreIqamah);
+                const tEndPrayer = new Date(tEndPreIqamah.getTime() + msInPrayer);
+                const tEndDzikir = new Date(tEndPrayer.getTime() + msDzikir);
+
+                const curTime = now.getTime();
+
+                // A. Pre-Adzan (15 menit sebelum)
+                if (curTime >= tStartPreAdzan.getTime() && curTime < tAdzan.getTime()) {
+                    newMode = 'OVERRIDE';
+                    newType = 'ADZAN';
+                    target = tAdzan;
+                    metaData = { name };
+                    break;
+                }
+                
+                // B. Pre-Iqamah (10 menit setelah adzan)
+                if (curTime >= tAdzan.getTime() && curTime < tEndPreIqamah.getTime()) {
+                    newMode = 'OVERRIDE';
+                    newType = 'IQAMAH';
+                    target = tEndPreIqamah;
+                    metaData = { name };
+                    break;
+                }
+
+                // C. Sholat (20 menit setelah iqamah)
+                if (curTime >= tEndPreIqamah.getTime() && curTime < tEndPrayer.getTime()) {
+                    newMode = 'OVERRIDE';
+                    newType = 'PRAYER';
+                    break;
+                }
+
+                // D. Dzikir (15 menit setelah sholat - Khusus Subuh & Ashar)
+                if ((name === 'shubuh' || name === 'ashar') && curTime >= tEndPrayer.getTime() && curTime < tEndDzikir.getTime()) {
+                    newMode = 'OVERRIDE';
+                    newType = 'DZIKIR';
+                    break;
+                }
+            }
+        }
     }
 
-    // 3. Mode Sholat (Layar Gelap)
-    const prayerEndDate = new Date(iqomahDate.getTime() + (CONFIG.thresholds.inPrayer * 60000));
-    if (now >= iqomahDate && now < prayerEndDate && STATE.nextPrayer.name !== 'syuruq') {
-        if (STATE.mode !== 'PRAYER') {
-            log('checkSystemMode', 'Masuk Mode PRAYER (Layar Gelap)', 'info');
-            changeMode('PRAYER');
-        }
-        return;
+    // TRIGGER PERUBAHAN MODE
+    if (newMode !== STATE.mode || newType !== STATE.overrideType) {
+        log('checkSystemMode', `Change Mode: ${newMode} - ${newType || 'None'}`);
+        applyMode(newMode, newType, target, metaData);
+    } 
+    // UPDATE TIMER JIKA MODE SAMA (Untuk Countdown)
+    else if (newMode === 'OVERRIDE' && target) {
+        updateOverlayTimer(target - now);
     }
+}
 
-    // 4. Normal Mode
-    if (STATE.mode !== 'NORMAL') {
-        log('checkSystemMode', 'Kembali ke Mode NORMAL', 'info');
-        changeMode('NORMAL');
+function applyMode(mode, type, target, meta) {
+    STATE.mode = mode;
+    STATE.overrideType = type;
+    STATE.activeEventTarget = target;
+
+    // Reset UI
+    clearTimeout(slideTimer);
+    els.progress.style.width = '0';
+    Object.values(els.scenes).forEach(el => el.classList.add('hidden-slide'));
+
+    if (mode === 'NORMAL') {
+        // Tampilkan Header & Footer
+        els.header.style.display = 'grid';
+        els.footer.style.display = 'grid';
+        els.scenes.home.classList.remove('hidden-slide');
+        
+        // Resume Slideshow
+        STATE.slideIndex = 0;
+        renderSlide();
+    } 
+    else {
+        // HIDE HEADER & FOOTER (FULLSCREEN REQUEST)
+        els.header.style.display = 'none';
+        els.footer.style.display = 'none';
+
+        if (type === 'ADZAN' || type === 'IQAMAH') {
+            els.scenes.countdown.classList.remove('hidden-slide');
+            els.cdTitle.innerText = type === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQOMAH';
+            els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
+            // Pastikan timer tampil
+            updateOverlayTimer(target - new Date());
+        } 
+        else {
+            // Gunakan Scene Prayer untuk Konten Statis Fullscreen (Prayer, Dzikir, Kajian, Jumat)
+            els.scenes.prayer.classList.remove('hidden-slide');
+            setupGenericOverlay(type);
+        }
     }
 }
 
 function updateOverlayTimer(diffMs) {
     if (!els.cdTimer) return;
-    const m = Math.floor(diffMs / 60000).toString().padStart(2,'0');
-    const s = Math.floor((diffMs % 60000) / 1000).toString().padStart(2,'0');
+    const m = Math.floor(diffMs > 0 ? diffMs / 60000 : 0).toString().padStart(2,'0');
+    const s = Math.floor(diffMs > 0 ? (diffMs % 60000) / 1000 : 0).toString().padStart(2,'0');
     els.cdTimer.innerText = `${m}:${s}`;
 }
 
-function changeMode(newMode, data = {}) {
-    STATE.mode = newMode;
-    STATE.subMode = data.sub || null;
-
-    // Hide All Overlays first
-    els.scenes.countdown.classList.add('hidden-slide');
-    els.scenes.prayer.classList.add('hidden-slide');
+function setupGenericOverlay(type) {
+    // Kita manipulasi DOM di dalam #scene-prayer agar fleksibel
+    // Pastikan ada Jam Realtime di sini karena Header hilang
     
-    // Stop Slideshow Timer sementara
-    clearTimeout(slideTimer);
-    els.progress.style.width = '0';
-
-    if (newMode === 'NORMAL') {
-        // Resume Slideshow
-        STATE.slideIndex = 0;
-        renderSlide();
-    } 
-    else if (newMode === 'COUNTDOWN') {
-        els.scenes.countdown.classList.remove('hidden-slide');
-        els.cdTitle.innerText = data.sub === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQOMAH';
-        els.cdName.innerText = data.name.toUpperCase();
+    // 1. Buat Jam Realtime jika belum ada
+    let overlayClock = document.getElementById('overlay-clock');
+    if (!overlayClock) {
+        overlayClock = document.createElement('div');
+        overlayClock.id = 'overlay-clock';
+        overlayClock.className = "absolute top-10 right-10 text-4xl font-mono font-bold text-white/50 bg-black/30 px-6 py-2 rounded-full border border-white/10";
+        els.scenes.prayer.appendChild(overlayClock);
+        // Start simple interval for this clock
+        setInterval(() => {
+            const now = new Date();
+            overlayClock.innerText = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.',':');
+        }, 1000);
     }
-    else if (newMode === 'PRAYER') {
-        els.scenes.prayer.classList.remove('hidden-slide');
+
+    // 2. Set Konten
+    if (type === 'PRAYER') {
+        els.prayerTitle.innerText = "SHOLAT BERLANGSUNG";
+        els.prayerSub.innerText = "Luruskan & Rapatkan Shaf";
+        els.prayerNote.innerText = "Mohon Matikan Alat Komunikasi";
+        els.prayerTitle.className = "text-[12vh] font-cinzel font-black text-white uppercase tracking-wider mb-12 leading-none";
+    } 
+    else if (type === 'DZIKIR') {
+        els.prayerTitle.innerText = "DZIKIR BA'DA SHOLAT";
+        els.prayerTitle.className = "text-[8vh] font-cinzel font-black text-brand-400 uppercase tracking-wider mb-8 leading-none";
+        els.prayerSub.innerText = "Astaghfirullah...";
+        els.prayerNote.innerText = "Harap Tenang & Menjaga Kekhusyukan";
+    }
+    else if (type === 'KAJIAN') {
+        els.prayerTitle.innerText = DATA_CONTENT.kajianAhad.title;
+        els.prayerTitle.className = "text-[8vh] font-cinzel font-black text-accent-400 uppercase tracking-wider mb-8 leading-none";
+        els.prayerSub.innerText = DATA_CONTENT.kajianAhad.desc;
+        els.prayerNote.innerText = DATA_CONTENT.kajianAhad.sub;
+    }
+    else if (type === 'JUMAT') {
+        els.prayerTitle.innerText = DATA_CONTENT.jumat.title;
+        els.prayerTitle.className = "text-[10vh] font-cinzel font-black text-brand-500 uppercase tracking-wider mb-8 leading-none";
+        els.prayerSub.innerText = DATA_CONTENT.jumat.desc;
+        els.prayerNote.innerText = DATA_CONTENT.jumat.sub;
     }
 }
 
-// --- 5. SLIDESHOW SYSTEM ---
+// --- 5. SLIDESHOW SYSTEM (NORMAL MODE) ---
 
 const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'info', 'donation'];
 
@@ -509,12 +546,9 @@ function renderSlide() {
     if (STATE.mode !== 'NORMAL') return;
 
     const sceneKey = SLIDE_ORDER[STATE.slideIndex];
-    log('renderSlide', `Menampilkan Slide: ${sceneKey}`);
-
     let duration = CONFIG.duration[sceneKey] || 10;
     let skip = false;
 
-    // Logic Spesifik per Slide
     if (sceneKey === 'ayat') {
         if (DATA_CONTENT.ayat.length > 0) {
             const item = DATA_CONTENT.ayat[STATE.ayatIndex % DATA_CONTENT.ayat.length];
@@ -522,7 +556,7 @@ function renderSlide() {
             els.ayatArabic.innerText = item.arabic;
             els.ayatSource.innerText = item.source;
             STATE.ayatIndex++;
-        } else { skip = true; log('renderSlide', 'Skip Ayat (Data Kosong)'); }
+        } else skip = true;
     }
     else if (sceneKey === 'hadits') {
         if (DATA_CONTENT.hadits.length > 0) {
@@ -531,32 +565,34 @@ function renderSlide() {
             els.haditsArabic.innerText = item.arabic;
             els.haditsSource.innerText = item.source;
             STATE.haditsIndex++;
-        } else { skip = true; log('renderSlide', 'Skip Hadits (Data Kosong)'); }
+        } else skip = true;
     }
     else if (sceneKey === 'info') {
         els.infoGrid.innerHTML = '';
         DATA_CONTENT.infoList.forEach(info => {
             const div = document.createElement('div');
-            div.className = 'bg-white/5 p-6 rounded-2xl border border-white/10 flex gap-4 items-start';
+            // Style dipastikan sama dengan CSS Bento
+            div.style.cssText = "background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); backdrop-filter: blur(10px); padding: 1.5rem; border-radius: 1rem; display: flex; gap: 1rem; align-items: start;";
             div.innerHTML = `
                 <div class="text-4xl text-brand-500">${info.icon}</div>
                 <div>
-                    <h3 class="text-2xl font-bold text-brand-500 uppercase mb-2">${info.title}</h3>
-                    <p class="text-xl text-slate-300 leading-relaxed">${info.desc}</p>
+                    <h3 class="text-2xl font-bold text-brand-500 uppercase mb-2 font-cinzel">${info.title}</h3>
+                    <p class="text-xl text-slate-300 leading-relaxed font-sans">${info.desc}</p>
                 </div>
             `;
             els.infoGrid.appendChild(div);
         });
     }
 
-    // Hide All Scenes
-    Object.values(els.scenes).forEach(el => el.classList.add('hidden-slide'));
+    // Hide All Normal Scenes
+    const normalScenes = ['home', 'nextDetail', 'ayat', 'hadits', 'info', 'donation'];
+    normalScenes.forEach(k => {
+        if(els.scenes[k]) els.scenes[k].classList.add('hidden-slide');
+    });
 
     if (!skip) {
-        // Show Current
         els.scenes[sceneKey].classList.remove('hidden-slide');
         
-        // Animate Progress Bar
         els.progress.style.transition = 'none';
         els.progress.style.width = '0';
         setTimeout(() => {
@@ -564,57 +600,42 @@ function renderSlide() {
             els.progress.style.width = '100%';
         }, 50);
 
-        // Schedule Next
         slideTimer = setTimeout(() => {
             STATE.slideIndex = (STATE.slideIndex + 1) % SLIDE_ORDER.length;
             renderSlide();
         }, duration * 1000);
     } else {
-        // Instant Next if Skipped
         STATE.slideIndex = (STATE.slideIndex + 1) % SLIDE_ORDER.length;
         renderSlide();
     }
 }
 
 function renderFooter() {
-    log('renderFooter', 'Rendering 8 Kolom Jadwal...');
     els.footer.innerHTML = '';
     const keys = ['imsak', 'shubuh', 'syuruq', 'dhuha', 'dzuhur', 'ashar', 'maghrib', 'isya'];
-    
     keys.forEach(k => {
         const div = document.createElement('div');
-        div.dataset.key = k; // Untuk selector highlight nanti
-        // Setup class dasar
+        div.dataset.key = k; 
         div.className = "flex flex-col items-center justify-center rounded-xl transition-all duration-300 bg-white/5 border border-white/5";
-        
-        div.innerHTML = `
-            <h3>${k}</h3>
-            <p>${CONFIG.prayerTimes[k] || '--:--'}</p>
-        `;
+        div.innerHTML = `<h3>${k}</h3><p>${CONFIG.prayerTimes[k] || '--:--'}</p>`;
         els.footer.appendChild(div);
     });
 }
 
-
-// --- 6. INITIALIZATION ---
+// --- 6. INIT ---
 
 document.addEventListener('DOMContentLoaded', async () => {
-    log('INIT', 'Aplikasi Dimulai...');
-    
+    log('INIT', 'System Start...');
     initElements();
     
-    // 1. Start Clock segera agar tidak kosong
     updateClockAndLogic();
     setInterval(updateClockAndLogic, 1000);
 
-    // 2. Load Data (Parallel)
     await loadSchedule();
     await loadContentData();
 
-    // 3. Start Slideshow
     renderSlide();
     
-    // 4. Auto Refresh Refresh Halaman Jam 00:00 untuk update jadwal baru
     setInterval(() => {
         const n = new Date();
         if(n.getHours() === 0 && n.getMinutes() === 0 && n.getSeconds() === 0) {
