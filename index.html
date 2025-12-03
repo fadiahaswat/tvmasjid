@@ -33,9 +33,11 @@
                         accent: { 400: '#fbbf24', 500: '#f59e0b' } // Amber/Gold
                     },
                     animation: {
+                        'marquee': 'marquee 30s linear infinite',
                         'fade-in': 'fadeIn 0.5s ease-out forwards',
                     },
                     keyframes: {
+                        marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } },
                         fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
                     }
                 }
@@ -59,20 +61,19 @@
 
         .hidden-slide { display: none !important; }
         
-        /* Layout Grid: Header - Content - Footer (Tanpa Running Text) */
         .main-layout {
             display: grid;
-            grid-template-rows: auto 1fr auto; 
+            grid-template-rows: auto 1fr auto auto; /* Header, Content, Footer, RunningText */
             height: 100vh;
             padding: 1.5rem;
             gap: 1.25rem;
         }
 
-        /* Footer Schedule Styling - 8 ITEM */
+        /* Footer Schedule Styling (Tetap Besar) */
         #footer-schedule {
             display: grid;
-            grid-template-columns: repeat(8, 1fr); /* 8 KOLOM PAS */
-            gap: 0.75rem;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 0.5rem;
             height: 100%;
             width: 100%;
         }
@@ -85,13 +86,11 @@
             background: rgba(255,255,255,0.03);
             border-radius: 0.75rem;
             height: 100%;
-            /* Pastikan kalau script generate lebih dari 8, sisanya tersembunyi agar tidak merusak layout */
-            overflow: hidden; 
         }
         
         #footer-schedule > div h3 { 
             font-family: 'Outfit', sans-serif;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
@@ -101,13 +100,12 @@
 
         #footer-schedule > div p { 
             font-family: 'JetBrains Mono', monospace;
-            font-size: 3rem; /* Besar */
+            font-size: 3.5rem;
             font-weight: 800;
             color: white;
             line-height: 1;
         }
         
-        /* Highlight Waktu Aktif */
         #footer-schedule > div[style*="background"] { 
             background: #14b8a6 !important;
             box-shadow: 0 0 20px rgba(20, 184, 166, 0.4);
@@ -311,7 +309,16 @@
             <div id="footer-schedule"></div>
         </footer>
 
+        <div class="h-16 bg-slate-950 border-t border-white/10 flex items-center overflow-hidden relative z-20">
+            <div class="px-6 bg-brand-600 h-full flex items-center justify-center z-10 shadow-[4px_0_15px_rgba(0,0,0,0.5)]">
+                <i class="ri-information-line text-3xl text-white"></i>
+            </div>
+            <div class="w-full absolute flex whitespace-nowrap animate-marquee pl-24">
+                <span id="running-text" class="text-3xl font-normal text-slate-100 tracking-wide font-sans py-2">Memuat informasi...</span>
+            </div>
         </div>
+
+    </div>
 
     <script src="script.js"></script>
 </body>
