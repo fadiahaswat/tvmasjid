@@ -85,6 +85,18 @@ function calculateTahajjud(shubuhTime) {
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+// Fungsi untuk menambah/kurang menit dari jam string "HH:MM"
+function addMinutes(timeStr, minutesToAdd) {
+    if (!timeStr) return "00:00";
+    const [h, m] = timeStr.split(':').map(Number);
+    const date = new Date();
+    date.setHours(h, m, 0, 0);
+    date.setMinutes(date.getMinutes() + minutesToAdd);
+    
+    // Format kembali ke "HH:MM"
+    return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
 // --- 3. DATA FETCHING ---
 
 async function fetchHijriDate() {
