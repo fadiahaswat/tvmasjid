@@ -596,13 +596,13 @@ function setupGenericOverlay(type) {
 
     if (type === 'PRAYER') {
         els.prayerTitle.innerText = "SHOLAT BERLANGSUNG";
-        els.prayerSub.innerText = "Luruskan & Rapatkan Shaf";
-        els.prayerNote.innerText = "Mohon Matikan Alat Komunikasi";
+        els.prayerSub.innerText = "Luruskan Shaf"; // Teks lebih singkat = lebih cepat dibaca
+        els.prayerNote.innerText = "Mohon non-aktifkan HP & menjaga ketenangan";
     } 
-    else if (type === 'PRAYER_JUMAT') { // Teks Khusus Saat Khutbah/Jumat
-        els.prayerTitle.innerText = "KHUTBAH / SHOLAT JUMAT";
-        els.prayerSub.innerText = "Harap Diam & Menyimak Khutbah";
-        els.prayerNote.innerText = "Apabila engkau berkata 'diamlah' saat khatib berkhutbah, maka sia-sialah Jumatmu";
+    else if (type === 'PRAYER_JUMAT') { 
+        els.prayerTitle.innerText = "KHUTBAH JUMAT";
+        els.prayerSub.innerText = "Harap Menyimak";
+        els.prayerNote.innerText = "Barangsiapa berbicara saat khutbah, maka sia-sialah Jumatnya";
     }
     else if (type === 'DZIKIR') {
         els.prayerTitle.innerText = "DZIKIR BA'DA SHOLAT";
