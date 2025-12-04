@@ -384,6 +384,7 @@ function checkSystemMode(now) {
     let target = null;
     let metaData = {};
 
+    // Cek Mode Kajian (Ahad Pagi)
     if (now.getDay() === 0) { 
         const mins = now.getHours() * 60 + now.getMinutes();
         if (mins >= 330 && mins < 420) {
@@ -393,6 +394,7 @@ function checkSystemMode(now) {
     }
 
     if (newMode === 'NORMAL') {
+        // Cek Persiapan Jumat (Sebelum Masuk Waktu)
         if (now.getDay() === 5) {
             const [zh, zm] = CONFIG.prayerTimes.dzuhur.split(':').map(Number);
             const dzuhurTime = new Date(now);
@@ -401,7 +403,7 @@ function checkSystemMode(now) {
             
             if (now >= jumatStart && now < dzuhurTime) {
                 newMode = 'OVERRIDE';
-                newType = 'JUMAT';
+                newType = 'JUMAT'; // Mode Persiapan Jumat
             }
         }
 
@@ -415,9 +417,18 @@ function checkSystemMode(now) {
             const tAdzan = new Date(now);
             tAdzan.setHours(h, m, 0, 0);
             
+            // --- LOGIKA DURASI DINAMIS ---
+            let durationPrayer = CONFIG.timeRules.inPrayer;
+            
+            // Jika Hari Jumat DAN Waktu Dzuhur -> Pakai Durasi Jumat (60 Menit)
+            if (now.getDay() === 5 && name === 'dzuhur') {
+                durationPrayer = CONFIG.timeRules.jumatPrayer;
+            }
+            // -----------------------------
+
             const msPreAdzan = CONFIG.timeRules.preAdzan * 60000;
             const msPreIqamah = CONFIG.timeRules.preIqamah * 60000;
-            const msInPrayer = CONFIG.timeRules.inPrayer * 60000;
+            const msInPrayer = durationPrayer * 60000; // Gunakan durasi dinamis tadi
             const msDzikir = CONFIG.timeRules.dzikir * 60000;
 
             const tStartPreAdzan = tAdzan.getTime() - msPreAdzan;
@@ -443,7 +454,9 @@ function checkSystemMode(now) {
 
             if (curTime >= tEndPreIqamah && curTime < tEndPrayer) {
                 newMode = 'OVERRIDE';
-                newType = 'PRAYER';
+                newType = 'PRAYER'; // Ini akan otomatis 60 menit jika Jumat
+                // Tandai jika ini sholat jumat untuk styling
+                if (now.getDay() === 5 && name === 'dzuhur') metaData.isJumat = true; 
                 break;
             }
 
