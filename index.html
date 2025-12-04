@@ -108,6 +108,23 @@
         .dynamic-bg { transition: background 1s ease; }
         .theme-red { background: radial-gradient(circle at center, #500724 0%, #000 90%); } 
         .theme-green { background: radial-gradient(circle at center, #064e3b 0%, #000 90%); }
+        /* ... tema lama ... */
+
+/* TEMA KHUSUS PRAYER (BLACKOUT) */
+.theme-khusyu { 
+    background-color: #000000 !important; 
+    background-image: none !important; 
+}
+.theme-khusyu .dynamic-bg { background: #000 !important; }
+
+/* Teks yang 'bernafas' sangat pelan agar tidak statis total (mencegah burn-in) tapi tidak mencolok */
+@keyframes breathe-dim {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.5; }
+}
+.text-dim-breath {
+    animation: breathe-dim 8s ease-in-out infinite;
+}
         /* ... tema warna lainnya ... */
 
         /* UTILS */
@@ -299,23 +316,32 @@
          </div>
     </div>
 
-    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center px-10 overflow-hidden dynamic-bg">
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-5 select-none pointer-events-none">
-            <span class="text-[50vw] font-mono font-bold text-white tracking-tighter leading-none">ALLAH</span>
-        </div>
-        <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] z-0"></div>
+    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center overflow-hidden">
+    
+    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-[0.03] pointer-events-none"></div>
 
-        <div class="relative z-10 flex flex-col items-center w-full max-w-7xl h-full justify-center py-16 gap-12">
-            <div class="flex flex-col items-center animate-pulse-glow">
-                <i class="ri-notification-off-fill text-8xl mb-8 text-white/90"></i>
-                <h1 class="text-[8vh] font-cinzel font-black text-white uppercase tracking-widest leading-tight drop-shadow-2xl border-b-4 border-white/20 pb-4" id="prayer-title">...</h1>
-            </div>
-            <div class="w-full bg-black/60 backdrop-blur-xl border border-white/10 py-12 px-10 rounded-3xl shadow-2xl transform transition-all hover:scale-105">
-                <p class="text-6xl text-gold-400 font-serif font-bold tracking-wide mb-6" id="prayer-sub">...</p>
-                <p class="text-3xl text-slate-300 uppercase tracking-[0.3em] font-bold font-sans" id="prayer-note">...</p>
+    <div class="relative z-10 flex flex-col items-center justify-center h-full max-w-6xl px-10">
+        
+        <div class="mb-12 opacity-20">
+            <div class="relative inline-block">
+                <i class="ri-smartphone-line text-8xl text-slate-500"></i>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-1 bg-slate-500 -rotate-45 rounded-full"></div>
             </div>
         </div>
+
+        <h1 id="prayer-title" class="text-[6vh] font-cinzel font-bold text-slate-500 uppercase tracking-[0.2em] leading-tight mb-8">
+            ...
+        </h1>
+
+        <p id="prayer-sub" class="text-[8vh] font-sans font-bold text-slate-300 tracking-wide leading-none text-dim-breath">
+            ...
+        </p>
+
+        <p id="prayer-note" class="mt-12 text-2xl text-slate-600 font-serif italic tracking-widest">
+            ...
+        </p>
     </div>
+</div>
 
     <script src="script.js"></script>
     
