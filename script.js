@@ -1,6 +1,6 @@
 /**
- * SMART MASJID DIGITAL SIGNAGE V2.3
- * Fitur: Removed Info/Donation, Clean Logic
+ * SMART MASJID DIGITAL SIGNAGE V2.4 (Final Tuned)
+ * Fitur: Iqamah Dinamis, Scene Sholat Hening + Jam, Tema Warna Tegas
  */
 
 // --- 1. CONFIGURATION ---
@@ -9,7 +9,7 @@ const CONFIG = {
     masjidName: "MASJID MU'ALLIMIN",
     address: "Yogyakarta, Indonesia",
     
-    // Durasi Slide (Info/Donation dihapus)
+    // Durasi Slide Normal
     duration: { 
         home: 15, 
         nextDetail: 10, 
@@ -19,13 +19,14 @@ const CONFIG = {
 
     timeRules: { 
         preAdzan: 15,    
-        preIqamah: 12,   
+        preIqamah: 10,   // Default 10 menit (Akan di-override khusus Shubuh & Isya)
         inPrayer: 20,    
         dzikir: 15,      
         jumatPrep: 45,
-        jumatPrayer: 60  // <--- BARU: Durasi khusus Sholat Jumat (60 menit)
+        jumatPrayer: 60  
     },
     
+    // Jadwal Default (Jaga-jaga jika offline)
     defaultPrayerTimes: {
         tahajjud: "03:00", imsak: "04:10", shubuh: "04:20", syuruq: "05:35",
         dhuha: "06:00", dzuhur: "11:45", ashar: "15:05", maghrib: "17:55", isya: "19:05"
@@ -35,7 +36,7 @@ const CONFIG = {
     currentHijriDate: "..." 
 };
 
-// Data Konten (Info List Dihapus)
+// Data Konten
 const DATA_CONTENT = {
     ayat: [],   
     hadits: [], 
@@ -86,16 +87,39 @@ function calculateTahajjud(shubuhTime) {
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-// Fungsi untuk menambah/kurang menit dari jam string "HH:MM"
 function addMinutes(timeStr, minutesToAdd) {
     if (!timeStr) return "00:00";
     const [h, m] = timeStr.split(':').map(Number);
     const date = new Date();
     date.setHours(h, m, 0, 0);
     date.setMinutes(date.getMinutes() + minutesToAdd);
-    
-    // Format kembali ke "HH:MM"
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
+// --- AUDIO SYSTEM (OFFLINE FRIENDLY) ---
+// Pastikan file audio ada di folder ./audio/
+const SFX = {
+    beep: new Audio('./audio/beep.mp3'), // Suara bip pendek
+    final: new Audio('./audio/gong.mp3'), // Suara masuk waktu
+    lastPlayed: -1 
+};
+
+function playCountdownSound(secondsLeft) {
+    if (SFX.lastPlayed === secondsLeft) return;
+
+    if (secondsLeft <= 5 && secondsLeft > 0) { // Bunyi di 5,4,3,2,1
+        SFX.beep.currentTime = 0;
+        SFX.beep.play().catch(() => {});
+        SFX.lastPlayed = secondsLeft;
+    } 
+    else if (secondsLeft === 0) { // Bunyi Gong di 0
+        SFX.final.currentTime = 0;
+        SFX.final.play().catch(() => {});
+        SFX.lastPlayed = secondsLeft;
+    }
+    else {
+        if (secondsLeft > 6) SFX.lastPlayed = -1;
+    }
 }
 
 // --- 3. DATA FETCHING ---
@@ -114,7 +138,7 @@ async function fetchHijriDate() {
 }
 
 async function loadContentData() {
-    const cacheKey = 'smart_masjid_content_v4';
+    const cacheKey = 'smart_masjid_content_v5'; // Bump version
     let loadedFromNet = false;
 
     if (navigator.onLine) {
@@ -195,27 +219,23 @@ async function loadSchedule() {
     }
 
     if (schedule) {
-        // --- LOGIKA KOREKSI WAKTU SHUBUH (+8 Menit) ---
+        // --- LOGIKA KOREKSI WAKTU ---
         const rawShubuh = schedule.subuh;
-        const shubuhKoreksi = addMinutes(rawShubuh, 8); // Tambah 8 menit
-        
-        // Imsak otomatis 10 menit SEBELUM Shubuh yang sudah dikoreksi
-        const imsakKoreksi = addMinutes(shubuhKoreksi, -10); 
-        // ------------------------------------------------
+        const shubuhKoreksi = addMinutes(rawShubuh, 8); // Shubuh +8 menit
+        const imsakKoreksi = addMinutes(shubuhKoreksi, -10); // Imsak 10 menit sebelum shubuh
 
         CONFIG.prayerTimes = {
-            tahajjud: calculateTahajjud(shubuhKoreksi), // Tahajjud ikut patokan Shubuh baru
-            imsak: imsakKoreksi,      // Hasil hitungan (Shubuh baru - 10 menit)
-            shubuh: shubuhKoreksi,    // Hasil hitungan (Shubuh API + 8 menit)
-            syuruq: schedule.terbit,  // Syuruq biasanya tidak ikut toleransi shubuh, tapi kalau mau diubah tinggal pakai addMinutes
+            tahajjud: calculateTahajjud(shubuhKoreksi),
+            imsak: imsakKoreksi,      
+            shubuh: shubuhKoreksi,    
+            syuruq: schedule.terbit,
             dhuha: schedule.dhuha,
             dzuhur: schedule.dzuhur,
             ashar: schedule.ashar,
             maghrib: schedule.maghrib,
             isya: schedule.isya
         };
-        
-        console.table(CONFIG.prayerTimes); // Cek di console browser untuk memastikan
+        console.table(CONFIG.prayerTimes);
     } else {
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
     }
@@ -288,10 +308,8 @@ function updateUIHeader() {
 }
 
 function calculateNextPrayer(now) {
-    // 1. Cek Data Jadwal
     if (!CONFIG.prayerTimes.shubuh) return;
     
-    // 2. Cari Waktu Sholat Berikutnya
     const curMins = now.getHours() * 60 + now.getMinutes();
     const keys = ['shubuh', 'syuruq', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     
@@ -301,75 +319,50 @@ function calculateNextPrayer(now) {
     keys.forEach(k => {
         const [h, m] = CONFIG.prayerTimes[k].split(':').map(Number);
         const pMins = h * 60 + m;
-        
-        // Cari selisih waktu positif terkecil (waktu yang akan datang hari ini)
         if (pMins > curMins && (pMins - curMins) < minDiff) {
             minDiff = pMins - curMins;
             found = { name: k, time: CONFIG.prayerTimes[k] };
         }
     });
 
-    // Jika tidak ada yang ketemu (sudah lewat Isya), maka targetnya Shubuh besok
     if (!found) found = { name: 'shubuh', time: CONFIG.prayerTimes.shubuh };
-    
-    // Simpan state global
     STATE.nextPrayer = found;
 
-    // 3. LOGIKA BARU: HITUNG COUNTDOWN (HH:MM:SS)
+    // Hitung Countdown
     const [targetH, targetM] = found.time.split(':').map(Number);
     let targetDate = new Date(now);
     targetDate.setHours(targetH, targetM, 0, 0);
+    if (targetDate < now) targetDate.setDate(targetDate.getDate() + 1);
     
-    // Jika target jam lebih kecil dari sekarang (misal sekarang 20:00, target 04:00), berarti besok
-    if (targetDate < now) {
-        targetDate.setDate(targetDate.getDate() + 1);
-    }
-    
-    // Hitung selisih milidetik
     const diffMs = targetDate - now;
-    
-    // Konversi ke Jam, Menit, Detik
     const hh = Math.floor(diffMs / 3600000).toString().padStart(2,'0');
     const mm = Math.floor((diffMs % 3600000) / 60000).toString().padStart(2,'0');
     const ss = Math.floor((diffMs % 60000) / 1000).toString().padStart(2,'0');
-    
-    // String Hitung Mundur (Contoh: -00:15:30)
     const countdownString = `-${hh}:${mm}:${ss}`;
 
-    // 4. UPDATE UI HEADER (Kecil di atas)
+    // Sound Effect Trigger
+    playCountdownSound(Math.floor(diffMs / 1000));
+
+    // Update UI
     if(els.nextName) els.nextName.innerText = found.name.toUpperCase();
     if(els.countdown) els.countdown.innerText = countdownString;
-
-    // 5. UPDATE UI SLIDE (Besar di tengah - DUAL TIME)
+    
     if(els.ndName) els.ndName.innerText = found.name.toUpperCase();
-    
-    // Update Timer Besar (Countdown)
-    if(els.ndCountdown) {
-        els.ndCountdown.innerText = countdownString;
-    }
-    
-    // Update Jam Target Kecil (Pukul: 17:55)
-    if(els.ndTarget) {
-        els.ndTarget.innerText = found.time; 
-    }
+    if(els.ndCountdown) els.ndCountdown.innerText = countdownString;
+    if(els.ndTarget) els.ndTarget.innerText = found.time; 
 
-    // 6. Update Highlight Footer
     updateFooterHighlight(found.name);
 }
 
 function updateFooterHighlight(activeKey) {
     const items = els.footer.children;
     for (let item of items) {
-        // Reset state: Hapus class active
         item.classList.remove('schedule-active');
-        
-        // Hapus style manual jika ada sisa dari render sebelumnya
         item.style.background = '';
         item.style.borderColor = '';
         item.style.boxShadow = '';
         item.style.transform = '';
         
-        // Set Active State menggunakan Class CSS baru
         if (item.dataset.key === activeKey.toLowerCase()) {
             item.classList.add('schedule-active');
         }
@@ -384,7 +377,7 @@ function checkSystemMode(now) {
     let target = null;
     let metaData = {};
 
-    // Cek Mode Kajian (Ahad Pagi)
+    // 1. Cek Kajian Ahad Pagi
     if (now.getDay() === 0) { 
         const mins = now.getHours() * 60 + now.getMinutes();
         if (mins >= 330 && mins < 420) {
@@ -394,7 +387,7 @@ function checkSystemMode(now) {
     }
 
     if (newMode === 'NORMAL') {
-        // Cek Persiapan Jumat (Sebelum Masuk Waktu)
+        // 2. Cek Persiapan Jumat
         if (now.getDay() === 5) {
             const [zh, zm] = CONFIG.prayerTimes.dzuhur.split(':').map(Number);
             const dzuhurTime = new Date(now);
@@ -403,7 +396,7 @@ function checkSystemMode(now) {
             
             if (now >= jumatStart && now < dzuhurTime) {
                 newMode = 'OVERRIDE';
-                newType = 'JUMAT'; // Mode Persiapan Jumat
+                newType = 'JUMAT'; 
             }
         }
 
@@ -418,17 +411,18 @@ function checkSystemMode(now) {
             tAdzan.setHours(h, m, 0, 0);
             
             // --- LOGIKA DURASI DINAMIS ---
-            let durationPrayer = CONFIG.timeRules.inPrayer;
-            
-            // Jika Hari Jumat DAN Waktu Dzuhur -> Pakai Durasi Jumat (60 Menit)
+            let durIqamah = CONFIG.timeRules.preIqamah; // Default 10
+            if (name === 'shubuh') durIqamah = 13; // Request: Shubuh 13 menit
+            if (name === 'isya') durIqamah = 5;    // Request: Isya 5 menit
+
+            let durPrayer = CONFIG.timeRules.inPrayer;
             if (now.getDay() === 5 && name === 'dzuhur') {
-                durationPrayer = CONFIG.timeRules.jumatPrayer;
+                durPrayer = CONFIG.timeRules.jumatPrayer; // Jumat 60 menit
             }
-            // -----------------------------
 
             const msPreAdzan = CONFIG.timeRules.preAdzan * 60000;
-            const msPreIqamah = CONFIG.timeRules.preIqamah * 60000;
-            const msInPrayer = durationPrayer * 60000; // Gunakan durasi dinamis tadi
+            const msPreIqamah = durIqamah * 60000;
+            const msInPrayer = durPrayer * 60000;
             const msDzikir = CONFIG.timeRules.dzikir * 60000;
 
             const tStartPreAdzan = tAdzan.getTime() - msPreAdzan;
@@ -454,8 +448,7 @@ function checkSystemMode(now) {
 
             if (curTime >= tEndPreIqamah && curTime < tEndPrayer) {
                 newMode = 'OVERRIDE';
-                newType = 'PRAYER'; // Ini akan otomatis 60 menit jika Jumat
-                // Tandai jika ini sholat jumat untuk styling
+                newType = 'PRAYER';
                 if (now.getDay() === 5 && name === 'dzuhur') metaData.isJumat = true; 
                 break;
             }
@@ -486,8 +479,8 @@ function applyMode(mode, type, target, meta) {
     els.progress.style.width = '0';
     Object.values(els.scenes).forEach(el => {
         el.classList.add('hidden-slide');
-        // Reset class tema warna setiap ganti mode
-        el.classList.remove('theme-red', 'theme-yellow', 'theme-green', 'theme-blue', 'theme-gold', 'theme-silver');
+        // Reset class tema
+        el.classList.remove('theme-red', 'theme-yellow', 'theme-khusyu', 'theme-blue', 'theme-gold', 'theme-silver');
     });
 
     if (mode === 'NORMAL') {
@@ -502,41 +495,40 @@ function applyMode(mode, type, target, meta) {
         els.header.style.display = 'none';
         els.footer.style.display = 'none';
 
-        // --- LOGIKA TEMA WARNA & JAM ---
+        // --- PENGATURAN TEMA WARNA & DISPLAY ---
         
         if (type === 'ADZAN') {
             const sc = els.scenes.countdown;
             sc.classList.remove('hidden-slide');
-            sc.classList.add('theme-red'); // MERAH (Urgent)
+            sc.classList.add('theme-red'); // MERAH
             
             els.cdTitle.innerText = 'MENUJU ADZAN';
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
             
             if(target) updateOverlayTimer(target - new Date());
-            ensureOverlayClock(sc); // Munculkan Jam
+            ensureOverlayClock(sc);
         } 
         else if (type === 'IQAMAH') {
             const sc = els.scenes.countdown;
             sc.classList.remove('hidden-slide');
-            sc.classList.add('theme-yellow'); // KUNING (Persiapan)
+            sc.classList.add('theme-yellow'); // KUNING
             
             els.cdTitle.innerText = 'MENUJU IQOMAH';
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
             
             if(target) updateOverlayTimer(target - new Date());
-            ensureOverlayClock(sc); // Munculkan Jam
+            ensureOverlayClock(sc);
         } 
         else {
             // Scene Prayer / Info
             const sp = els.scenes.prayer;
             sp.classList.remove('hidden-slide');
             
-            // HAPUS ensureOverlayClock(sp); 
-            // SARAN: Jangan tampilkan jam saat sholat agar tidak ada angka yang berubah-ubah di layar
-            
-            // Set Warna Berdasarkan Tipe
             if (type === 'PRAYER') {
-                sp.classList.add('theme-khusyu'); // <-- GANTI KE TEMA GELAP
+                // SHOLAT: TEMA GELAP (KHUSYU) + JAM
+                sp.classList.add('theme-khusyu'); 
+                ensureOverlayClock(sp); // REQUEST BARU: TAMPILKAN JAM
+                
                 if (meta && meta.isJumat) {
                     setupGenericOverlay('PRAYER_JUMAT');
                 } else {
@@ -544,17 +536,17 @@ function applyMode(mode, type, target, meta) {
                 }
             }
             else if (type === 'DZIKIR') {
-                sp.classList.add('theme-blue'); // Dzikir boleh agak terang (Biru)
+                sp.classList.add('theme-blue'); // BIRU
                 setupGenericOverlay('DZIKIR');
-                ensureOverlayClock(sp); // Dzikir boleh ada jam
+                ensureOverlayClock(sp);
             }
             else if (type === 'KAJIAN') {
-                sp.classList.add('theme-silver'); 
+                sp.classList.add('theme-silver'); // SILVER
                 setupGenericOverlay('KAJIAN');
                 ensureOverlayClock(sp);
             }
-            else if (type === 'JUMAT') { // Persiapan Jumat
-                sp.classList.add('theme-gold'); 
+            else if (type === 'JUMAT') { 
+                sp.classList.add('theme-gold'); // EMAS
                 setupGenericOverlay('JUMAT');
                 ensureOverlayClock(sp);
             }
@@ -564,24 +556,26 @@ function applyMode(mode, type, target, meta) {
 
 function updateOverlayTimer(diffMs) {
     if (!els.cdTimer) return;
+    const secondsLeft = Math.floor(diffMs / 1000);
+    playCountdownSound(secondsLeft);
+
     const m = Math.floor(diffMs > 0 ? diffMs / 60000 : 0).toString().padStart(2,'0');
     const s = Math.floor(diffMs > 0 ? (diffMs % 60000) / 1000 : 0).toString().padStart(2,'0');
     els.cdTimer.innerText = `${m}:${s}`;
 }
 
-// Fungsi Helper Baru: Menempelkan Jam Kecil di Scene Apapun
+// Fungsi Menempelkan Jam Kecil
 function ensureOverlayClock(parentScene) {
-    // Cek apakah jam sudah ada di scene ini?
     let clock = parentScene.querySelector('.overlay-clock-widget');
     
     if (!clock) {
         clock = document.createElement('div');
+        // Style: Transparan Hitam Elegan
         clock.className = "overlay-clock-widget absolute top-8 right-8 text-3xl font-mono font-bold text-white/80 bg-black/40 px-6 py-2 rounded-full border border-white/10 backdrop-blur-md shadow-lg z-[100]";
         parentScene.appendChild(clock);
         
-        // Mulai update jam ini
         const updateThisClock = () => {
-            if (!document.body.contains(clock)) return; // Stop jika elemen hilang
+            if (!document.body.contains(clock)) return;
             const now = new Date();
             clock.innerText = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.',':');
             requestAnimationFrame(updateThisClock);
@@ -591,12 +585,9 @@ function ensureOverlayClock(parentScene) {
 }
 
 function setupGenericOverlay(type) {
-    // HAPUS LOGIKA 'overlayClock' LAMA DI SINI (Karena sudah pakai ensureOverlayClock)
-    // Langsung ke pengaturan teks:
-
     if (type === 'PRAYER') {
         els.prayerTitle.innerText = "SHOLAT BERLANGSUNG";
-        els.prayerSub.innerText = "Luruskan Shaf"; // Teks lebih singkat = lebih cepat dibaca
+        els.prayerSub.innerText = "Luruskan Shaf"; 
         els.prayerNote.innerText = "Mohon non-aktifkan HP & menjaga ketenangan";
     } 
     else if (type === 'PRAYER_JUMAT') { 
@@ -614,7 +605,7 @@ function setupGenericOverlay(type) {
         els.prayerSub.innerText = DATA_CONTENT.kajianAhad.desc;
         els.prayerNote.innerText = DATA_CONTENT.kajianAhad.sub;
     }
-    else if (type === 'JUMAT') { // Persiapan
+    else if (type === 'JUMAT') { 
         els.prayerTitle.innerText = DATA_CONTENT.jumat.title;
         els.prayerSub.innerText = DATA_CONTENT.jumat.desc;
         els.prayerNote.innerText = DATA_CONTENT.jumat.sub;
@@ -688,18 +679,13 @@ function renderFooter() {
     keys.forEach(k => {
         const div = document.createElement('div');
         div.dataset.key = k; 
-        
-        // GUNAKAN CLASS YANG LEBIH SEDERHANA
-        // Biarkan CSS di index.html (.schedule-card-base) yang menangani styling detailnya
         div.className = "flex flex-col items-center justify-center rounded-xl transition-all duration-500 relative overflow-hidden group border border-transparent";
         
         div.innerHTML = `
             <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-            
             <h3 class="relative z-10 text-[10px] lg:text-xs text-slate-400 uppercase tracking-[0.2em] font-cinzel font-bold mb-1 group-hover:text-gold-400">
                 ${k}
             </h3>
-            
             <p class="relative z-10 text-2xl lg:text-4xl text-white font-mono font-bold tracking-tighter leading-none group-hover:text-cyan-400 transition-colors">
                 ${CONFIG.prayerTimes[k] || '--:--'}
             </p>
@@ -714,6 +700,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     log('INIT', 'System Start...');
     initElements();
     
+    // Unlock Audio Context (Klik pertama kali untuk mengizinkan suara)
+    document.addEventListener('click', function() {
+        SFX.beep.play().then(() => { SFX.beep.pause(); SFX.beep.currentTime=0; }).catch(()=>{});
+    }, { once: true });
+
     updateClockAndLogic();
     setInterval(updateClockAndLogic, 1000);
 
