@@ -165,17 +165,35 @@
                 </div>
             </div>
 
-            <div class="col-span-3 flex flex-col items-end justify-center h-full border-l border-white/5 pl-6">
-                <div class="flex items-center gap-3 mb-1">
-                    <span id="header-date-masehi" class="font-sans font-bold text-lg text-slate-200 tracking-wide text-right">...</span>
-                    <i class="ri-calendar-line text-gold-500"></i>
-                </div>
-                <div class="w-full h-[1px] bg-gradient-to-l from-white/10 to-transparent my-1"></div>
-                <div class="flex items-center gap-3">
-                    <span id="header-date-hijri" class="font-cinzel font-semibold text-lg text-cyan-500 tracking-wide text-right">...</span>
-                    <i class="ri-moon-clear-line text-cyan-500"></i>
-                </div>
-            </div>
+            <div class="col-span-3 flex flex-col justify-center h-full pl-6 border-l border-white/5 relative group">
+    
+    <div class="absolute right-10 top-1/2 -translate-y-1/2 w-32 h-32 bg-cyan-900/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+
+    <div class="relative z-10 flex items-center justify-end gap-3 mb-3">
+        <div class="flex flex-col items-end">
+            <span class="text-[9px] font-bold tracking-[0.3em] text-cyan-500/70 uppercase mb-[2px]">Masehi</span>
+            <span id="header-date-masehi" class="font-sans font-bold text-lg lg:text-xl text-slate-100 tracking-wide text-right drop-shadow-sm leading-none">...</span>
+        </div>
+        
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center shadow-[inset_0_0_10px_rgba(34,211,238,0.1)]">
+            <i class="ri-calendar-check-line text-cyan-400 text-lg"></i>
+        </div>
+    </div>
+
+    <div class="w-full h-[1px] bg-gradient-to-l from-gold-500/30 via-white/5 to-transparent"></div>
+
+    <div class="relative z-10 flex items-center justify-end gap-3 mt-3">
+        <div class="flex flex-col items-end">
+            <span class="text-[9px] font-bold tracking-[0.3em] text-gold-500/70 uppercase mb-[2px]">Hijriyah</span>
+            <span id="header-date-hijri" class="font-cinzel font-bold text-lg lg:text-xl text-gradient-gold tracking-wide text-right drop-shadow-sm leading-none">...</span>
+        </div>
+
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-900/20 to-transparent border border-gold-500/20 flex items-center justify-center shadow-[inset_0_0_10px_rgba(212,175,55,0.1)]">
+            <i class="ri-moon-cloud-line text-gold-400 text-lg"></i>
+        </div>
+    </div>
+
+</div>
         </header>
 
         <main class="relative w-full h-full overflow-hidden glass-panel rounded-2xl flex flex-col justify-center items-center">
