@@ -194,18 +194,27 @@ async function loadSchedule() {
     }
 
     if (schedule) {
+        // --- LOGIKA KOREKSI WAKTU SHUBUH (+8 Menit) ---
+        const rawShubuh = schedule.subuh;
+        const shubuhKoreksi = addMinutes(rawShubuh, 8); // Tambah 8 menit
+        
+        // Imsak otomatis 10 menit SEBELUM Shubuh yang sudah dikoreksi
+        const imsakKoreksi = addMinutes(shubuhKoreksi, -10); 
+        // ------------------------------------------------
+
         CONFIG.prayerTimes = {
-            tahajjud: calculateTahajjud(schedule.subuh),
-            imsak: schedule.imsak,
-            shubuh: schedule.subuh,
-            syuruq: schedule.terbit,
+            tahajjud: calculateTahajjud(shubuhKoreksi), // Tahajjud ikut patokan Shubuh baru
+            imsak: imsakKoreksi,      // Hasil hitungan (Shubuh baru - 10 menit)
+            shubuh: shubuhKoreksi,    // Hasil hitungan (Shubuh API + 8 menit)
+            syuruq: schedule.terbit,  // Syuruq biasanya tidak ikut toleransi shubuh, tapi kalau mau diubah tinggal pakai addMinutes
             dhuha: schedule.dhuha,
             dzuhur: schedule.dzuhur,
             ashar: schedule.ashar,
             maghrib: schedule.maghrib,
             isya: schedule.isya
         };
-        console.table(CONFIG.prayerTimes);
+        
+        console.table(CONFIG.prayerTimes); // Cek di console browser untuk memastikan
     } else {
         CONFIG.prayerTimes = { ...CONFIG.defaultPrayerTimes };
     }
