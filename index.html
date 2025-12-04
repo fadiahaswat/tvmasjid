@@ -104,28 +104,31 @@
         .schedule-active h3 { color: #22d3ee !important; text-shadow: 0 0 10px rgba(34, 211, 238, 0.8); }
         .schedule-active p { color: #fff !important; text-shadow: 0 0 15px rgba(34, 211, 238, 0.8); }
 
-        /* THEMES (Tema Warna saat Countdown/Sholat berlangsung) */
-        .dynamic-bg { transition: background 1s ease; }
-        .theme-red { background: radial-gradient(circle at center, #500724 0%, #000 90%); } 
-        .theme-green { background: radial-gradient(circle at center, #064e3b 0%, #000 90%); }
-        /* ... tema lama ... */
+        /* --- THEME SYSTEM (WARNA-WARNI TEGAS) --- */
+        .dynamic-bg { transition: background 1s ease; background-size: 200% 200%; }
+        
+        /* ADZAN: Merah Membara */
+        .theme-red { background: radial-gradient(circle at center, #7f1d1d 0%, #000 90%); } 
+        
+        /* IQAMAH: Kuning/Emas Alert */
+        .theme-yellow { background: radial-gradient(circle at center, #713f12 0%, #000 90%); }
+        
+        /* DZIKIR: Biru Tenang */
+        .theme-blue { background: radial-gradient(circle at center, #0c4a6e 0%, #000 90%); }
+        
+        /* JUMAT & KAJIAN: Emas/Silver Mewah */
+        .theme-gold { background: radial-gradient(circle at center, #451a03 0%, #000 90%); }
+        .theme-silver { background: radial-gradient(circle at center, #1e293b 0%, #000 90%); }
 
-/* TEMA KHUSUS PRAYER (BLACKOUT) */
-.theme-khusyu { 
-    background-color: #000000 !important; 
-    background-image: none !important; 
-}
-.theme-khusyu .dynamic-bg { background: #000 !important; }
-
-/* Teks yang 'bernafas' sangat pelan agar tidak statis total (mencegah burn-in) tapi tidak mencolok */
-@keyframes breathe-dim {
-    0%, 100% { opacity: 0.3; }
-    50% { opacity: 0.5; }
-}
-.text-dim-breath {
-    animation: breathe-dim 8s ease-in-out infinite;
-}
-        /* ... tema warna lainnya ... */
+        /* KHUSUS SHOLAT: BLACKOUT (HENING) */
+        .theme-khusyu { 
+            background-color: #000000 !important; 
+            background-image: none !important; 
+        }
+        
+        /* Animasi Nafas Pelan untuk Teks Sholat */
+        @keyframes breathe-dim { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.7; } }
+        .text-dim-breath { animation: breathe-dim 6s ease-in-out infinite; }
 
         /* UTILS */
         .vignette { background: radial-gradient(circle, transparent 40%, #000 100%); } /* Gelap di pojokan layar */
