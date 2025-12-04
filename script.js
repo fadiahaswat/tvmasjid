@@ -266,8 +266,10 @@ function updateUIHeader() {
 }
 
 function calculateNextPrayer(now) {
+    // 1. Cek Data Jadwal
     if (!CONFIG.prayerTimes.shubuh) return;
     
+    // 2. Cari Waktu Sholat Berikutnya
     const curMins = now.getHours() * 60 + now.getMinutes();
     const keys = ['shubuh', 'syuruq', 'dzuhur', 'ashar', 'maghrib', 'isya'];
     
@@ -277,33 +279,59 @@ function calculateNextPrayer(now) {
     keys.forEach(k => {
         const [h, m] = CONFIG.prayerTimes[k].split(':').map(Number);
         const pMins = h * 60 + m;
+        
+        // Cari selisih waktu positif terkecil (waktu yang akan datang hari ini)
         if (pMins > curMins && (pMins - curMins) < minDiff) {
             minDiff = pMins - curMins;
             found = { name: k, time: CONFIG.prayerTimes[k] };
         }
     });
 
+    // Jika tidak ada yang ketemu (sudah lewat Isya), maka targetnya Shubuh besok
     if (!found) found = { name: 'shubuh', time: CONFIG.prayerTimes.shubuh };
+    
+    // Simpan state global
     STATE.nextPrayer = found;
 
-    if(els.nextName) els.nextName.innerText = found.name.toUpperCase();
+    // 3. LOGIKA BARU: HITUNG COUNTDOWN (HH:MM:SS)
+    const [targetH, targetM] = found.time.split(':').map(Number);
+    let targetDate = new Date(now);
+    targetDate.setHours(targetH, targetM, 0, 0);
     
-    if(els.countdown) {
-        const [targetH, targetM] = found.time.split(':').map(Number);
-        let targetDate = new Date(now);
-        targetDate.setHours(targetH, targetM, 0);
-        if (targetDate < now) targetDate.setDate(targetDate.getDate() + 1);
-        
-        const diffMs = targetDate - now;
-        const hh = Math.floor(diffMs / 3600000).toString().padStart(2,'0');
-        const mm = Math.floor((diffMs % 3600000) / 60000).toString().padStart(2,'0');
-        const ss = Math.floor((diffMs % 60000) / 1000).toString().padStart(2,'0');
-        els.countdown.innerText = `-${hh}:${mm}:${ss}`;
+    // Jika target jam lebih kecil dari sekarang (misal sekarang 20:00, target 04:00), berarti besok
+    if (targetDate < now) {
+        targetDate.setDate(targetDate.getDate() + 1);
+    }
+    
+    // Hitung selisih milidetik
+    const diffMs = targetDate - now;
+    
+    // Konversi ke Jam, Menit, Detik
+    const hh = Math.floor(diffMs / 3600000).toString().padStart(2,'0');
+    const mm = Math.floor((diffMs % 3600000) / 60000).toString().padStart(2,'0');
+    const ss = Math.floor((diffMs % 60000) / 1000).toString().padStart(2,'0');
+    
+    // String Hitung Mundur (Contoh: -00:15:30)
+    const countdownString = `-${hh}:${mm}:${ss}`;
+
+    // 4. UPDATE UI HEADER (Kecil di atas)
+    if(els.nextName) els.nextName.innerText = found.name.toUpperCase();
+    if(els.countdown) els.countdown.innerText = countdownString;
+
+    // 5. UPDATE UI SLIDE (Besar di tengah - DUAL TIME)
+    if(els.ndName) els.ndName.innerText = found.name.toUpperCase();
+    
+    // Update Timer Besar (Countdown)
+    if(els.ndCountdown) {
+        els.ndCountdown.innerText = countdownString;
+    }
+    
+    // Update Jam Target Kecil (Pukul: 17:55)
+    if(els.ndTarget) {
+        els.ndTarget.innerText = found.time; 
     }
 
-    if(els.ndName) els.ndName.innerText = found.name.toUpperCase();
-    if(els.ndTime) els.ndTime.innerText = found.time;
-
+    // 6. Update Highlight Footer
     updateFooterHighlight(found.name);
 }
 
