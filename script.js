@@ -484,7 +484,11 @@ function applyMode(mode, type, target, meta) {
 
     clearTimeout(slideTimer);
     els.progress.style.width = '0';
-    Object.values(els.scenes).forEach(el => el.classList.add('hidden-slide'));
+    Object.values(els.scenes).forEach(el => {
+        el.classList.add('hidden-slide');
+        // Reset class tema warna setiap ganti mode
+        el.classList.remove('theme-red', 'theme-yellow', 'theme-green', 'theme-blue', 'theme-gold', 'theme-silver');
+    });
 
     if (mode === 'NORMAL') {
         els.header.style.display = 'grid';
@@ -498,15 +502,58 @@ function applyMode(mode, type, target, meta) {
         els.header.style.display = 'none';
         els.footer.style.display = 'none';
 
-        if (type === 'ADZAN' || type === 'IQAMAH') {
-            els.scenes.countdown.classList.remove('hidden-slide');
-            els.cdTitle.innerText = type === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQOMAH';
+        // --- LOGIKA TEMA WARNA & JAM ---
+        
+        if (type === 'ADZAN') {
+            const sc = els.scenes.countdown;
+            sc.classList.remove('hidden-slide');
+            sc.classList.add('theme-red'); // MERAH (Urgent)
+            
+            els.cdTitle.innerText = 'MENUJU ADZAN';
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
+            
             if(target) updateOverlayTimer(target - new Date());
+            ensureOverlayClock(sc); // Munculkan Jam
+        } 
+        else if (type === 'IQAMAH') {
+            const sc = els.scenes.countdown;
+            sc.classList.remove('hidden-slide');
+            sc.classList.add('theme-yellow'); // KUNING (Persiapan)
+            
+            els.cdTitle.innerText = 'MENUJU IQOMAH';
+            els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
+            
+            if(target) updateOverlayTimer(target - new Date());
+            ensureOverlayClock(sc); // Munculkan Jam
         } 
         else {
-            els.scenes.prayer.classList.remove('hidden-slide');
-            setupGenericOverlay(type);
+            // Scene Prayer / Info
+            const sp = els.scenes.prayer;
+            sp.classList.remove('hidden-slide');
+            ensureOverlayClock(sp); // Munculkan Jam
+            
+            // Set Warna Berdasarkan Tipe
+            if (type === 'PRAYER') {
+                if (meta && meta.isJumat) {
+                    sp.classList.add('theme-gold'); // EMAS (Khusus Jumat)
+                    setupGenericOverlay('PRAYER_JUMAT');
+                } else {
+                    sp.classList.add('theme-green'); // HIJAU (Sholat Biasa)
+                    setupGenericOverlay('PRAYER');
+                }
+            }
+            else if (type === 'DZIKIR') {
+                sp.classList.add('theme-blue'); // BIRU (Tenang)
+                setupGenericOverlay('DZIKIR');
+            }
+            else if (type === 'KAJIAN') {
+                sp.classList.add('theme-silver'); // SILVER/CYAN
+                setupGenericOverlay('KAJIAN');
+            }
+            else if (type === 'JUMAT') { // Persiapan Jumat
+                sp.classList.add('theme-gold'); // EMAS
+                setupGenericOverlay('JUMAT');
+            }
         }
     }
 }
