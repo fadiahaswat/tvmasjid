@@ -561,17 +561,18 @@ function renderFooter() {
         const div = document.createElement('div');
         div.dataset.key = k; 
         
-        // Style Container: Glassy, Rounded, dan Transisi Halus
-        div.className = "relative flex flex-col items-center justify-center rounded-2xl transition-all duration-500 bg-white/5 border border-white/5 backdrop-blur-sm overflow-hidden group";
+        // GUNAKAN CLASS YANG LEBIH SEDERHANA
+        // Biarkan CSS di index.html (.schedule-card-base) yang menangani styling detailnya
+        div.className = "flex flex-col items-center justify-center rounded-xl transition-all duration-500 relative overflow-hidden group border border-transparent";
         
         div.innerHTML = `
-            <div class="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+            <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             
-            <h3 class="relative z-10 text-xs text-slate-400 uppercase tracking-[0.25em] font-cinzel font-bold mb-1 transition-colors duration-300 group-hover:text-brand-400">
+            <h3 class="relative z-10 text-[10px] lg:text-xs text-slate-400 uppercase tracking-[0.2em] font-cinzel font-bold mb-1 group-hover:text-gold-400">
                 ${k}
             </h3>
             
-            <p class="relative z-10 text-4xl text-white font-mono font-black tracking-tighter leading-none transition-transform duration-300 group-hover:scale-110 drop-shadow-md">
+            <p class="relative z-10 text-2xl lg:text-4xl text-white font-mono font-bold tracking-tighter leading-none group-hover:text-cyan-400 transition-colors">
                 ${CONFIG.prayerTimes[k] || '--:--'}
             </p>
         `;
