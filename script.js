@@ -565,6 +565,27 @@ function updateOverlayTimer(diffMs) {
     els.cdTimer.innerText = `${m}:${s}`;
 }
 
+// Fungsi Helper Baru: Menempelkan Jam Kecil di Scene Apapun
+function ensureOverlayClock(parentScene) {
+    // Cek apakah jam sudah ada di scene ini?
+    let clock = parentScene.querySelector('.overlay-clock-widget');
+    
+    if (!clock) {
+        clock = document.createElement('div');
+        clock.className = "overlay-clock-widget absolute top-8 right-8 text-3xl font-mono font-bold text-white/80 bg-black/40 px-6 py-2 rounded-full border border-white/10 backdrop-blur-md shadow-lg z-[100]";
+        parentScene.appendChild(clock);
+        
+        // Mulai update jam ini
+        const updateThisClock = () => {
+            if (!document.body.contains(clock)) return; // Stop jika elemen hilang
+            const now = new Date();
+            clock.innerText = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.',':');
+            requestAnimationFrame(updateThisClock);
+        };
+        requestAnimationFrame(updateThisClock);
+    }
+}
+
 function setupGenericOverlay(type) {
     // 1. Overlay Clock (Jam kecil di pojok saat mode sholat)
     let overlayClock = document.getElementById('overlay-clock');
