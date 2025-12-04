@@ -455,11 +455,13 @@ function updateOverlayTimer(diffMs) {
 }
 
 function setupGenericOverlay(type) {
+    // 1. Overlay Clock (Jam kecil di pojok saat mode sholat)
     let overlayClock = document.getElementById('overlay-clock');
     if (!overlayClock) {
         overlayClock = document.createElement('div');
         overlayClock.id = 'overlay-clock';
-        overlayClock.className = "absolute top-10 right-10 text-4xl font-mono font-bold text-white/50 bg-black/30 px-6 py-2 rounded-full border border-white/10";
+        // Sesuaikan style jam kecil dengan tema Gold/Dark
+        overlayClock.className = "absolute top-8 right-8 text-3xl font-mono font-bold text-gold-400 bg-black/60 px-6 py-2 rounded-full border border-gold-500/30 backdrop-blur-md shadow-lg z-50";
         els.scenes.prayer.appendChild(overlayClock);
         setInterval(() => {
             const now = new Date();
@@ -467,27 +469,24 @@ function setupGenericOverlay(type) {
         }, 1000);
     }
 
+    // 2. Set Text Content Saja (JANGAN TIMPA CLASSNAME)
     if (type === 'PRAYER') {
         els.prayerTitle.innerText = "SHOLAT BERLANGSUNG";
-        els.prayerTitle.className = "text-[12vh] font-cinzel font-black text-white uppercase tracking-wider mb-12 leading-none";
         els.prayerSub.innerText = "Luruskan & Rapatkan Shaf";
         els.prayerNote.innerText = "Mohon Matikan Alat Komunikasi";
     } 
     else if (type === 'DZIKIR') {
         els.prayerTitle.innerText = "DZIKIR BA'DA SHOLAT";
-        els.prayerTitle.className = "text-[8vh] font-cinzel font-black text-brand-400 uppercase tracking-wider mb-8 leading-none";
         els.prayerSub.innerText = "Astaghfirullah...";
         els.prayerNote.innerText = "Harap Tenang & Menjaga Kekhusyukan";
     }
     else if (type === 'KAJIAN') {
         els.prayerTitle.innerText = DATA_CONTENT.kajianAhad.title;
-        els.prayerTitle.className = "text-[8vh] font-cinzel font-black text-accent-400 uppercase tracking-wider mb-8 leading-none";
         els.prayerSub.innerText = DATA_CONTENT.kajianAhad.desc;
         els.prayerNote.innerText = DATA_CONTENT.kajianAhad.sub;
     }
     else if (type === 'JUMAT') {
         els.prayerTitle.innerText = DATA_CONTENT.jumat.title;
-        els.prayerTitle.className = "text-[10vh] font-cinzel font-black text-brand-500 uppercase tracking-wider mb-8 leading-none";
         els.prayerSub.innerText = DATA_CONTENT.jumat.desc;
         els.prayerNote.innerText = DATA_CONTENT.jumat.sub;
     }
