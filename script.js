@@ -587,26 +587,19 @@ function ensureOverlayClock(parentScene) {
 }
 
 function setupGenericOverlay(type) {
-    // 1. Overlay Clock (Jam kecil di pojok saat mode sholat)
-    let overlayClock = document.getElementById('overlay-clock');
-    if (!overlayClock) {
-        overlayClock = document.createElement('div');
-        overlayClock.id = 'overlay-clock';
-        // Sesuaikan style jam kecil dengan tema Gold/Dark
-        overlayClock.className = "absolute top-8 right-8 text-3xl font-mono font-bold text-gold-400 bg-black/60 px-6 py-2 rounded-full border border-gold-500/30 backdrop-blur-md shadow-lg z-50";
-        els.scenes.prayer.appendChild(overlayClock);
-        setInterval(() => {
-            const now = new Date();
-            overlayClock.innerText = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.',':');
-        }, 1000);
-    }
+    // HAPUS LOGIKA 'overlayClock' LAMA DI SINI (Karena sudah pakai ensureOverlayClock)
+    // Langsung ke pengaturan teks:
 
-    // 2. Set Text Content Saja (JANGAN TIMPA CLASSNAME)
     if (type === 'PRAYER') {
         els.prayerTitle.innerText = "SHOLAT BERLANGSUNG";
         els.prayerSub.innerText = "Luruskan & Rapatkan Shaf";
         els.prayerNote.innerText = "Mohon Matikan Alat Komunikasi";
     } 
+    else if (type === 'PRAYER_JUMAT') { // Teks Khusus Saat Khutbah/Jumat
+        els.prayerTitle.innerText = "KHUTBAH / SHOLAT JUMAT";
+        els.prayerSub.innerText = "Harap Diam & Menyimak Khutbah";
+        els.prayerNote.innerText = "Apabila engkau berkata 'diamlah' saat khatib berkhutbah, maka sia-sialah Jumatmu";
+    }
     else if (type === 'DZIKIR') {
         els.prayerTitle.innerText = "DZIKIR BA'DA SHOLAT";
         els.prayerSub.innerText = "Astaghfirullah...";
@@ -617,7 +610,7 @@ function setupGenericOverlay(type) {
         els.prayerSub.innerText = DATA_CONTENT.kajianAhad.desc;
         els.prayerNote.innerText = DATA_CONTENT.kajianAhad.sub;
     }
-    else if (type === 'JUMAT') {
+    else if (type === 'JUMAT') { // Persiapan
         els.prayerTitle.innerText = DATA_CONTENT.jumat.title;
         els.prayerSub.innerText = DATA_CONTENT.jumat.desc;
         els.prayerNote.innerText = DATA_CONTENT.jumat.sub;
