@@ -216,7 +216,8 @@ function initElements() {
         countdown: document.getElementById('header-countdown'),
         
         ndName: document.getElementById('next-detail-name'),
-        ndTime: document.getElementById('next-detail-time'),
+        ndCountdown: document.getElementById('next-detail-countdown'),
+        ndTarget: document.getElementById('next-detail-target'),
 
         scenes: {
             home: document.getElementById('scene-home'),
