@@ -19,10 +19,11 @@ const CONFIG = {
 
     timeRules: { 
         preAdzan: 15,    
-        preIqamah: 10,   
+        preIqamah: 12,   
         inPrayer: 20,    
         dzikir: 15,      
-        jumatPrep: 45    
+        jumatPrep: 45,
+        jumatPrayer: 60  // <--- BARU: Durasi khusus Sholat Jumat (60 menit)
     },
     
     defaultPrayerTimes: {
