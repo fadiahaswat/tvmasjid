@@ -309,17 +309,18 @@ function calculateNextPrayer(now) {
 function updateFooterHighlight(activeKey) {
     const items = els.footer.children;
     for (let item of items) {
-        item.style.background = '';
-        item.style.border = '1px solid transparent';
-        item.style.transform = 'scale(1)';
-        item.style.boxShadow = 'none';
+        // Reset state: Hapus class active
+        item.classList.remove('schedule-active');
         
+        // Hapus style manual jika ada sisa dari render sebelumnya
+        item.style.background = '';
+        item.style.borderColor = '';
+        item.style.boxShadow = '';
+        item.style.transform = '';
+        
+        // Set Active State menggunakan Class CSS baru
         if (item.dataset.key === activeKey.toLowerCase()) {
-            item.style.background = '#14b8a6'; 
-            item.style.borderColor = '#2dd4bf';
-            item.style.transform = 'scale(1.05)';
-            item.style.boxShadow = '0 0 30px rgba(20, 184, 166, 0.4)';
-            item.style.zIndex = '10';
+            item.classList.add('schedule-active');
         }
     }
 }
