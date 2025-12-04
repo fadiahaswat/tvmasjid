@@ -530,29 +530,33 @@ function applyMode(mode, type, target, meta) {
             // Scene Prayer / Info
             const sp = els.scenes.prayer;
             sp.classList.remove('hidden-slide');
-            ensureOverlayClock(sp); // Munculkan Jam
+            
+            // HAPUS ensureOverlayClock(sp); 
+            // SARAN: Jangan tampilkan jam saat sholat agar tidak ada angka yang berubah-ubah di layar
             
             // Set Warna Berdasarkan Tipe
             if (type === 'PRAYER') {
+                sp.classList.add('theme-khusyu'); // <-- GANTI KE TEMA GELAP
                 if (meta && meta.isJumat) {
-                    sp.classList.add('theme-gold'); // EMAS (Khusus Jumat)
                     setupGenericOverlay('PRAYER_JUMAT');
                 } else {
-                    sp.classList.add('theme-green'); // HIJAU (Sholat Biasa)
                     setupGenericOverlay('PRAYER');
                 }
             }
             else if (type === 'DZIKIR') {
-                sp.classList.add('theme-blue'); // BIRU (Tenang)
+                sp.classList.add('theme-blue'); // Dzikir boleh agak terang (Biru)
                 setupGenericOverlay('DZIKIR');
+                ensureOverlayClock(sp); // Dzikir boleh ada jam
             }
             else if (type === 'KAJIAN') {
-                sp.classList.add('theme-silver'); // SILVER/CYAN
+                sp.classList.add('theme-silver'); 
                 setupGenericOverlay('KAJIAN');
+                ensureOverlayClock(sp);
             }
             else if (type === 'JUMAT') { // Persiapan Jumat
-                sp.classList.add('theme-gold'); // EMAS
+                sp.classList.add('theme-gold'); 
                 setupGenericOverlay('JUMAT');
+                ensureOverlayClock(sp);
             }
         }
     }
