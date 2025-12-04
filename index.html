@@ -16,22 +16,25 @@
         tailwind.config = {
             theme: {
                 extend: {
+                    // Daftar Font Keluarga
                     fontFamily: { 
-                        sans: ['Outfit', 'sans-serif'], 
-                        serif: ['Amiri', 'serif'], 
-                        mono: ['JetBrains Mono', 'monospace'], 
-                        cinzel: ['Cinzel', 'serif'] 
+                        sans: ['Outfit', 'sans-serif'],        // Font utama UI
+                        serif: ['Amiri', 'serif'],             // Font Arab/Quran
+                        mono: ['JetBrains Mono', 'monospace'], // Font Jam/Angka
+                        cinzel: ['Cinzel', 'serif']            // Font Judul Mewah
                     },
+                    // Daftar Warna Kustom (Emas & Cyan)
                     colors: { 
                         gold: { 100: '#FDF7D8', 300: '#EBD27A', 400: '#D4AF37', 500: '#B59223', 600: '#8A6D12', glow: '#F5D76E' },
                         cyan: { 400: '#22d3ee', 500: '#06b6d4', 900: '#083344', glow: '#67e8f9' },
                         dark: { 950: '#020202', card: '#0a0a0a' }
                     },
+                    // Animasi Kustom (Gerakan lambat background)
                     animation: {
                         'fade-in': 'fadeIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-                        'float-slow': 'float 15s ease-in-out infinite',
-                        'spin-slow': 'spin 40s linear infinite',
-                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
+                        'float-slow': 'float 15s ease-in-out infinite', // Gerakan mengapung
+                        'spin-slow': 'spin 40s linear infinite',        // Putaran lambat ornamen
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite', // Kedip bercahaya
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0', transform: 'scale(0.98) translateY(10px)' }, '100%': { opacity: '1', transform: 'scale(1) translateY(0)' } },
@@ -44,24 +47,26 @@
     </script>
 
     <style>
-        /* BASE & BACKGROUND */
+        /* Reset & Base Setting */
         body { background-color: #000; color: #fff; overflow: hidden; font-family: 'Outfit', sans-serif; }
-        .hidden-slide { display: none !important; }
-        .dir-rtl { direction: rtl; }
+        .hidden-slide { display: none !important; } /* Class helper untuk menyembunyikan scene */
+        .dir-rtl { direction: rtl; } /* Untuk teks Arab */
 
-        /* ADVANCED GLASSMORPHISM */
+        /* GLASSMORPHISM (Efek Kaca)
+           Membuat panel transparan dengan blur di belakangnya.
+        */
         .glass-panel {
-            background: rgba(18, 18, 18, 0.65);
-            backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(18, 18, 18, 0.65); /* Hitam transparan */
+            backdrop-filter: blur(20px) saturate(180%); /* Efek blur kuat */
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 
-                0 20px 50px rgba(0,0,0,0.5),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08); /* Border tipis */
+            border-top: 1px solid rgba(255, 255, 255, 0.15); /* Highlight atas agar terlihat 3D */
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
         }
 
-        /* METALLIC TEXT GRADIENTS */
+        /* METALLIC TEXT (Efek Teks Logam)
+           Menggunakan background gradient yang "dipotong" (clip) mengikuti bentuk teks.
+        */
         .text-gradient-gold {
             background: linear-gradient(180deg, #fff 0%, #D4AF37 40%, #B59223 100%);
             -webkit-background-clip: text;
@@ -74,8 +79,9 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* ANIMATED FOOTER CARDS (Dipanggil oleh Script JS) */
-        /* Kita override style inline script.js dengan !important di CSS ini */
+        /* FOOTER CARD STYLES
+           Ini akan dipakai oleh JavaScript saat generate jadwal sholat.
+        */
         .schedule-card-base {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.2) 100%);
@@ -86,28 +92,26 @@
             overflow: hidden;
         }
         
+        /* State Aktif (Saat waktu sholat tiba) - Menggunakan !important untuk menimpa style bawaan JS lama */
         .schedule-active {
             background: linear-gradient(180deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 51, 68, 0.8) 100%) !important;
             border: 1px solid rgba(34, 211, 238, 0.6) !important;
             box-shadow: 0 0 30px rgba(34, 211, 238, 0.3) !important;
-            transform: translateY(-15px) scale(1.1) !important;
+            transform: translateY(-15px) scale(1.1) !important; /* Efek "Pop Up" */
             z-index: 50;
         }
+        /* Override warna teks saat aktif */
         .schedule-active h3 { color: #22d3ee !important; text-shadow: 0 0 10px rgba(34, 211, 238, 0.8); }
         .schedule-active p { color: #fff !important; text-shadow: 0 0 15px rgba(34, 211, 238, 0.8); }
 
-        /* THEMES FOR OVERLAYS */
+        /* THEMES (Tema Warna saat Countdown/Sholat berlangsung) */
         .dynamic-bg { transition: background 1s ease; }
         .theme-red { background: radial-gradient(circle at center, #500724 0%, #000 90%); } 
-        .theme-yellow { background: radial-gradient(circle at center, #422006 0%, #000 90%); }
         .theme-green { background: radial-gradient(circle at center, #064e3b 0%, #000 90%); }
-        .theme-blue { background: radial-gradient(circle at center, #082f49 0%, #000 90%); }
-        .theme-gold { background: radial-gradient(circle at center, #451a03 0%, #000 90%); }
-        .theme-silver { background: radial-gradient(circle at center, #1e293b 0%, #000 90%); }
+        /* ... tema warna lainnya ... */
 
         /* UTILS */
-        .vignette { background: radial-gradient(circle, transparent 40%, #000 100%); }
-        .text-glow { text-shadow: 0 0 20px rgba(255,255,255,0.5); }
+        .vignette { background: radial-gradient(circle, transparent 40%, #000 100%); } /* Gelap di pojokan layar */
     </style>
 </head>
 <body>
@@ -144,9 +148,7 @@
 
             <div class="col-span-6 flex flex-col items-center justify-center relative">
                 <div class="absolute top-0 w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-                
                 <div id="header-clock" class="text-7xl font-mono font-bold text-white tracking-tighter leading-none drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] tabular-nums">00:00</div>
-                
                 <div class="mt-2 flex items-center gap-3 px-4 py-1 rounded-full bg-white/5 border border-white/5 backdrop-blur-sm">
                     <span class="text-[10px] font-bold text-gold-400 uppercase tracking-widest">Menuju <span id="header-next-name">...</span></span>
                     <div class="w-[1px] h-3 bg-white/20"></div>
@@ -181,12 +183,10 @@
                          <span class="text-gold-300 font-cinzel text-sm tracking-[0.5em] uppercase">Ahlan Wa Sahlan</span>
                          <div class="h-[1px] w-16 bg-gradient-to-l from-transparent to-gold-400"></div>
                     </div>
-                    
                     <h1 class="text-[6rem] lg:text-[8rem] font-black font-cinzel leading-[0.85] tracking-tight drop-shadow-2xl">
                         <span class="block text-gradient-silver">MASJID JAMI'</span>
                         <span class="block text-gradient-gold mt-2">MU'ALLIMIN</span>
                     </h1>
-                    
                     <div class="mt-12 inline-block bg-black/40 backdrop-blur-md px-10 py-4 rounded-full border border-white/10 shadow-lg">
                         <p class="text-2xl text-slate-300 font-serif italic tracking-wide">"Luruskan dan Rapatkan Shaf Sholat Anda"</p>
                     </div>
@@ -197,9 +197,7 @@
                 <div class="bg-cyan-950/40 border border-cyan-500/30 px-8 py-2 rounded-full mb-10 backdrop-blur-md shadow-[0_0_30px_rgba(34,211,238,0.15)] animate-pulse-glow">
                     <span class="text-cyan-400 font-bold tracking-[0.4em] uppercase text-sm font-cinzel">Waktu Berikutnya</span>
                 </div>
-                
                 <h1 id="next-detail-name" class="text-[12vh] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 leading-none mb-4 uppercase tracking-tight drop-shadow-xl">...</h1>
-                
                 <div class="flex flex-col items-center">
                     <span class="text-xl text-slate-500 uppercase tracking-[0.5em] font-light mb-2">Pukul</span>
                     <span id="next-detail-time" class="text-[20vh] font-mono font-bold text-gold-400 tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(212,175,55,0.4)] leading-none">--:--</span>
@@ -216,7 +214,6 @@
                     </div>
                     <p id="ayat-arabic" class="relative z-10 text-6xl lg:text-7xl font-serif text-white leading-[2.2] mb-10 dir-rtl drop-shadow-lg" style="direction: rtl;">...</p>
                 </div>
-                
                 <div class="w-full max-w-5xl bg-black/30 border-l-4 border-gold-500 p-8 rounded-r-xl backdrop-blur-sm">
                     <p id="ayat-text" class="text-3xl font-sans font-light text-slate-300 leading-relaxed italic">...</p>
                 </div>
@@ -226,9 +223,7 @@
             <div id="scene-hadits" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-24 text-center">
                 <i class="ri-double-quotes-l text-6xl text-cyan-500 mb-8 opacity-60"></i>
                 <p id="hadits-arabic" class="text-6xl lg:text-7xl font-serif text-gradient-gold leading-[2.2] mb-10 dir-rtl" style="direction: rtl;">...</p>
-                
                 <div class="w-24 h-1 bg-cyan-500/50 rounded-full mx-auto mb-10"></div>
-                
                 <p id="hadits-text" class="text-3xl font-sans font-light text-slate-200 leading-relaxed max-w-5xl">...</p>
                 <p id="hadits-source" class="mt-10 text-xl font-cinzel font-bold text-white uppercase tracking-widest opacity-70">...</p>
             </div>
@@ -253,7 +248,6 @@
              <div class="relative flex items-center justify-center mt-4">
                  <div class="absolute w-[55vh] h-[55vh] border-[6px] border-white/10 rounded-full animate-spin-slow border-dashed"></div>
                  <div class="absolute w-[50vh] h-[50vh] border-[2px] border-white/20 rounded-full animate-spin-slow" style="animation-direction: reverse;"></div>
-                 
                  <span id="countdown-timer" class="text-[30vh] font-mono font-bold tabular-nums leading-none tracking-tighter text-white drop-shadow-[0_0_40px_rgba(255,255,255,0.4)]">00:00</span>
              </div>
              <p class="mt-12 text-slate-300 text-xl uppercase tracking-[0.3em] font-sans opacity-70 bg-black/30 px-6 py-2 rounded-full">Persiapkan Diri Menghadap Sang Khaliq</p>
@@ -261,28 +255,19 @@
     </div>
 
     <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center px-10 overflow-hidden dynamic-bg">
-        
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0 opacity-5 select-none pointer-events-none">
             <span class="text-[50vw] font-mono font-bold text-white tracking-tighter leading-none">ALLAH</span>
         </div>
         <div class="absolute inset-0 opacity-20 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] z-0"></div>
 
         <div class="relative z-10 flex flex-col items-center w-full max-w-7xl h-full justify-center py-16 gap-12">
-            
             <div class="flex flex-col items-center animate-pulse-glow">
                 <i class="ri-notification-off-fill text-8xl mb-8 text-white/90"></i>
-                <h1 class="text-[8vh] font-cinzel font-black text-white uppercase tracking-widest leading-tight drop-shadow-2xl border-b-4 border-white/20 pb-4" id="prayer-title">
-                    ...
-                </h1>
+                <h1 class="text-[8vh] font-cinzel font-black text-white uppercase tracking-widest leading-tight drop-shadow-2xl border-b-4 border-white/20 pb-4" id="prayer-title">...</h1>
             </div>
-
             <div class="w-full bg-black/60 backdrop-blur-xl border border-white/10 py-12 px-10 rounded-3xl shadow-2xl transform transition-all hover:scale-105">
-                <p class="text-6xl text-gold-400 font-serif font-bold tracking-wide mb-6" id="prayer-sub">
-                    ...
-                </p>
-                <p class="text-3xl text-slate-300 uppercase tracking-[0.3em] font-bold font-sans" id="prayer-note">
-                    ...
-                </p>
+                <p class="text-6xl text-gold-400 font-serif font-bold tracking-wide mb-6" id="prayer-sub">...</p>
+                <p class="text-3xl text-slate-300 uppercase tracking-[0.3em] font-bold font-sans" id="prayer-note">...</p>
             </div>
         </div>
     </div>
@@ -290,31 +275,17 @@
     <script src="script.js"></script>
     
     <script>
-        // Override style footer yang di-generate script.js lama
-        // Kita menggunakan MutationObserver untuk mendeteksi ketika script.js mengisi footer
         const footerObserver = new MutationObserver((mutations) => {
             mutations.forEach((mutation) => {
                 if (mutation.addedNodes.length) {
                     const cards = document.querySelectorAll('#footer-schedule > div');
                     cards.forEach(card => {
                         card.classList.add('schedule-card-base');
-                        // Hapus inline style background jika script.js menambahkannya secara hardcode
-                        // Kita akan biarkan script.js mengatur class 'active' atau logic warnanya, 
-                        // tapi kita paksa style lewat CSS .schedule-active
                     });
                 }
             });
         });
-
         footerObserver.observe(document.getElementById('footer-schedule'), { childList: true });
-
-        // Logic Override agar "Active State" memakai class CSS kita
-        // Simpan fungsi asli jika ada, atau buat interceptor
-        // (Diasumsikan script.js Anda melakukan styling manual pada div footer)
-        // Solusi paling aman: CSS .schedule-active di atas sudah menggunakan !important 
-        // untuk menimpa inline styles dari script lama.
-        
-        // Pastikan Script.js Anda menambahkan class 'schedule-active' atau set style background yang terdeteksi selector CSS
     </script>
 </body>
 </html>
