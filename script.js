@@ -656,7 +656,7 @@ function setupGenericOverlay(type) {
 
 // --- 5. SLIDESHOW SYSTEM (NORMAL MODE) ---
 
-const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits'];
+const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'donation'];
 
 function renderSlide() {
     if (STATE.mode !== 'NORMAL') return;
