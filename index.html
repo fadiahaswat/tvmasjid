@@ -293,6 +293,53 @@
                 <p id="hadits-source" class="mt-10 text-xl font-cinzel font-bold text-white uppercase tracking-widest opacity-70">...</p>
             </div>
 
+            <div id="scene-donation" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-10 relative">
+                
+                <div id="don-bg-glow" class="absolute top-0 right-0 w-[50vh] h-[50vh] bg-white/5 rounded-full blur-[100px] animate-pulse transition-colors duration-1000"></div>
+
+                <div class="mb-6 text-center z-10">
+                    <div class="inline-flex items-center gap-4 border-b border-white/10 pb-4 px-10">
+                        <i class="ri-hand-heart-fill text-4xl text-gold-400"></i>
+                        <h2 class="text-4xl font-cinzel font-bold text-white tracking-[0.2em] uppercase">Infaq & Shodaqoh</h2>
+                        <i class="ri-hand-heart-fill text-4xl text-gold-400"></i>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-12 gap-8 w-full max-w-7xl items-center z-10">
+                    
+                    <div class="col-span-5 flex justify-end">
+                        <div class="p-3 bg-white rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.1)] transform rotate-1 hover:rotate-0 transition-transform duration-500">
+                            <img id="don-qr" src="" alt="QRIS" class="w-72 h-72 lg:w-96 lg:h-96 object-contain">
+                        </div>
+                    </div>
+
+                    <div class="col-span-7 text-left pl-8 border-l border-white/10">
+                        <div class="glass-panel p-10 rounded-3xl border border-white/5 bg-black/20 backdrop-blur-xl">
+                            
+                            <div class="h-20 mb-6 flex items-center justify-start">
+                                <img id="don-logo" src="" alt="Bank Logo" class="h-full w-auto object-contain brightness-0 invert opacity-90">
+                            </div>
+                            
+                            <p class="text-slate-400 uppercase tracking-widest text-sm font-bold mb-2">Nomor Rekening:</p>
+                            
+                            <h3 id="don-number" class="text-6xl lg:text-7xl font-mono font-bold tracking-tighter mb-4 drop-shadow-lg transition-colors duration-500">
+                                ...
+                            </h3>
+                            
+                            <p class="text-slate-500 uppercase tracking-widest text-xs font-bold mb-1">Atas Nama:</p>
+                            <h4 id="don-name" class="text-2xl lg:text-3xl font-sans font-bold text-white leading-tight">
+                                ...
+                            </h4>
+                            
+                            <div class="mt-8 flex items-center gap-3 bg-white/5 border border-white/10 w-fit px-5 py-3 rounded-full">
+                                <i class="ri-qr-scan-line text-xl"></i>
+                                <span class="text-sm font-sans tracking-wide text-slate-300">Scan QRIS menggunakan E-Wallet / Mobile Banking</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
 
         <footer class="glass-panel h-[16vh] p-3 z-30 rounded-2xl">
