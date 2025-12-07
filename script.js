@@ -51,7 +51,7 @@ const DATA_CONTENT = {
         title: "SHOLAT JUMAT",
         desc: "Persiapan Sholat Jumat",
         sub: "Mari menyegerakan datang ke masjid"
-    }
+    },
     // DATA DONASI FINAL (Sesuai Request)
     donations: [
         { 
@@ -92,7 +92,7 @@ let STATE = {
     ayatIndex: 0, 
     haditsIndex: 0,
     nextPrayer: null,
-    activeEventTarget: null
+    activeEventTarget: null,
     donationIndex: 0,
 };
 
