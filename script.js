@@ -10,11 +10,13 @@ const CONFIG = {
     address: "Yogyakarta, Indonesia",
     
     // Durasi Slide Normal
+    // Tambahkan durasi donation
     duration: { 
         home: 15, 
         nextDetail: 10, 
         ayat: 20, 
-        hadits: 20
+        hadits: 20,
+        donation: 20 // Durasi slide donasi
     },
 
     timeRules: { 
@@ -50,6 +52,37 @@ const DATA_CONTENT = {
         desc: "Persiapan Sholat Jumat",
         sub: "Mari menyegerakan datang ke masjid"
     }
+    // DATA DONASI FINAL (Sesuai Request)
+    donations: [
+        { 
+            // 1. BNI (Oranye)
+            name: "LAZISMU MADRASAH MU'ALLIMIN MUHAMMADIYAH", 
+            number: "3440000348", 
+            qr: "qris-bni.png", 
+            logo: "bank-bni.png",
+            color: "text-orange-500", // Class Tailwind untuk Oranye
+            glow: "bg-orange-500/20"  // Warna pendar background
+        },
+        { 
+            // 2. BSI (Cyan)
+            name: "LAZISMU MUALLIMIN YOGYAKARTA", 
+            number: "7930030303", 
+            qr: "qris-bsi.jpg", 
+            logo: "bank-bsi.png",
+            color: "text-cyan-400",   // Class Tailwind untuk Cyan
+            glow: "bg-cyan-500/20"
+        },
+        { 
+            // 3. BPD DIY Syariah (Biru & Hijau)
+            // Kita pakai gradient text agar dapat nuansa Biru-Hijaunya
+            name: "KL LAZISMU MADRASAH MUALLIMIN", 
+            number: "801241004624", 
+            qr: "qris-bpd.jpg", 
+            logo: "bank-bpd.png",
+            color: "text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500", // Gradient Biru ke Hijau
+            glow: "bg-emerald-500/20"
+        }
+    ]
 };
 
 let STATE = { 
@@ -60,6 +93,7 @@ let STATE = {
     haditsIndex: 0,
     nextPrayer: null,
     activeEventTarget: null
+    donationIndex: 0,
 };
 
 let els = {}; 
@@ -266,9 +300,17 @@ function initElements() {
             nextDetail: document.getElementById('scene-next-detail'),
             ayat: document.getElementById('scene-ayat'),
             hadits: document.getElementById('scene-hadits'),
+            donation: document.getElementById('scene-donation'), // <-- Jangan lupa ini
             countdown: document.getElementById('scene-countdown'),
             prayer: document.getElementById('scene-prayer')
         },
+
+        // Elemen Donasi Baru
+        donQr: document.getElementById('don-qr'),
+        donLogo: document.getElementById('don-logo'),
+        donNumber: document.getElementById('don-number'),
+        donName: document.getElementById('don-name'),
+        donBgGlow: document.getElementById('don-bg-glow'), // Untuk efek pendar warna
         
         cdTitle: document.getElementById('countdown-title'),
         cdName: document.getElementById('countdown-name'),
@@ -642,12 +684,34 @@ function renderSlide() {
                 STATE.haditsIndex++;
             } else skip = true;
         }
+        else if (sceneKey === 'donation') {
+            if (DATA_CONTENT.donations.length > 0) {
+                const item = DATA_CONTENT.donations[STATE.donationIndex % DATA_CONTENT.donations.length];
+                
+                // Set Data Gambar & Teks
+                els.donQr.src = item.qr;
+                els.donLogo.src = item.logo;
+                els.donNumber.innerText = item.number;
+                els.donName.innerText = item.name;
+                
+                // Set Warna Kustom (Sesuai Bank)
+                // Reset class dulu, lalu tambah class bawaan + warna bank
+                els.donNumber.className = `text-6xl lg:text-7xl font-mono font-bold tracking-tighter mb-4 drop-shadow-lg transition-colors duration-500 ${item.color}`;
+                
+                // Set Warna Glow Background
+                els.donBgGlow.className = `absolute top-0 right-0 w-[50vh] h-[50vh] rounded-full blur-[100px] animate-pulse transition-colors duration-1000 ${item.glow}`;
+
+                STATE.donationIndex++;
+            } else {
+                skip = true;
+            }
+        }
     } catch(e) {
         console.error("Render Slide Error:", e);
         skip = true;
     }
 
-    const normalScenes = ['home', 'nextDetail', 'ayat', 'hadits'];
+    const normalScenes = ['home', 'nextDetail', 'ayat', 'hadits', 'donation'];
     normalScenes.forEach(k => {
         if(els.scenes[k]) els.scenes[k].classList.add('hidden-slide');
     });
