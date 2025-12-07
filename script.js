@@ -335,9 +335,19 @@ function initElements() {
 function updateClockAndLogic() {
     const now = new Date();
     
+    // Update Jam
     const timeStr = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' }).replace(/\./g, ':');
     if(els.clock) els.clock.innerText = timeStr;
-    if(els.dateMasehi) els.dateMasehi.innerText = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    
+    // Update Tanggal (Masehi) - KOREKSI HARI
+    if(els.dateMasehi) {
+        let dateStr = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        
+        // Ganti kata 'Minggu' menjadi 'Ahad'
+        dateStr = dateStr.replace('Minggu', 'Ahad');
+        
+        els.dateMasehi.innerText = dateStr;
+    }
     
     calculateNextPrayer(now);
     checkSystemMode(now);
