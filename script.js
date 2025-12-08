@@ -318,10 +318,16 @@ function initElements() {
             nextDetail: document.getElementById('scene-next-detail'),
             ayat: document.getElementById('scene-ayat'),
             hadits: document.getElementById('scene-hadits'),
+            asmaulHusna: document.getElementById('scene-asmaulhusna'), // <--- Tambah scene ini
             donation: document.getElementById('scene-donation'), // <-- Jangan lupa ini
             countdown: document.getElementById('scene-countdown'),
             prayer: document.getElementById('scene-prayer')
         },
+
+        // Tambahkan selector elemen text Asmaul Husna
+        ahArab: document.getElementById('ah-arab'),
+        ahLatin: document.getElementById('ah-latin'),
+        ahIndo: document.getElementById('ah-indo'),
 
         // Elemen Donasi Baru
         donQr: document.getElementById('don-qr'),
@@ -684,8 +690,8 @@ function setupGenericOverlay(type) {
 
 // --- 5. SLIDESHOW SYSTEM (NORMAL MODE) ---
 
-const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'donation'];
-
+// Masukkan 'asmaulHusna' setelah 'hadits'
+const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
 function renderSlide() {
     if (STATE.mode !== 'NORMAL') return;
 
@@ -712,6 +718,24 @@ function renderSlide() {
                 STATE.haditsIndex++;
             } else skip = true;
         }
+            // ... (setelah blok if sceneKey === 'hadits') ...
+
+        else if (sceneKey === 'asmaulHusna') {
+            if (DATA_CONTENT.asmaulHusna && DATA_CONTENT.asmaulHusna.length > 0) {
+                const item = DATA_CONTENT.asmaulHusna[STATE.asmaulHusnaIndex % DATA_CONTENT.asmaulHusna.length];
+    
+                // Masukkan data ke HTML
+                els.ahArab.innerText = item.arab;
+                els.ahLatin.innerText = item.latin;
+                els.ahIndo.innerText = `"${item.indo}"`;
+    
+                STATE.asmaulHusnaIndex++;
+            } else {
+                skip = true;
+            }
+        }
+
+    // ... (lanjut ke else if sceneKey === 'donation') ...
         else if (sceneKey === 'donation') {
             if (DATA_CONTENT.donations.length > 0) {
                 const item = DATA_CONTENT.donations[STATE.donationIndex % DATA_CONTENT.donations.length];
@@ -739,7 +763,7 @@ function renderSlide() {
         skip = true;
     }
 
-    const normalScenes = ['home', 'nextDetail', 'ayat', 'hadits', 'donation'];
+    const normalScenes = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation']; // Tambahkan disini juga
     normalScenes.forEach(k => {
         if(els.scenes[k]) els.scenes[k].classList.add('hidden-slide');
     });
