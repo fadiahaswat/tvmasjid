@@ -831,6 +831,12 @@ function renderSlide() {
 
     if (!skip) {
         if(els.scenes[sceneKey]) els.scenes[sceneKey].classList.remove('hidden-slide');
+
+        // --- TAMBAHAN AUTO-FIT ---
+        if (sceneKey === 'nextDetail') {
+             // Nama sholat besar di tengah (Max 12vh)
+             autoFitText(document.getElementById('next-detail-name'), 12);
+        }
         
         els.progress.style.transition = 'none';
         els.progress.style.width = '0';
