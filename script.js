@@ -384,6 +384,7 @@ function initElements() {
         cdTitle: document.getElementById('countdown-title'),
         cdName: document.getElementById('countdown-name'),
         cdTimer: document.getElementById('countdown-timer'),
+        cdRealtime: document.getElementById('countdown-realtime'),
         
         prayerTitle: document.querySelector('#scene-prayer h1'),
         prayerSub: document.querySelector('#scene-prayer p:first-of-type'),
