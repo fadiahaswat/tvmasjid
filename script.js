@@ -658,24 +658,40 @@ function updateOverlayTimer(diffMs) {
     els.cdTimer.innerText = `${m}:${s}`;
 }
 
-// Fungsi Menempelkan Jam Kecil
+// Fungsi Update Jam saat Sholat
 function ensureOverlayClock(parentScene) {
-    let clock = parentScene.querySelector('.overlay-clock-widget');
+    // 1. Update Jam Besar di Tengah (Sesuai Desain Baru)
+    const bigClock = document.getElementById('prayer-clock-big');
     
-    if (!clock) {
-        clock = document.createElement('div');
-        // Style: Transparan Hitam Elegan
-        clock.className = "overlay-clock-widget absolute top-8 right-8 text-3xl font-mono font-bold text-white/80 bg-black/40 px-6 py-2 rounded-full border border-white/10 backdrop-blur-md shadow-lg z-[100]";
-        parentScene.appendChild(clock);
-        
-        const updateThisClock = () => {
-            if (!document.body.contains(clock)) return;
-            const now = new Date();
-            clock.innerText = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace('.',':');
-            requestAnimationFrame(updateThisClock);
-        };
-        requestAnimationFrame(updateThisClock);
+    // 2. Update Jam Kecil (Overlay Widget) - Opsional jika masih ada
+    let overlayClock = parentScene.querySelector('.overlay-clock-widget');
+    if (!overlayClock && parentScene.id !== 'scene-prayer') { 
+        // Hanya buat overlay clock jika BUKAN scene prayer (karena scene prayer sudah punya jam besar)
+        overlayClock = document.createElement('div');
+        overlayClock.className = "overlay-clock-widget absolute bottom-8 text-lg font-mono font-bold text-white/10 tracking-widest";
+        parentScene.appendChild(overlayClock);
     }
+
+    const updateThisClock = () => {
+        const now = new Date();
+        // Format jam dengan detik: HH:MM:SS
+        const timeStrWithSeconds = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' }).replace(/\./g, ':');
+        // Format jam tanpa detik: HH:MM
+        const timeStrSimple = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace(/\./g, ':');
+
+        // Update Jam Besar (Jika elemennya ada)
+        if (bigClock && document.body.contains(bigClock)) {
+            bigClock.innerText = timeStrWithSeconds;
+        }
+
+        // Update Jam Kecil Overlay
+        if (overlayClock && document.body.contains(overlayClock)) {
+            overlayClock.innerText = timeStrSimple;
+        }
+
+        requestAnimationFrame(updateThisClock);
+    };
+    requestAnimationFrame(updateThisClock);
 }
 
 function setupGenericOverlay(type) {
