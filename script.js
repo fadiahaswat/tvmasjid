@@ -766,9 +766,9 @@ function renderSlide() {
                 const item = DATA_CONTENT.ayat[STATE.ayatIndex % DATA_CONTENT.ayat.length];
                 els.ayatText.innerHTML = `"${item.text}"`;
                 
-                // PERBAIKAN: Masukkan text, lalu update ClassName dengan getAdaptiveClass
+                // UPDATE: Tambah '!text-center' untuk paksa tengah
                 els.ayatArabic.innerText = item.arabic;
-                els.ayatArabic.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full ${getAdaptiveClass(item.arabic, 'arab')}`;
+                els.ayatArabic.className = `font-serif text-white text-center !text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-4 ${getAdaptiveClass(item.arabic, 'arab')}`;
                 
                 els.ayatSource.innerText = item.source;
                 STATE.ayatIndex++;
@@ -779,9 +779,9 @@ function renderSlide() {
                 const item = DATA_CONTENT.hadits[STATE.haditsIndex % DATA_CONTENT.hadits.length];
                 els.haditsText.innerHTML = `"${item.text}"`;
                 
-                // PERBAIKAN: Sama seperti ayat, update ClassName agar font besar
+                // UPDATE: Tambah '!text-center' dan perbaikan layout
                 els.haditsArabic.innerText = item.arabic;
-                els.haditsArabic.className = `font-serif text-gradient-gold dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full ${getAdaptiveClass(item.arabic, 'arab')}`;
+                els.haditsArabic.className = `font-serif text-gradient-gold text-center !text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-4 ${getAdaptiveClass(item.arabic, 'arab')}`;
                 
                 els.haditsSource.innerText = item.source;
                 STATE.haditsIndex++;
@@ -791,10 +791,9 @@ function renderSlide() {
             if (DATA_CONTENT.asmaulHusna && DATA_CONTENT.asmaulHusna.length > 0) {
                 const item = DATA_CONTENT.asmaulHusna[STATE.asmaulHusnaIndex % DATA_CONTENT.asmaulHusna.length];
     
-                // PERBAIKAN: Gunakan adaptive class agar teks panjang tidak berantakan
-                // Kita hapus class text-[18vh] bawaan HTML dan ganti dengan dinamis
+                // UPDATE: Tambahkan 'mt-24' untuk memberi jarak dari Judul di atas
                 els.ahArab.innerText = item.arab;
-                els.ahArab.className = `font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl ${getAdaptiveClass(item.arab, 'arab')}`;
+                els.ahArab.className = `font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl text-center !text-center transition-all duration-500 mt-24 ${getAdaptiveClass(item.arab, 'arab')}`;
                 
                 els.ahLatin.innerText = item.latin;
                 els.ahIndo.innerText = `"${item.indo}"`;
@@ -826,7 +825,6 @@ function renderSlide() {
         skip = true;
     }
 
-    // Logic perpindahan slide
     const allScenes = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
     allScenes.forEach(k => {
         if(els.scenes[k]) els.scenes[k].classList.add('hidden-slide');
@@ -835,12 +833,14 @@ function renderSlide() {
     if (!skip) {
         if(els.scenes[sceneKey]) els.scenes[sceneKey].classList.remove('hidden-slide');
         
-        els.progress.style.transition = 'none';
-        els.progress.style.width = '0';
-        setTimeout(() => {
-            els.progress.style.transition = `width ${duration}s linear`;
-            els.progress.style.width = '100%';
-        }, 50);
+        if(els.progress) {
+            els.progress.style.transition = 'none';
+            els.progress.style.width = '0';
+            setTimeout(() => {
+                els.progress.style.transition = `width ${duration}s linear`;
+                els.progress.style.width = '100%';
+            }, 50);
+        }
 
         slideTimer = setTimeout(() => {
             STATE.slideIndex = (STATE.slideIndex + 1) % SLIDE_ORDER.length;
