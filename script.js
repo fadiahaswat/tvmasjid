@@ -751,10 +751,6 @@ function setupGenericOverlay(type) {
 
 // --- 5. SLIDESHOW SYSTEM (NORMAL MODE) ---
 
-// Masukkan 'asmaulHusna' setelah 'hadits'
-const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
-// --- GANTI BAGIAN renderSlide() DENGAN INI ---
-
 const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
 
 function renderSlide() {
