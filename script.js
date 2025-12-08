@@ -460,6 +460,12 @@ function calculateNextPrayer(now) {
 
     // Update UI
     if(els.nextName) els.nextName.innerText = found.name.toUpperCase();
+    
+    // --- TAMBAHAN AUTO-FIT ---
+    // Agar nama sholat panjang (misal: "JUMAT" atau "IDUL FITRI") tidak nabrak
+    autoFitText(els.nextName, 2); 
+    
+    // ... lanjut kode countdown ...
     if(els.countdown) els.countdown.innerText = countdownString;
     
     if(els.ndName) els.ndName.innerText = found.name.toUpperCase();
