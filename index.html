@@ -290,58 +290,93 @@
     </div>
 </div>
 
-            <div id="scene-ayat" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-24 text-center">
-                <div class="mb-10 opacity-60">
-                     <i class="ri-book-open-fill text-6xl text-gradient-gold"></i>
+            <div id="scene-ayat" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-10 relative">
+                
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+                     <img src="https://upload.wikimedia.org/wikipedia/commons/6/62/Rub_El_Hizb.svg" class="w-[80vh] h-[80vh] invert animate-spin-slow">
                 </div>
-                <div class="relative w-full">
-                    <div class="absolute -top-10 left-0 w-full flex justify-center opacity-10 pointer-events-none">
-                         <img src="https://upload.wikimedia.org/wikipedia/commons/6/62/Rub_El_Hizb.svg" class="w-64 h-64 invert">
+
+                <div class="relative z-10 w-full max-w-6xl flex flex-col items-center">
+                    
+                    <div class="mb-8 transform -translate-y-4">
+                        <span id="ayat-source" class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-6 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+                            ...
+                        </span>
                     </div>
-                    <p id="ayat-arabic" class="relative z-10 text-6xl lg:text-7xl font-serif text-white leading-[2.2] mb-10 dir-rtl drop-shadow-lg" style="direction: rtl;">...</p>
+
+                    <div class="w-full border-y-2 border-gold-500/30 py-10 px-4 bg-gradient-to-r from-transparent via-black/40 to-transparent backdrop-blur-sm">
+                        <p id="ayat-arabic" class="text-6xl lg:text-7xl font-serif text-white leading-[2.5] text-center dir-rtl drop-shadow-lg" style="direction: rtl;">
+                            ...
+                        </p>
+                    </div>
+
+                    <div class="mt-8 max-w-4xl text-center">
+                        <p id="ayat-text" class="text-2xl lg:text-4xl font-sans font-light text-slate-200 leading-relaxed">
+                            ...
+                        </p>
+                    </div>
                 </div>
-                <div class="w-full max-w-5xl bg-black/30 border-l-4 border-gold-500 p-8 rounded-r-xl backdrop-blur-sm">
-                    <p id="ayat-text" class="text-3xl font-sans font-light text-slate-300 leading-relaxed italic">...</p>
-                </div>
-                <p id="ayat-source" class="mt-8 text-xl font-cinzel font-bold text-cyan-500 uppercase tracking-widest opacity-80">...</p>
             </div>
 
-            <div id="scene-hadits" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-24 text-center">
-                <i class="ri-double-quotes-l text-6xl text-cyan-500 mb-8 opacity-60"></i>
-                <p id="hadits-arabic" class="text-6xl lg:text-7xl font-serif text-gradient-gold leading-[2.2] mb-10 dir-rtl" style="direction: rtl;">...</p>
-                <div class="w-24 h-1 bg-cyan-500/50 rounded-full mx-auto mb-10"></div>
-                <p id="hadits-text" class="text-3xl font-sans font-light text-slate-200 leading-relaxed max-w-5xl">...</p>
-                <p id="hadits-source" class="mt-10 text-xl font-cinzel font-bold text-white uppercase tracking-widest opacity-70">...</p>
+            <div id="scene-hadits" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-16 relative overflow-hidden">
+                
+                <div class="absolute top-10 left-10 opacity-10 pointer-events-none">
+                    <i class="ri-double-quotes-l text-[20rem] text-cyan-500 leading-none"></i>
+                </div>
+                <div class="absolute bottom-10 right-10 opacity-10 pointer-events-none">
+                    <i class="ri-double-quotes-r text-[20rem] text-cyan-500 leading-none"></i>
+                </div>
+
+                <div class="relative z-10 flex flex-col items-center text-center max-w-7xl">
+                    
+                    <div class="mb-6">
+                        <i class="ri-chat-quote-fill text-5xl text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]"></i>
+                    </div>
+
+                    <div class="w-full py-4"> 
+                        <p id="hadits-arabic" class="text-5xl lg:text-7xl font-serif text-gradient-gold leading-[2.6] dir-rtl drop-shadow-md" style="direction: rtl;">
+                            ...
+                        </p>
+                    </div>
+
+                    <div class="w-24 h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent rounded-full my-8"></div>
+
+                    <p id="hadits-text" class="text-2xl lg:text-3xl font-sans text-slate-300 leading-relaxed italic max-w-5xl">
+                        ...
+                    </p>
+
+                    <p id="hadits-source" class="mt-8 text-lg font-mono font-bold text-cyan-600 uppercase tracking-[0.3em]">
+                        ...
+                    </p>
+                </div>
             </div>
 
             <div id="scene-asmaulhusna" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-10 relative">
                 
-                <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none scale-150">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Allah-Ph_01.png" class="w-[80vh] h-[80vh] object-contain invert">
+                <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Allah-Ph_01.png" class="w-[90vh] h-[90vh] object-contain invert scale-110">
                 </div>
 
-                <div class="mb-10 text-center z-10">
-                    <div class="inline-block bg-black/30 border border-gold-500/20 px-10 py-2 rounded-full backdrop-blur-md">
-                        <span class="text-gold-400 font-cinzel font-bold tracking-[0.4em] uppercase text-sm lg:text-base">
-                            Asmaul Husna
-                        </span>
-                    </div>
-                </div>
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vh] h-[60vh] bg-gold-500/10 rounded-full blur-[80px] animate-pulse-glow"></div>
 
-                <div class="relative z-10 text-center flex flex-col items-center">
+                <div class="relative z-10 text-center flex flex-col items-center justify-center h-full">
                     
-                    <h1 id="ah-arab" class="text-[12vh] lg:text-[16vh] font-serif text-gradient-gold leading-tight mb-6 drop-shadow-2xl dir-rtl" style="direction: rtl;">
-                        ...
-                    </h1>
+                    <div class="mb-4">
+                        <span class="text-slate-500 font-cinzel text-sm tracking-[0.5em] uppercase border-b border-slate-700 pb-2">Asmaul Husna</span>
+                    </div>
 
-                    <h2 id="ah-latin" class="text-4xl lg:text-5xl font-cinzel font-bold text-white tracking-widest mb-4 drop-shadow-md">
+                    <div class="py-10 transform hover:scale-105 transition-transform duration-1000">
+                        <h1 id="ah-arab" class="text-[15vh] lg:text-[20vh] font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 leading-normal drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl" style="direction: rtl;">
+                            ...
+                        </h1>
+                    </div>
+
+                    <h2 id="ah-latin" class="text-5xl lg:text-7xl font-cinzel font-black text-white tracking-widest mb-2 drop-shadow-xl uppercase">
                         ...
                     </h2>
 
-                    <div class="w-32 h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent my-6"></div>
-
-                    <p id="ah-indo" class="text-2xl lg:text-3xl font-sans font-light text-slate-300 tracking-wide italic">
-                        "..."
+                    <p id="ah-indo" class="text-xl lg:text-2xl font-sans font-medium text-gold-300 tracking-wide mt-4 opacity-80">
+                        ...
                     </p>
 
                 </div>
