@@ -107,16 +107,35 @@
         .schedule-active p { color: #fff !important; text-shadow: 0 0 15px rgba(34, 211, 238, 0.8); }
 
         /* --- THEME SYSTEM (WARNA-WARNI TEGAS) --- */
-        .dynamic-bg { transition: background 1s ease; background-size: 200% 200%; }
+        /* --- THEME SYSTEM (WARNA-WARNI TEGAS + FONT DINAMIS) --- */
+        .dynamic-bg { 
+            transition: background 1s ease, color 1s ease; 
+            background-size: 200% 200%; 
+            /* Warna Default (Putih) jika tidak ada tema aktif */
+            --theme-text: #ffffff; 
+            --theme-border: rgba(255, 255, 255, 0.2);
+        }
         
-        /* ADZAN: Merah Membara */
-        .theme-red { background: radial-gradient(circle at center, #7f1d1d 0%, #000 90%); } 
+        /* ADZAN: Merah (Background Merah Gelap, Teks Merah Terang) */
+        .theme-red { 
+            background: radial-gradient(circle at center, #7f1d1d 0%, #000 90%); 
+            --theme-text: #ef4444; /* Merah menyala */
+            --theme-border: rgba(239, 68, 68, 0.3);
+        } 
         
-        /* IQAMAH: Kuning/Emas Alert */
-        .theme-yellow { background: radial-gradient(circle at center, #713f12 0%, #000 90%); }
+        /* IQAMAH: Kuning (Background Emas Gelap, Teks Kuning Terang) */
+        .theme-yellow { 
+            background: radial-gradient(circle at center, #713f12 0%, #000 90%); 
+            --theme-text: #facc15; /* Kuning menyala */
+            --theme-border: rgba(250, 204, 21, 0.3);
+        }
         
-        /* DZIKIR: Biru Tenang */
-        .theme-blue { background: radial-gradient(circle at center, #0c4a6e 0%, #000 90%); }
+        /* DZIKIR: Biru */
+        .theme-blue { 
+            background: radial-gradient(circle at center, #0c4a6e 0%, #000 90%); 
+            --theme-text: #22d3ee; /* Cyan */
+            --theme-border: rgba(34, 211, 238, 0.3);
+        }
         
         /* JUMAT & KAJIAN: Emas/Silver Mewah */
         .theme-gold { background: radial-gradient(circle at center, #451a03 0%, #000 90%); }
