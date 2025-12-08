@@ -132,21 +132,6 @@ function addMinutes(timeStr, minutesToAdd) {
     date.setMinutes(date.getMinutes() + minutesToAdd);
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
-// Fungsi: Mengecilkan font otomatis jika teks terlalu lebar/panjang
-function autoFitText(el, maxFontSizeVH = 10) {
-    if (!el) return;
-    
-    // Reset ke ukuran awal (besar) agar bisa diukur ulang
-    el.style.fontSize = `${maxFontSizeVH}vh`;
-    el.style.lineHeight = '1.1';
-    
-    // Kecilkan bertahap sampai muat (scrollWidth <= clientWidth)
-    let currentSize = maxFontSizeVH;
-    while ( (el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight) && currentSize > 2 ) {
-        currentSize -= 0.5; // Kurangi 0.5vh setiap langkah
-        el.style.fontSize = `${currentSize}vh`;
-    }
-}
 
 // --- AUDIO SYSTEM (OFFLINE FRIENDLY) ---
 // Pastikan file audio ada di folder ./audio/
@@ -414,12 +399,6 @@ function updateUIHeader() {
     if(els.dateHijri) els.dateHijri.innerText = CONFIG.currentHijriDate;
     const homeHijri = document.getElementById('home-date-hijri');
     if(homeHijri) homeHijri.innerText = CONFIG.currentHijriDate;
-
-    // --- TAMBAHAN AUTO-FIT ---
-    // Nama Masjid (Maksimal 3vh)
-    autoFitText(document.getElementById('masjid-name'), 3); 
-    // Alamat Masjid (Maksimal 1.5vh)
-    autoFitText(document.getElementById('masjid-address'), 1.5);
 }
 
 function calculateNextPrayer(now) {
@@ -460,12 +439,6 @@ function calculateNextPrayer(now) {
 
     // Update UI
     if(els.nextName) els.nextName.innerText = found.name.toUpperCase();
-    
-    // --- TAMBAHAN AUTO-FIT ---
-    // Agar nama sholat panjang (misal: "JUMAT" atau "IDUL FITRI") tidak nabrak
-    autoFitText(els.nextName, 2); 
-    
-    // ... lanjut kode countdown ...
     if(els.countdown) els.countdown.innerText = countdownString;
     
     if(els.ndName) els.ndName.innerText = found.name.toUpperCase();
@@ -625,8 +598,6 @@ function applyMode(mode, type, target, meta) {
             
             els.cdTitle.innerText = 'MENUJU ADZAN';
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
-            // Auto fit judul countdown (Max 12vh)
-            autoFitText(els.cdName, 12);
             
             if(target) updateOverlayTimer(target - new Date());
             ensureOverlayClock(sc);
@@ -638,8 +609,6 @@ function applyMode(mode, type, target, meta) {
             
             els.cdTitle.innerText = 'MENUJU IQOMAH';
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
-            // Auto fit judul countdown (Max 12vh)
-            autoFitText(els.cdName, 12);
             
             if(target) updateOverlayTimer(target - new Date());
             ensureOverlayClock(sc);
@@ -835,12 +804,6 @@ function renderSlide() {
 
     if (!skip) {
         if(els.scenes[sceneKey]) els.scenes[sceneKey].classList.remove('hidden-slide');
-
-        // --- TAMBAHAN AUTO-FIT ---
-        if (sceneKey === 'nextDetail') {
-             // Nama sholat besar di tengah (Max 12vh)
-             autoFitText(document.getElementById('next-detail-name'), 12);
-        }
         
         els.progress.style.transition = 'none';
         els.progress.style.width = '0';
