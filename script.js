@@ -133,6 +133,32 @@ function addMinutes(timeStr, minutesToAdd) {
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
+// Fungsi untuk menentukan ukuran font secara adaptif
+function getAdaptiveClass(text, type) {
+    if (!text) return '';
+    const len = text.length;
+
+    if (type === 'arab') {
+        // PERBAIKAN: Ukuran font diperbesar drastis
+        // Jika teks sangat pendek (< 100 char), gunakan font RAKSASA
+        if (len < 100) return 'text-7xl lg:text-9xl leading-[2.2]';
+        
+        // Sedang
+        if (len < 200) return 'text-6xl lg:text-8xl leading-[2.2]';
+        
+        // Panjang
+        if (len < 350) return 'text-5xl lg:text-7xl leading-[2.4]';
+        
+        // Sangat Panjang
+        return 'text-4xl lg:text-5xl leading-[2.6]'; 
+    } else {
+        // Untuk teks Latin/Terjemahan
+        if (len > 400) return 'text-xl leading-snug';
+        if (len > 200) return 'text-2xl leading-normal';
+        return 'text-3xl lg:text-4xl leading-relaxed'; 
+    }
+}
+
 // --- AUDIO SYSTEM (OFFLINE FRIENDLY) ---
 // Pastikan file audio ada di folder ./audio/
 const SFX = {
