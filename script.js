@@ -625,6 +625,8 @@ function applyMode(mode, type, target, meta) {
             
             els.cdTitle.innerText = 'MENUJU ADZAN';
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
+            // Auto fit judul countdown (Max 12vh)
+            autoFitText(els.cdName, 12);
             
             if(target) updateOverlayTimer(target - new Date());
             ensureOverlayClock(sc);
@@ -636,6 +638,8 @@ function applyMode(mode, type, target, meta) {
             
             els.cdTitle.innerText = 'MENUJU IQOMAH';
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
+            // Auto fit judul countdown (Max 12vh)
+            autoFitText(els.cdName, 12);
             
             if(target) updateOverlayTimer(target - new Date());
             ensureOverlayClock(sc);
