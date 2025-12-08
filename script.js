@@ -764,9 +764,13 @@ function renderSlide() {
         if (sceneKey === 'ayat') {
             if (DATA_CONTENT.ayat.length > 0) {
                 const item = DATA_CONTENT.ayat[STATE.ayatIndex % DATA_CONTENT.ayat.length];
-                els.ayatText.innerHTML = `"${item.text}"`;
                 
-                // UPDATE: Tambah '!text-center' untuk paksa tengah
+                // 1. UPDATE: TEKS ARTI (TERJEMAHAN) DINAMIS
+                // Menggunakan getAdaptiveClass(..., 'latin') agar ukuran menyesuaikan panjang teks
+                els.ayatText.innerHTML = `"${item.text}"`;
+                els.ayatText.className = `font-sans font-light text-slate-200 italic transition-all duration-500 text-center ${getAdaptiveClass(item.text, 'latin')}`;
+
+                // 2. TEKS ARAB (Sudah Benar)
                 els.ayatArabic.innerText = item.arabic;
                 els.ayatArabic.className = `font-serif text-white text-center !text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-4 ${getAdaptiveClass(item.arabic, 'arab')}`;
                 
@@ -777,9 +781,12 @@ function renderSlide() {
         else if (sceneKey === 'hadits') {
             if (DATA_CONTENT.hadits.length > 0) {
                 const item = DATA_CONTENT.hadits[STATE.haditsIndex % DATA_CONTENT.hadits.length];
-                els.haditsText.innerHTML = `"${item.text}"`;
                 
-                // UPDATE: Tambah '!text-center' dan perbaikan layout
+                // 1. UPDATE: TEKS ARTI (TERJEMAHAN) DINAMIS
+                els.haditsText.innerHTML = `"${item.text}"`;
+                els.haditsText.className = `font-sans text-slate-300 italic transition-all duration-500 text-center ${getAdaptiveClass(item.text, 'latin')}`;
+                
+                // 2. TEKS ARAB (Sudah Benar)
                 els.haditsArabic.innerText = item.arabic;
                 els.haditsArabic.className = `font-serif text-gradient-gold text-center !text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-4 ${getAdaptiveClass(item.arabic, 'arab')}`;
                 
@@ -791,7 +798,7 @@ function renderSlide() {
             if (DATA_CONTENT.asmaulHusna && DATA_CONTENT.asmaulHusna.length > 0) {
                 const item = DATA_CONTENT.asmaulHusna[STATE.asmaulHusnaIndex % DATA_CONTENT.asmaulHusna.length];
     
-                // UPDATE: Tambahkan 'mt-24' untuk memberi jarak dari Judul di atas
+                // Bagian ini sudah OK (Jarak & Tengah)
                 els.ahArab.innerText = item.arab;
                 els.ahArab.className = `font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl text-center !text-center transition-all duration-500 mt-24 ${getAdaptiveClass(item.arab, 'arab')}`;
                 
