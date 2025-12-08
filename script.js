@@ -232,6 +232,7 @@ async function loadContentData() {
                 
                 loadedFromNet = true;
                 log('loadContent', 'Konten diperbarui dari internet');
+                
             }
     }
 }
