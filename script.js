@@ -414,6 +414,12 @@ function updateUIHeader() {
     if(els.dateHijri) els.dateHijri.innerText = CONFIG.currentHijriDate;
     const homeHijri = document.getElementById('home-date-hijri');
     if(homeHijri) homeHijri.innerText = CONFIG.currentHijriDate;
+
+    // --- TAMBAHAN AUTO-FIT ---
+    // Nama Masjid (Maksimal 3vh)
+    autoFitText(document.getElementById('masjid-name'), 3); 
+    // Alamat Masjid (Maksimal 1.5vh)
+    autoFitText(document.getElementById('masjid-address'), 1.5);
 }
 
 function calculateNextPrayer(now) {
