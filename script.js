@@ -593,18 +593,25 @@ function checkSystemMode(now) {
 
 // --- GANTI FUNGSI applyMode DI SCRIPT.JS DENGAN INI ---
 
+// --- FUNGSI applyMode VERSI ANTI-ERROR ---
+
 function applyMode(mode, type, target, meta) {
     STATE.mode = mode;
     STATE.overrideType = type;
     STATE.activeEventTarget = target;
 
     clearTimeout(slideTimer);
+    
+    // Cek dulu apakah progress bar ada
     if(els.progress) els.progress.style.width = '0';
     
+    // FIX: Tambahkan pengecekan (el && el.classList) agar tidak error jika elemen hilang
     Object.values(els.scenes).forEach(el => {
-        el.classList.add('hidden-slide');
-        // Reset class tema background lama
-        el.classList.remove('theme-red', 'theme-yellow', 'theme-khusyu', 'theme-blue', 'theme-gold', 'theme-silver');
+        if (el) { 
+            el.classList.add('hidden-slide');
+            // Reset class tema background lama
+            el.classList.remove('theme-red', 'theme-yellow', 'theme-khusyu', 'theme-blue', 'theme-gold', 'theme-silver');
+        }
     });
 
     // Helper: Reset warna timer & glow
@@ -612,81 +619,88 @@ function applyMode(mode, type, target, meta) {
         const timer = els.cdTimer;
         const glow = document.getElementById('countdown-glow');
         
-        // Hapus class warna teks
-        timer.classList.remove('text-red-500', 'text-yellow-400', 'text-white');
+        // Cek jika timer ada sebelum menghapus class
+        if (timer) {
+            timer.classList.remove('text-red-500', 'text-yellow-400', 'text-white');
+        }
         // Hapus class warna background glow
         if(glow) glow.classList.remove('bg-red-600/30', 'bg-yellow-500/30', 'bg-white/10');
     };
 
     if (mode === 'NORMAL') {
-        els.header.style.display = 'grid';
-        els.footer.style.display = 'grid';
-        els.scenes.home.classList.remove('hidden-slide');
+        if(els.header) els.header.style.display = 'grid';
+        if(els.footer) els.footer.style.display = 'grid';
+        
+        // Pastikan scene home ada sebelum diakses
+        if(els.scenes.home) els.scenes.home.classList.remove('hidden-slide');
         
         STATE.slideIndex = 0;
         renderSlide();
     } 
     else {
-        els.header.style.display = 'none';
-        els.footer.style.display = 'none';
+        if(els.header) els.header.style.display = 'none';
+        if(els.footer) els.footer.style.display = 'none';
 
         if (type === 'ADZAN' || type === 'IQAMAH') {
             const sc = els.scenes.countdown;
             const glow = document.getElementById('countdown-glow');
-            sc.classList.remove('hidden-slide');
             
-            resetCountdownColors();
+            if (sc) {
+                sc.classList.remove('hidden-slide');
+                resetCountdownColors();
 
-            // Set Judul Badge
-            els.cdTitle.innerText = type === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQOMAH';
-            
-            // Set Nama Sholat
-            els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
-            
-            // --- LOGIKA WARNA ---
-            if (type === 'ADZAN') {
-                // WARNA MERAH (PRE-ADZAN)
-                els.cdTimer.classList.add('text-red-500'); // Merah terang
-                if(glow) glow.classList.add('bg-red-600/30'); // Cahaya belakang merah
-            } else {
-                // WARNA KUNING EMAS (PRE-IQAMAH)
-                els.cdTimer.classList.add('text-yellow-400'); // Kuning emas
-                if(glow) glow.classList.add('bg-yellow-500/30'); // Cahaya belakang emas
+                // Set Judul Badge
+                if(els.cdTitle) els.cdTitle.innerText = type === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQOMAH';
+                
+                // Set Nama Sholat
+                if(els.cdName) els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
+                
+                // --- LOGIKA WARNA ---
+                if (type === 'ADZAN') {
+                    // WARNA MERAH (PRE-ADZAN)
+                    if(els.cdTimer) els.cdTimer.classList.add('text-red-500'); // Merah terang
+                    if(glow) glow.classList.add('bg-red-600/30'); // Cahaya belakang merah
+                } else {
+                    // WARNA KUNING EMAS (PRE-IQAMAH)
+                    if(els.cdTimer) els.cdTimer.classList.add('text-yellow-400'); // Kuning emas
+                    if(glow) glow.classList.add('bg-yellow-500/30'); // Cahaya belakang emas
+                }
+
+                if(target) updateOverlayTimer(target - new Date());
+                ensureOverlayClock(sc);
             }
-
-            if(target) updateOverlayTimer(target - new Date());
-            ensureOverlayClock(sc);
         } 
         else {
-            // Bagian Prayer, Dzikir, dll (TIDAK BERUBAH)
+            // Bagian Prayer, Dzikir, dll
             const sp = els.scenes.prayer;
-            sp.classList.remove('hidden-slide');
-            
-            if (type === 'PRAYER') {
-                sp.classList.add('theme-khusyu'); 
-                ensureOverlayClock(sp);
-                if (meta && meta.isJumat) setupGenericOverlay('PRAYER_JUMAT');
-                else setupGenericOverlay('PRAYER');
-            }
-            else if (type === 'DZIKIR') {
-                sp.classList.add('theme-blue');
-                setupGenericOverlay('DZIKIR');
-                ensureOverlayClock(sp);
-            }
-            else if (type === 'KAJIAN') {
-                sp.classList.add('theme-silver');
-                setupGenericOverlay('KAJIAN');
-                ensureOverlayClock(sp);
-            }
-            else if (type === 'JUMAT') { 
-                sp.classList.add('theme-gold');
-                setupGenericOverlay('JUMAT');
-                ensureOverlayClock(sp);
+            if (sp) {
+                sp.classList.remove('hidden-slide');
+                
+                if (type === 'PRAYER') {
+                    sp.classList.add('theme-khusyu'); 
+                    ensureOverlayClock(sp);
+                    if (meta && meta.isJumat) setupGenericOverlay('PRAYER_JUMAT');
+                    else setupGenericOverlay('PRAYER');
+                }
+                else if (type === 'DZIKIR') {
+                    sp.classList.add('theme-blue');
+                    setupGenericOverlay('DZIKIR');
+                    ensureOverlayClock(sp);
+                }
+                else if (type === 'KAJIAN') {
+                    sp.classList.add('theme-silver');
+                    setupGenericOverlay('KAJIAN');
+                    ensureOverlayClock(sp);
+                }
+                else if (type === 'JUMAT') { 
+                    sp.classList.add('theme-gold');
+                    setupGenericOverlay('JUMAT');
+                    ensureOverlayClock(sp);
+                }
             }
         }
     }
 }
-
 function updateOverlayTimer(diffMs) {
     if (!els.cdTimer) return;
     const secondsLeft = Math.floor(diffMs / 1000);
