@@ -134,27 +134,28 @@ function addMinutes(timeStr, minutesToAdd) {
 }
 
 // Fungsi untuk menentukan ukuran font secara adaptif
+// Fungsi untuk menentukan ukuran font secara adaptif (VERSI SUPER BESAR)
 function getAdaptiveClass(text, type) {
     if (!text) return '';
     const len = text.length;
 
     if (type === 'arab') {
-        // PERBAIKAN: Ukuran font diperbesar drastis
-        // Jika teks sangat pendek (< 100 char), gunakan font RAKSASA
-        if (len < 100) return 'text-7xl lg:text-9xl leading-[2.2]';
+        // Logika: Gunakan Viewport Height (vh) agar responsif terhadap layar TV
+        // Pendek (< 80 char): RAKSASA (16vh ~ 180px di layar 1080p)
+        if (len < 80) return 'text-[12vh] lg:text-[16vh] leading-[1.8]';
         
-        // Sedang
-        if (len < 200) return 'text-6xl lg:text-8xl leading-[2.2]';
+        // Sedang (< 150 char): SANGAT BESAR (12vh)
+        if (len < 150) return 'text-[10vh] lg:text-[12vh] leading-[2]';
         
-        // Panjang
-        if (len < 350) return 'text-5xl lg:text-7xl leading-[2.4]';
+        // Panjang (< 300 char): BESAR (8vh)
+        if (len < 300) return 'text-[7vh] lg:text-[9vh] leading-[2.2]';
         
-        // Sangat Panjang
-        return 'text-4xl lg:text-5xl leading-[2.6]'; 
+        // Sangat Panjang: NORMAL (6vh)
+        return 'text-[5vh] lg:text-[6vh] leading-[2.4]'; 
     } else {
         // Untuk teks Latin/Terjemahan
-        if (len > 400) return 'text-xl leading-snug';
-        if (len > 200) return 'text-2xl leading-normal';
+        if (len > 300) return 'text-xl leading-snug';
+        if (len > 150) return 'text-2xl leading-normal';
         return 'text-3xl lg:text-4xl leading-relaxed'; 
     }
 }
