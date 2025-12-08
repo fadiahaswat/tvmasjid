@@ -458,40 +458,31 @@
          </div>
     </div>
 
-    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center overflow-hidden animate-fade-in">
+    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center overflow-hidden">
     
-    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-[0.03] pointer-events-none"></div>
+    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-[0.02] pointer-events-none"></div>
 
-    <div class="bg-white/5 border border-white/5 px-8 py-3 rounded-full mb-12 backdrop-blur-sm flex items-center gap-4 opacity-50">
-        <div class="relative w-6 h-6">
-            <i class="ri-smartphone-line text-2xl text-slate-600"></i>
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[2px] bg-red-900 -rotate-45 rounded-full"></div>
-        </div>
-        <span class="text-slate-600 font-bold tracking-[0.2em] uppercase text-xs lg:text-sm font-cinzel">
-            Mohon Non-Aktifkan HP
-        </span>
-    </div>
+    <div class="relative z-10 flex flex-col items-center justify-center w-full h-full">
 
-    <h1 id="prayer-title" class="text-[6vh] lg:text-[8vh] font-cinzel font-bold text-transparent bg-clip-text bg-gradient-to-b from-slate-500 to-slate-800 leading-none mb-6 uppercase tracking-[0.2em] drop-shadow-lg">
-        ...
-    </h1>
+        <h3 class="font-serif text-zinc-600 text-xl lg:text-3xl tracking-[0.1em] mb-4 capitalize">
+            Sedang Berlangsung
+        </h3>
 
-    <div class="flex flex-col items-center relative z-10">
-        
-        <p id="prayer-sub" class="text-[8vh] lg:text-[10vh] font-sans font-bold text-slate-400 tracking-wide leading-none text-dim-breath shadow-black drop-shadow-2xl">
+        <h1 id="prayer-title" class="font-serif font-bold text-zinc-500 text-[12vh] lg:text-[18vh] leading-none uppercase tracking-wider mb-2">
             ...
-        </p>
+        </h1>
 
-        <div class="mt-12 border-t border-white/5 pt-6 px-10">
-            <p id="prayer-note" class="text-xl lg:text-2xl font-serif italic text-slate-700 tracking-widest">
-                ...
+        <div id="prayer-clock-big" class="font-mono font-bold text-zinc-600 text-[8vh] lg:text-[10vh] tracking-widest tabular-nums my-4 opacity-80">
+            00:00:00
+        </div>
+
+        <div class="mt-12 px-10">
+            <p class="font-serif text-zinc-600 text-4xl lg:text-5xl leading-[2.5] dir-rtl" style="direction: rtl;">
+                سَوُّوا صُفُوفَكُمْ، فَإِنَّ تَسْوِيَةَ الصَّفِّ مِنْ تَمَامِ الصَّلاةِ
             </p>
         </div>
-        
-    </div>
 
-    <div class="overlay-clock-widget absolute bottom-8 text-lg font-mono font-bold text-white/10 tracking-widest"></div>
-</div>
+    </div>
 </div>
 
     <script src="script.js"></script>
