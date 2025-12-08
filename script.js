@@ -597,12 +597,21 @@ function applyMode(mode, type, target, meta) {
     STATE.activeEventTarget = target;
 
     clearTimeout(slideTimer);
-    els.progress.style.width = '0';
+    if(els.progress) els.progress.style.width = '0';
+    
     Object.values(els.scenes).forEach(el => {
         el.classList.add('hidden-slide');
-        // Reset class tema
+        // Reset class tema background
         el.classList.remove('theme-red', 'theme-yellow', 'theme-khusyu', 'theme-blue', 'theme-gold', 'theme-silver');
     });
+
+    // Helper untuk reset class gradient pada teks countdown
+    const resetCountdownText = () => {
+        const texts = [els.cdTitle, els.cdName, els.cdTimer];
+        texts.forEach(el => {
+            el.classList.remove('text-gradient-gold', 'text-gradient-ruby', 'text-gradient-silver', 'text-white');
+        });
+    };
 
     if (mode === 'NORMAL') {
         els.header.style.display = 'grid';
@@ -616,13 +625,17 @@ function applyMode(mode, type, target, meta) {
         els.header.style.display = 'none';
         els.footer.style.display = 'none';
 
-        // --- PENGATURAN TEMA WARNA & DISPLAY ---
-        
         if (type === 'ADZAN') {
             const sc = els.scenes.countdown;
             sc.classList.remove('hidden-slide');
-            sc.classList.add('theme-red'); // MERAH
+            sc.classList.add('theme-red'); // Background Merah Gelap
             
+            resetCountdownText();
+            // GANTI: Pakai Gradient Ruby (Merah Delima Mewah)
+            els.cdTitle.classList.add('text-gradient-ruby');
+            els.cdName.classList.add('text-gradient-ruby');
+            els.cdTimer.classList.add('text-gradient-ruby');
+
             els.cdTitle.innerText = 'MENUJU ADZAN';
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
             
@@ -632,7 +645,13 @@ function applyMode(mode, type, target, meta) {
         else if (type === 'IQAMAH') {
             const sc = els.scenes.countdown;
             sc.classList.remove('hidden-slide');
-            sc.classList.add('theme-yellow'); // KUNING
+            sc.classList.add('theme-yellow'); // Background Emas Gelap
+            
+            resetCountdownText();
+            // GANTI: Pakai Gradient Gold (Emas Mewah - Sudah ada di CSS)
+            els.cdTitle.classList.add('text-gradient-gold');
+            els.cdName.classList.add('text-gradient-gold');
+            els.cdTimer.classList.add('text-gradient-gold');
             
             els.cdTitle.innerText = 'MENUJU IQOMAH';
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
@@ -641,33 +660,28 @@ function applyMode(mode, type, target, meta) {
             ensureOverlayClock(sc);
         } 
         else {
-            // Scene Prayer / Info
+            // ... (Kode untuk PRAYER, DZIKIR, dll TETAP SAMA seperti sebelumnya)
             const sp = els.scenes.prayer;
             sp.classList.remove('hidden-slide');
             
             if (type === 'PRAYER') {
-                // SHOLAT: TEMA GELAP (KHUSYU) + JAM
                 sp.classList.add('theme-khusyu'); 
-                ensureOverlayClock(sp); // REQUEST BARU: TAMPILKAN JAM
-                
-                if (meta && meta.isJumat) {
-                    setupGenericOverlay('PRAYER_JUMAT');
-                } else {
-                    setupGenericOverlay('PRAYER');
-                }
+                ensureOverlayClock(sp);
+                if (meta && meta.isJumat) setupGenericOverlay('PRAYER_JUMAT');
+                else setupGenericOverlay('PRAYER');
             }
             else if (type === 'DZIKIR') {
-                sp.classList.add('theme-blue'); // BIRU
+                sp.classList.add('theme-blue');
                 setupGenericOverlay('DZIKIR');
                 ensureOverlayClock(sp);
             }
             else if (type === 'KAJIAN') {
-                sp.classList.add('theme-silver'); // SILVER
+                sp.classList.add('theme-silver');
                 setupGenericOverlay('KAJIAN');
                 ensureOverlayClock(sp);
             }
             else if (type === 'JUMAT') { 
-                sp.classList.add('theme-gold'); // EMAS
+                sp.classList.add('theme-gold');
                 setupGenericOverlay('JUMAT');
                 ensureOverlayClock(sp);
             }
