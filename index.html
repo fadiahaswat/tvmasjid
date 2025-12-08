@@ -290,35 +290,41 @@
     </div>
 </div>
 
-            <div id="scene-ayat" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-10 relative">
+            <div id="scene-ayat" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-4 lg:px-10 relative">
                 
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
                      <img src="https://upload.wikimedia.org/wikipedia/commons/6/62/Rub_El_Hizb.svg" class="w-[80vh] h-[80vh] invert animate-spin-slow">
                 </div>
 
-                <div class="relative z-10 w-full max-w-7xl flex flex-col items-center h-screen justify-center py-10">
+                <div class="relative z-10 w-full max-w-[90vw] flex flex-col items-center h-full justify-center py-6">
                     
-                    <div class="mb-6 flex-shrink-0">
-                        <span id="ayat-source" class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                            ...
+                    <div class="mb-4 flex-shrink-0">
+                        <span class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+                            KALAM ILAHI
                         </span>
                     </div>
 
-                    <div class="w-full border-y-2 border-gold-500/30 py-8 px-4 bg-gradient-to-r from-transparent via-black/40 to-transparent backdrop-blur-sm flex-grow-0 flex items-center justify-center min-h-[30vh]">
-                        <p id="ayat-arabic" class="font-serif text-white text-center dir-rtl drop-shadow-lg transition-all duration-500" style="direction: rtl;">
+                    <div class="w-full border-y-2 border-gold-500/30 py-8 px-2 bg-gradient-to-r from-transparent via-black/40 to-transparent backdrop-blur-sm flex-grow flex items-center justify-center min-h-[35vh]">
+                        <p id="ayat-arabic" class="font-serif text-white text-center dir-rtl drop-shadow-lg transition-all duration-500 w-full" style="direction: rtl;">
                             ...
                         </p>
                     </div>
 
-                    <div class="mt-6 max-w-5xl text-center flex-shrink-0">
-                        <p id="ayat-text" class="font-sans font-light text-slate-200 italic transition-all duration-500">
+                    <div class="mt-6 w-full max-w-6xl text-center flex-shrink-0 px-4">
+                        <p id="ayat-text" class="font-sans font-light text-slate-200 italic transition-all duration-500 text-xl lg:text-3xl leading-relaxed">
+                            ...
+                        </p>
+                    </div>
+
+                    <div class="mt-6 flex-shrink-0">
+                        <p id="ayat-source" class="text-gold-400 font-cinzel font-bold text-xl lg:text-2xl tracking-[0.2em] uppercase drop-shadow-md">
                             ...
                         </p>
                     </div>
                 </div>
             </div>
 
-            <div id="scene-hadits" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-16 relative overflow-hidden">
+            <div id="scene-hadits" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-4 lg:px-16 relative overflow-hidden">
                 
                 <div class="absolute top-10 left-10 opacity-10 pointer-events-none">
                     <i class="ri-double-quotes-l text-[20rem] text-cyan-500 leading-none"></i>
@@ -327,25 +333,31 @@
                     <i class="ri-double-quotes-r text-[20rem] text-cyan-500 leading-none"></i>
                 </div>
 
-                <div class="relative z-10 flex flex-col items-center text-center w-full max-w-7xl h-screen justify-center py-10">
+                <div class="relative z-10 flex flex-col items-center text-center w-full max-w-[90vw] h-full justify-center py-6">
                     
-                    <div class="mb-6 flex-shrink-0">
-                         <span id="hadits-source" class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                            ...
+                    <div class="mb-4 flex-shrink-0">
+                         <span class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">
+                            SABDA NABI
                         </span>
                     </div>
 
-                    <div class="w-full py-4 px-4 flex-grow-0 flex items-center justify-center min-h-[25vh]"> 
-                        <p id="hadits-arabic" class="font-serif text-gradient-gold dir-rtl drop-shadow-md transition-all duration-500" style="direction: rtl;">
+                    <div class="w-full py-6 px-2 flex-grow flex items-center justify-center min-h-[30vh]"> 
+                        <p id="hadits-arabic" class="font-serif text-gradient-gold dir-rtl drop-shadow-md transition-all duration-500 w-full" style="direction: rtl;">
                             ...
                         </p>
                     </div>
 
-                    <div class="w-24 h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent rounded-full my-6 flex-shrink-0"></div>
+                    <div class="w-24 h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent rounded-full my-4 flex-shrink-0"></div>
 
-                    <p id="hadits-text" class="font-sans text-slate-300 italic transition-all duration-500 max-w-6xl">
+                    <p id="hadits-text" class="font-sans text-slate-300 italic transition-all duration-500 w-full max-w-7xl text-xl lg:text-3xl leading-relaxed flex-shrink-0">
                         ...
                     </p>
+
+                    <div class="mt-6 flex-shrink-0">
+                        <p id="hadits-source" class="text-cyan-500 font-cinzel font-bold text-lg lg:text-xl tracking-[0.3em] uppercase">
+                            ...
+                        </p>
+                    </div>
                 </div>
             </div>
 
@@ -363,17 +375,17 @@
                         </span>
                     </div>
 
-                    <div class="mt-8 mb-4">
-                        <h1 id="ah-arab" class="text-[10vh] lg:text-[12vh] font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 leading-[2.5] drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl" style="direction: rtl;">
+                    <div class="mt-12 mb-6">
+                        <h1 id="ah-arab" class="text-[12vh] lg:text-[15vh] font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 leading-[2.5] drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl" style="direction: rtl;">
                             ...
                         </h1>
                     </div>
 
-                    <h2 id="ah-latin" class="text-xl lg:text-2xl font-cinzel font-medium text-slate-400 tracking-[0.5em] mb-6 uppercase border-b border-slate-700/50 pb-2 inline-block">
+                    <h2 id="ah-latin" class="text-3xl lg:text-5xl font-sans font-bold text-white tracking-[0.3em] mb-4 uppercase inline-block drop-shadow-xl">
                         ...
                     </h2>
 
-                    <p id="ah-indo" class="text-6xl lg:text-8xl font-sans font-bold text-white tracking-tight leading-none drop-shadow-2xl">
+                    <p id="ah-indo" class="text-2xl lg:text-4xl font-cinzel font-medium text-slate-400 tracking-wide opacity-90 border-t border-slate-700/50 pt-4 px-10">
                         ...
                     </p>
 
