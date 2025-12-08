@@ -713,14 +713,16 @@ function updateOverlayTimer(diffMs) {
 }
 
 // Fungsi Update Jam saat Sholat
+// --- UPDATE FUNGSI INI ---
 function ensureOverlayClock(parentScene) {
-    // 1. Update Jam Besar di Tengah (Sesuai Desain Baru)
     const bigClock = document.getElementById('prayer-clock-big');
     
-    // 2. Update Jam Kecil (Overlay Widget) - Opsional jika masih ada
+    // Timer Realtime di Scene Countdown (YANG BARU)
+    const countdownRealtime = els.cdRealtime; 
+
+    // Update Jam Kecil (Overlay Widget) - Untuk scene lain selain Countdown
     let overlayClock = parentScene.querySelector('.overlay-clock-widget');
-    if (!overlayClock && parentScene.id !== 'scene-prayer') { 
-        // Hanya buat overlay clock jika BUKAN scene prayer (karena scene prayer sudah punya jam besar)
+    if (!overlayClock && parentScene.id !== 'scene-prayer' && parentScene.id !== 'scene-countdown') { 
         overlayClock = document.createElement('div');
         overlayClock.className = "overlay-clock-widget absolute bottom-8 text-lg font-mono font-bold text-white/10 tracking-widest";
         parentScene.appendChild(overlayClock);
@@ -728,17 +730,20 @@ function ensureOverlayClock(parentScene) {
 
     const updateThisClock = () => {
         const now = new Date();
-        // Format jam dengan detik: HH:MM:SS
         const timeStrWithSeconds = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' }).replace(/\./g, ':');
-        // Format jam tanpa detik: HH:MM
         const timeStrSimple = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace(/\./g, ':');
 
-        // Update Jam Besar (Jika elemennya ada)
+        // 1. Update Jam Besar (Scene Prayer)
         if (bigClock && document.body.contains(bigClock)) {
             bigClock.innerText = timeStrWithSeconds;
         }
 
-        // Update Jam Kecil Overlay
+        // 2. Update Jam Realtime (Scene Countdown - BARU)
+        if (countdownRealtime && document.body.contains(countdownRealtime)) {
+            countdownRealtime.innerText = timeStrWithSeconds;
+        }
+
+        // 3. Update Jam Overlay (Scene Lain)
         if (overlayClock && document.body.contains(overlayClock)) {
             overlayClock.innerText = timeStrSimple;
         }
