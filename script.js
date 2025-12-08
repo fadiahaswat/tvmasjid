@@ -16,6 +16,7 @@ const CONFIG = {
         nextDetail: 10, 
         ayat: 20, 
         hadits: 20,
+        asmaulHusna: 15, // <--- TAMBAHKAN INI (Durasi 15 detik)
         donation: 20 // Durasi slide donasi
     },
 
@@ -41,7 +42,8 @@ const CONFIG = {
 // Data Konten
 const DATA_CONTENT = {
     ayat: [],   
-    hadits: [], 
+    hadits: [],
+    asmaulHusna: [], // <--- TAMBAHKAN INI
     kajianAhad: {
         title: "KAJIAN RUTIN AHAD PAGI",
         desc: "Bersama Ust. Fulan | 05:30 - 07:00 WIB",
@@ -91,6 +93,7 @@ let STATE = {
     slideIndex: 0, 
     ayatIndex: 0, 
     haditsIndex: 0,
+    asmaulHusnaIndex: 0, // <--- TAMBAHKAN INI
     nextPrayer: null,
     activeEventTarget: null,
     donationIndex: 0,
@@ -192,30 +195,44 @@ async function loadContentData() {
                 } catch { return null; }
             });
             
-            const [resAyat, resHadits] = await Promise.all([Promise.all(tasksAyat), Promise.all(tasksHadits)]);
+            // ... (kode tasksAyat dan tasksHadits yg sudah ada biarkan) ...
+
+            // --- TAMBAHAN BARU: Fetch Asmaul Husna ---
+            const tasksHusna = Array(5).fill(0).map(async () => {
+                try {
+                    const r = await fetch("https://api.myquran.com/v2/husna/acak");
+                    const j = await r.json();
+                    // Struktur API: j.data.arab, j.data.latin, j.data.indo
+                    return j.status ? j.data : null;
+                } catch { return null; }
+            });
+
+            // Update Promise.all agar menunggu tasksHusna juga
+            const [resAyat, resHadits, resHusna] = await Promise.all([
+                Promise.all(tasksAyat), 
+                Promise.all(tasksHadits),
+                Promise.all(tasksHusna) // <--- Tambah ini
+            ]);
+            
             const validAyat = resAyat.filter(x => x);
             const validHadits = resHadits.filter(x => x);
+            const validHusna = resHusna.filter(x => x); // <--- Tambah ini
 
             if (validAyat.length > 0) {
                 DATA_CONTENT.ayat = validAyat;
                 DATA_CONTENT.hadits = validHadits;
-                localStorage.setItem(cacheKey, JSON.stringify({ ayat: validAyat, hadits: validHadits }));
+                DATA_CONTENT.asmaulHusna = validHusna; // <--- Simpan ke Data Content
+                
+                // Simpan cache juga
+                localStorage.setItem(cacheKey, JSON.stringify({ 
+                    ayat: validAyat, 
+                    hadits: validHadits,
+                    asmaulHusna: validHusna // <--- Tambah ke cache
+                }));
+                
                 loadedFromNet = true;
                 log('loadContent', 'Konten diperbarui dari internet');
             }
-        } catch (e) { console.warn("Fetch content failed"); }
-    }
-
-    if (!loadedFromNet) {
-        const cached = localStorage.getItem(cacheKey);
-        if (cached) {
-            try {
-                const parsed = JSON.parse(cached);
-                DATA_CONTENT.ayat = parsed.ayat || [];
-                DATA_CONTENT.hadits = parsed.hadits || [];
-                log('loadContent', 'Konten dimuat dari cache');
-            } catch(e) { localStorage.removeItem(cacheKey); }
-        }
     }
 }
 
