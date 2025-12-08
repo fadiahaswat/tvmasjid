@@ -753,6 +753,10 @@ function setupGenericOverlay(type) {
 
 // Masukkan 'asmaulHusna' setelah 'hadits'
 const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
+// --- GANTI BAGIAN renderSlide() DENGAN INI ---
+
+const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
+
 function renderSlide() {
     if (STATE.mode !== 'NORMAL') return;
 
@@ -765,7 +769,11 @@ function renderSlide() {
             if (DATA_CONTENT.ayat.length > 0) {
                 const item = DATA_CONTENT.ayat[STATE.ayatIndex % DATA_CONTENT.ayat.length];
                 els.ayatText.innerHTML = `"${item.text}"`;
+                
+                // PERBAIKAN: Masukkan text, lalu update ClassName dengan getAdaptiveClass
                 els.ayatArabic.innerText = item.arabic;
+                els.ayatArabic.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full ${getAdaptiveClass(item.arabic, 'arab')}`;
+                
                 els.ayatSource.innerText = item.source;
                 STATE.ayatIndex++;
             } else skip = true;
@@ -774,19 +782,24 @@ function renderSlide() {
             if (DATA_CONTENT.hadits.length > 0) {
                 const item = DATA_CONTENT.hadits[STATE.haditsIndex % DATA_CONTENT.hadits.length];
                 els.haditsText.innerHTML = `"${item.text}"`;
+                
+                // PERBAIKAN: Sama seperti ayat, update ClassName agar font besar
                 els.haditsArabic.innerText = item.arabic;
+                els.haditsArabic.className = `font-serif text-gradient-gold dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full ${getAdaptiveClass(item.arabic, 'arab')}`;
+                
                 els.haditsSource.innerText = item.source;
                 STATE.haditsIndex++;
             } else skip = true;
         }
-            // ... (setelah blok if sceneKey === 'hadits') ...
-
         else if (sceneKey === 'asmaulHusna') {
             if (DATA_CONTENT.asmaulHusna && DATA_CONTENT.asmaulHusna.length > 0) {
                 const item = DATA_CONTENT.asmaulHusna[STATE.asmaulHusnaIndex % DATA_CONTENT.asmaulHusna.length];
     
-                // Masukkan data ke HTML
+                // PERBAIKAN: Gunakan adaptive class agar teks panjang tidak berantakan
+                // Kita hapus class text-[18vh] bawaan HTML dan ganti dengan dinamis
                 els.ahArab.innerText = item.arab;
+                els.ahArab.className = `font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl ${getAdaptiveClass(item.arab, 'arab')}`;
+                
                 els.ahLatin.innerText = item.latin;
                 els.ahIndo.innerText = `"${item.indo}"`;
     
@@ -795,23 +808,16 @@ function renderSlide() {
                 skip = true;
             }
         }
-
-    // ... (lanjut ke else if sceneKey === 'donation') ...
         else if (sceneKey === 'donation') {
             if (DATA_CONTENT.donations.length > 0) {
                 const item = DATA_CONTENT.donations[STATE.donationIndex % DATA_CONTENT.donations.length];
                 
-                // Set Data Gambar & Teks
                 els.donQr.src = item.qr;
                 els.donLogo.src = item.logo;
                 els.donNumber.innerText = item.number;
                 els.donName.innerText = item.name;
                 
-                // Set Warna Kustom (Sesuai Bank)
-                // Reset class dulu, lalu tambah class bawaan + warna bank
                 els.donNumber.className = `text-6xl lg:text-7xl font-mono font-bold tracking-tighter mb-4 drop-shadow-lg transition-colors duration-500 ${item.color}`;
-                
-                // Set Warna Glow Background
                 els.donBgGlow.className = `absolute top-0 right-0 w-[50vh] h-[50vh] rounded-full blur-[100px] animate-pulse transition-colors duration-1000 ${item.glow}`;
 
                 STATE.donationIndex++;
@@ -824,8 +830,9 @@ function renderSlide() {
         skip = true;
     }
 
-    const normalScenes = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation']; // Tambahkan disini juga
-    normalScenes.forEach(k => {
+    // Logic perpindahan slide
+    const allScenes = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
+    allScenes.forEach(k => {
         if(els.scenes[k]) els.scenes[k].classList.add('hidden-slide');
     });
 
