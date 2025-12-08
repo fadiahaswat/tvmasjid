@@ -175,11 +175,13 @@ async function fetchHijriDate() {
 }
 
 async function loadContentData() {
-    const cacheKey = 'smart_masjid_content_v5'; // Bump version
+    const cacheKey = 'smart_masjid_content_v5'; 
     let loadedFromNet = false;
 
+    // 1. COBA AMBIL DARI INTERNET
     if (navigator.onLine) {
         try {
+            // Fetch Ayat
             const tasksAyat = Array(5).fill(0).map(async () => {
                 try {
                     const r = await fetch("https://api.myquran.com/v2/quran/ayat/acak");
@@ -187,6 +189,8 @@ async function loadContentData() {
                     return j.status ? { text: j.data.ayat.text.replace(/\n/g, "<br>"), arabic: j.data.ayat.arab, source: `QS. ${j.data.info.surat.nama.id}: ${j.data.ayat.ayah}` } : null;
                 } catch { return null; }
             });
+
+            // Fetch Hadits
             const tasksHadits = Array(5).fill(0).map(async () => {
                 try {
                     const r = await fetch("https://api.myquran.com/v3/hadis/enc/random");
@@ -195,45 +199,59 @@ async function loadContentData() {
                 } catch { return null; }
             });
             
-            // ... (kode tasksAyat dan tasksHadits yg sudah ada biarkan) ...
-
-            // --- TAMBAHAN BARU: Fetch Asmaul Husna ---
+            // Fetch Asmaul Husna
             const tasksHusna = Array(5).fill(0).map(async () => {
                 try {
                     const r = await fetch("https://api.myquran.com/v2/husna/acak");
                     const j = await r.json();
-                    // Struktur API: j.data.arab, j.data.latin, j.data.indo
                     return j.status ? j.data : null;
                 } catch { return null; }
             });
 
-            // Update Promise.all agar menunggu tasksHusna juga
+            // Tunggu Semua Selesai
             const [resAyat, resHadits, resHusna] = await Promise.all([
                 Promise.all(tasksAyat), 
                 Promise.all(tasksHadits),
-                Promise.all(tasksHusna) // <--- Tambah ini
+                Promise.all(tasksHusna)
             ]);
             
             const validAyat = resAyat.filter(x => x);
             const validHadits = resHadits.filter(x => x);
-            const validHusna = resHusna.filter(x => x); // <--- Tambah ini
+            const validHusna = resHusna.filter(x => x);
 
             if (validAyat.length > 0) {
                 DATA_CONTENT.ayat = validAyat;
                 DATA_CONTENT.hadits = validHadits;
-                DATA_CONTENT.asmaulHusna = validHusna; // <--- Simpan ke Data Content
+                DATA_CONTENT.asmaulHusna = validHusna;
                 
-                // Simpan cache juga
+                // Simpan ke Cache
                 localStorage.setItem(cacheKey, JSON.stringify({ 
                     ayat: validAyat, 
                     hadits: validHadits,
-                    asmaulHusna: validHusna // <--- Tambah ke cache
+                    asmaulHusna: validHusna 
                 }));
                 
                 loadedFromNet = true;
                 log('loadContent', 'Konten diperbarui dari internet');
-                
             }
+
+        } catch (e) { 
+            console.warn("Fetch content failed", e); 
+        } // <--- BAGIAN INI YANG TADI HILANG (Penutup Try/Catch)
+    }
+
+    // 2. JIKA GAGAL/OFFLINE, AMBIL DARI CACHE
+    if (!loadedFromNet) {
+        const cached = localStorage.getItem(cacheKey);
+        if (cached) {
+            try {
+                const parsed = JSON.parse(cached);
+                DATA_CONTENT.ayat = parsed.ayat || [];
+                DATA_CONTENT.hadits = parsed.hadits || [];
+                DATA_CONTENT.asmaulHusna = parsed.asmaulHusna || [];
+                log('loadContent', 'Konten dimuat dari cache');
+            } catch(e) { localStorage.removeItem(cacheKey); }
+        }
     }
 }
 
