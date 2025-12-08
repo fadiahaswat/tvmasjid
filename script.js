@@ -132,6 +132,21 @@ function addMinutes(timeStr, minutesToAdd) {
     date.setMinutes(date.getMinutes() + minutesToAdd);
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
+// Fungsi: Mengecilkan font otomatis jika teks terlalu lebar/panjang
+function autoFitText(el, maxFontSizeVH = 10) {
+    if (!el) return;
+    
+    // Reset ke ukuran awal (besar) agar bisa diukur ulang
+    el.style.fontSize = `${maxFontSizeVH}vh`;
+    el.style.lineHeight = '1.1';
+    
+    // Kecilkan bertahap sampai muat (scrollWidth <= clientWidth)
+    let currentSize = maxFontSizeVH;
+    while ( (el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight) && currentSize > 2 ) {
+        currentSize -= 0.5; // Kurangi 0.5vh setiap langkah
+        el.style.fontSize = `${currentSize}vh`;
+    }
+}
 
 // --- AUDIO SYSTEM (OFFLINE FRIENDLY) ---
 // Pastikan file audio ada di folder ./audio/
