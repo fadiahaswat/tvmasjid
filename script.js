@@ -591,6 +591,8 @@ function checkSystemMode(now) {
     }
 }
 
+// --- GANTI FUNGSI applyMode DI SCRIPT.JS DENGAN INI ---
+
 function applyMode(mode, type, target, meta) {
     STATE.mode = mode;
     STATE.overrideType = type;
@@ -601,16 +603,19 @@ function applyMode(mode, type, target, meta) {
     
     Object.values(els.scenes).forEach(el => {
         el.classList.add('hidden-slide');
-        // Reset class tema background
+        // Reset class tema background lama
         el.classList.remove('theme-red', 'theme-yellow', 'theme-khusyu', 'theme-blue', 'theme-gold', 'theme-silver');
     });
 
-    // Helper untuk reset class gradient pada teks countdown
-    const resetCountdownText = () => {
-        const texts = [els.cdTitle, els.cdName, els.cdTimer];
-        texts.forEach(el => {
-            el.classList.remove('text-gradient-gold', 'text-gradient-ruby', 'text-gradient-silver', 'text-white');
-        });
+    // Helper: Reset warna timer & glow
+    const resetCountdownColors = () => {
+        const timer = els.cdTimer;
+        const glow = document.getElementById('countdown-glow');
+        
+        // Hapus class warna teks
+        timer.classList.remove('text-red-500', 'text-yellow-400', 'text-white');
+        // Hapus class warna background glow
+        if(glow) glow.classList.remove('bg-red-600/30', 'bg-yellow-500/30', 'bg-white/10');
     };
 
     if (mode === 'NORMAL') {
@@ -625,42 +630,35 @@ function applyMode(mode, type, target, meta) {
         els.header.style.display = 'none';
         els.footer.style.display = 'none';
 
-        if (type === 'ADZAN') {
+        if (type === 'ADZAN' || type === 'IQAMAH') {
             const sc = els.scenes.countdown;
+            const glow = document.getElementById('countdown-glow');
             sc.classList.remove('hidden-slide');
-            sc.classList.add('theme-red'); // Background Merah Gelap
             
-            resetCountdownText();
-            // GANTI: Pakai Gradient Ruby (Merah Delima Mewah)
-            els.cdTitle.classList.add('text-gradient-ruby');
-            els.cdName.classList.add('text-gradient-ruby');
-            els.cdTimer.classList.add('text-gradient-ruby');
+            resetCountdownColors();
 
-            els.cdTitle.innerText = 'MENUJU ADZAN';
+            // Set Judul Badge
+            els.cdTitle.innerText = type === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQOMAH';
+            
+            // Set Nama Sholat
             els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
             
-            if(target) updateOverlayTimer(target - new Date());
-            ensureOverlayClock(sc);
-        } 
-        else if (type === 'IQAMAH') {
-            const sc = els.scenes.countdown;
-            sc.classList.remove('hidden-slide');
-            sc.classList.add('theme-yellow'); // Background Emas Gelap
-            
-            resetCountdownText();
-            // GANTI: Pakai Gradient Gold (Emas Mewah - Sudah ada di CSS)
-            els.cdTitle.classList.add('text-gradient-gold');
-            els.cdName.classList.add('text-gradient-gold');
-            els.cdTimer.classList.add('text-gradient-gold');
-            
-            els.cdTitle.innerText = 'MENUJU IQOMAH';
-            els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
-            
+            // --- LOGIKA WARNA ---
+            if (type === 'ADZAN') {
+                // WARNA MERAH (PRE-ADZAN)
+                els.cdTimer.classList.add('text-red-500'); // Merah terang
+                if(glow) glow.classList.add('bg-red-600/30'); // Cahaya belakang merah
+            } else {
+                // WARNA KUNING EMAS (PRE-IQAMAH)
+                els.cdTimer.classList.add('text-yellow-400'); // Kuning emas
+                if(glow) glow.classList.add('bg-yellow-500/30'); // Cahaya belakang emas
+            }
+
             if(target) updateOverlayTimer(target - new Date());
             ensureOverlayClock(sc);
         } 
         else {
-            // ... (Kode untuk PRAYER, DZIKIR, dll TETAP SAMA seperti sebelumnya)
+            // Bagian Prayer, Dzikir, dll (TIDAK BERUBAH)
             const sp = els.scenes.prayer;
             sp.classList.remove('hidden-slide');
             
