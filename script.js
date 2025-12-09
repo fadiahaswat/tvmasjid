@@ -142,21 +142,21 @@ const DATA_DZIKIR_UMUM = [
     { text: "سُبْحَانَ رَبِّكَ رَبِّ الْعِزَّةِ عَمَّا يَصِفُونَ وَسَلَامٌ عَلَى الْمُرْسَلِينَ وَالْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", note: "Penutup" }
 ];
 
-// VARIABEL GLOBAL PENTING
-let ACTIVE_DZIKIR_DATA = []; 
-STATE.dzikirInterval = null;
-STATE.dzikirIndex = 0;
-
+// --- STATE SYSTEM (Gabungan Lama & Baru) ---
 let STATE = { 
     mode: 'NORMAL',      
     overrideType: null,  
     slideIndex: 0, 
     ayatIndex: 0, 
     haditsIndex: 0,
-    asmaulHusnaIndex: 0, // <--- TAMBAHKAN INI
+    asmaulHusnaIndex: 0,
     nextPrayer: null,
     activeEventTarget: null,
     donationIndex: 0,
+    
+    // --- TAMBAHAN BARU UNTUK DZIKIR ---
+    dzikirIndex: 0,      // Untuk melacak urutan doa
+    dzikirInterval: null // Untuk menyimpan timer otomatis dzikir
 };
 
 let els = {}; 
