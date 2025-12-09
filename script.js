@@ -191,22 +191,24 @@ function addMinutes(timeStr, minutesToAdd) {
 }
 
 // Fungsi Ukuran Font Adaptif (Revisi: Lebih Kecil & Proporsional)
+// Fungsi Ukuran Font Adaptif (Update agar Asmaul Husna aman)
 function getAdaptiveClass(text, type) {
     if (!text) return '';
     const len = text.length;
 
     if (type === 'arab') {
-        if (len < 60) return 'text-[7vh] lg:text-[9vh] leading-[1.6]'; 
-        if (len < 100) return 'text-[5vh] lg:text-[7vh] leading-[1.8]';
-        if (len < 200) return 'text-[4vh] lg:text-[5vh] leading-[2]';
-        return 'text-[3vh] lg:text-[4vh] leading-[2.2]'; 
+        // Logika Ukuran Font Arab
+        if (len < 60) return 'text-[10vh] lg:text-[14vh] leading-[1.6]'; // Pendek (Asmaul Husna masuk sini)
+        if (len < 100) return 'text-[6vh] lg:text-[9vh] leading-[1.8]';
+        if (len < 200) return 'text-[4.5vh] lg:text-[6vh] leading-[2]';
+        return 'text-[3.5vh] lg:text-[4.5vh] leading-[2.2]'; 
     } else {
+        // Latin
         if (len > 300) return 'text-lg leading-snug';
         if (len > 150) return 'text-xl leading-normal';
         return 'text-2xl lg:text-3xl leading-relaxed'; 
     }
 }
-
 // --- AUDIO SYSTEM ---
 const SFX = {
     beep: new Audio('./audio/beep.mp3'), 
