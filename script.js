@@ -952,6 +952,7 @@ function renderFooter() {
 
 // --- FUNGSI RENDER DZIKIR (UPDATE: UKURAN FONT LEBIH BESAR) ---
 // --- FUNGSI RENDER DZIKIR (UPDATE: UKURAN FONT MAKSIMAL) ---
+// --- FUNGSI RENDER DZIKIR (REVISI UKURAN: PAS & PROPORSIONAL) ---
 function renderDzikirItem() {
     if (!ACTIVE_DZIKIR_DATA || ACTIVE_DZIKIR_DATA.length === 0) return;
     
@@ -960,35 +961,34 @@ function renderDzikirItem() {
     if(els.dzikirArab) {
         els.dzikirArab.innerHTML = item.text;
         
-        // --- LOGIKA UKURAN FONT DINAMIS (DZIKIR) ---
-        // Kita hitung panjang karakter untuk menentukan ukuran font terbesar yang aman
+        // --- LOGIKA UKURAN FONT BARU (Lebih Kalem) ---
         const len = item.text.length;
         let fontClass = '';
 
         if (len < 50) {
-            // Sangat Pendek (Misal: Subhanallah) -> RAKSASA
-            // Menggunakan 'vh' (Viewport Height) agar menyesuaikan tinggi TV
-            fontClass = 'text-[12vh] lg:text-[16vh] leading-[1.3]';
+            // Sangat Pendek (Misal: Subhanallah) -> Besar tapi tidak Raksasa
+            fontClass = 'text-[8vh] lg:text-[12vh] leading-[1.4]';
         } 
-        else if (len < 120) {
-            // Pendek (Misal: Ayat Kursi / Al Ikhlas) -> SANGAT BESAR
-            fontClass = 'text-[8vh] lg:text-[11vh] leading-[1.4]';
+        else if (len < 150) {
+            // Pendek (Misal: Ayat Kursi / Al Ikhlas)
+            fontClass = 'text-[6vh] lg:text-[9vh] leading-[1.5]';
         } 
-        else if (len < 250) {
-            // Sedang (Misal: Doa Pagi standar) -> BESAR
-            fontClass = 'text-[6vh] lg:text-[8vh] leading-[1.5]';
+        else if (len < 300) {
+            // Sedang (Misal: Doa Pagi standar)
+            fontClass = 'text-[5vh] lg:text-[7vh] leading-[1.6]';
         } 
-        else if (len < 450) {
-            // Panjang (Misal: Sayyidul Istighfar) -> MENENGAH (Pas Layar)
-            fontClass = 'text-[4.5vh] lg:text-[6vh] leading-[1.6]';
+        else if (len < 500) {
+            // Panjang (Misal: Sayyidul Istighfar)
+            fontClass = 'text-[4vh] lg:text-[5.5vh] leading-[1.7]';
         } 
         else {
-            // Sangat Panjang -> KECIL (Agar muat 1 layar)
-            fontClass = 'text-[3.5vh] lg:text-[4.5vh] leading-[1.6]';
+            // Sangat Panjang
+            fontClass = 'text-[3.5vh] lg:text-[4.5vh] leading-[1.8]';
         }
 
         // Terapkan Class
-        els.dzikirArab.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_5px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full ${fontClass}`;
+        // Tambahkan max-w-7xl agar teks tidak terlalu melebar ke pinggir TV
+        els.dzikirArab.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_5px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full max-w-7xl mx-auto ${fontClass}`;
     }
     
     if(els.dzikirNote) els.dzikirNote.innerText = item.note;
