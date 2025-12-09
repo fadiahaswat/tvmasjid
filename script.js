@@ -684,117 +684,93 @@ function checkSystemMode(now) {
 
 // --- FUNGSI applyMode VERSI ANTI-ERROR ---
 
+// --- FUNGSI applyMode (UPDATE LENGKAP) ---
 function applyMode(mode, type, target, meta) {
     STATE.mode = mode;
     STATE.overrideType = type;
     STATE.activeEventTarget = target;
 
+    // 1. CLEANUP (Bersihkan state sebelumnya)
     clearTimeout(slideTimer);
     
-    // Cek dulu apakah progress bar ada
+    // Reset Interval Dzikir jika ada
+    if (STATE.dzikirInterval) {
+        clearInterval(STATE.dzikirInterval);
+        STATE.dzikirInterval = null;
+    }
+
+    // Reset Progress Bar
     if(els.progress) els.progress.style.width = '0';
     
-    // FIX: Tambahkan pengecekan (el && el.classList) agar tidak error jika elemen hilang
+    // Sembunyikan semua scene & reset tema
     Object.values(els.scenes).forEach(el => {
         if (el) { 
             el.classList.add('hidden-slide');
-            // Reset class tema background lama
             el.classList.remove('theme-red', 'theme-yellow', 'theme-khusyu', 'theme-blue', 'theme-gold', 'theme-silver');
         }
     });
 
-    // Helper: Reset warna timer & glow
-    const resetCountdownColors = () => {
-        const timer = els.cdTimer;
-        const glow = document.getElementById('countdown-glow');
-        
-        // Cek jika timer ada sebelum menghapus class
-        if (timer) {
-            timer.classList.remove('text-red-500', 'text-yellow-400', 'text-white');
-        }
-        // Hapus class warna background glow
-        if(glow) glow.classList.remove('bg-red-600/30', 'bg-yellow-500/30', 'bg-white/10');
-    };
+    // --- LOGIKA UTAMA ---
 
     if (mode === 'NORMAL') {
+        // --- MODE NORMAL (SLIDESHOW) ---
         if(els.header) els.header.style.display = 'grid';
         if(els.footer) els.footer.style.display = 'grid';
         
-        // Pastikan scene home ada sebelum diakses
         if(els.scenes.home) els.scenes.home.classList.remove('hidden-slide');
         
         STATE.slideIndex = 0;
         renderSlide();
     } 
     else {
+        // --- MODE OVERRIDE (ADZAN, SHOLAT, DZIKIR) ---
         if(els.header) els.header.style.display = 'none';
         if(els.footer) els.footer.style.display = 'none';
 
+        // A. TAMPILAN ADZAN & IQAMAH
         if (type === 'ADZAN' || type === 'IQAMAH') {
             const sc = els.scenes.countdown;
             const glow = document.getElementById('countdown-glow');
             
             if (sc) {
                 sc.classList.remove('hidden-slide');
-                resetCountdownColors();
 
-                // Set Judul Badge
+                // Helper: Reset warna teks & glow manual
+                if (els.cdTimer) els.cdTimer.classList.remove('text-red-500', 'text-yellow-400', 'text-white');
+                if (glow) glow.classList.remove('bg-red-600/30', 'bg-yellow-500/30', 'bg-white/10');
+
+                // Set Teks
                 if(els.cdTitle) els.cdTitle.innerText = type === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQOMAH';
-                
-                // Set Nama Sholat
                 if(els.cdName) els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
                 
-                // --- LOGIKA WARNA ---
+                // Set Warna
                 if (type === 'ADZAN') {
-                    // WARNA MERAH (PRE-ADZAN)
-                    if(els.cdTimer) els.cdTimer.classList.add('text-red-500'); // Merah terang
-                    if(glow) glow.classList.add('bg-red-600/30'); // Cahaya belakang merah
+                    // Merah untuk Adzan
+                    if(els.cdTimer) els.cdTimer.classList.add('text-red-500'); 
+                    if(glow) glow.classList.add('bg-red-600/30'); 
                 } else {
-                    // WARNA KUNING EMAS (PRE-IQAMAH)
-                    if(els.cdTimer) els.cdTimer.classList.add('text-yellow-400'); // Kuning emas
-                    if(glow) glow.classList.add('bg-yellow-500/30'); // Cahaya belakang emas
+                    // Kuning untuk Iqamah
+                    if(els.cdTimer) els.cdTimer.classList.add('text-yellow-400'); 
+                    if(glow) glow.classList.add('bg-yellow-500/30'); 
                 }
 
                 if(target) updateOverlayTimer(target - new Date());
                 ensureOverlayClock(sc);
             }
         } 
-        // ... (bagian atas applyMode sama)
-
-        else {
-            // Bagian Prayer, Dzikir, dll
-            const sp = els.scenes.prayer;
-            if (sp) {
-                sp.classList.remove('hidden-slide');
-                
-                // Ambil nama sholat dari meta data
-                const prayerName = meta && meta.name ? meta.name : '';
-
-                if (type === 'PRAYER') {
-                    sp.classList.add('theme-khusyu'); 
-                    ensureOverlayClock(sp);
-                    
-                    if (meta && meta.isJumat) {
-                        setupGenericOverlay('PRAYER_JUMAT', 'JUMAT');
-                    } else {
-                        // FIX: Kirim prayerName ke fungsi setup
-                        setupGenericOverlay('PRAYER', prayerName);
-                    }
-                }
-                // ... (di dalam fungsi applyMode bagian else mode != NORMAL) ...
-
-        // --- GANTI BLOK LOGIKA DZIKIR ---
+        
+        // B. TAMPILAN DZIKIR (PAGI / PETANG / UMUM)
         else if (type === 'DZIKIR_PAGI' || type === 'DZIKIR_PETANG' || type === 'DZIKIR_UMUM') {
             const sd = els.scenes.dzikir;
             if (sd) {
                 sd.classList.remove('hidden-slide');
                 
-                // Reset styling badge
+                // Reset styling badge ke warna emas default
                 if(els.dzikirTitleBadge) {
                     els.dzikirTitleBadge.className = "bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]";
                 }
 
-                // Pilih Data & Judul
+                // Pilih Data & Judul Badge
                 if (type === 'DZIKIR_PAGI') {
                     ACTIVE_DZIKIR_DATA = DATA_DZIKIR;
                     if(els.dzikirTitleBadge) els.dzikirTitleBadge.innerText = "DZIKIR PAGI";
@@ -808,40 +784,31 @@ function applyMode(mode, type, target, meta) {
                     if(els.dzikirTitleBadge) els.dzikirTitleBadge.innerText = "DZIKIR SHOLAT";
                 }
 
-                // Jalankan Render
+                // Render Item Pertama
                 renderDzikirItem();
                 
-                // Putar otomatis setiap 25 detik
+                // Mulai Interval Rotasi (Setiap 25 Detik)
                 STATE.dzikirInterval = setInterval(renderDzikirItem, 25000); 
             }
         }
         
+        // C. TAMPILAN LAINNYA (SHOLAT, KAJIAN, JUMAT)
         else {
-             // Sisa Prayer (Tinggal copy paste bagian prayer lama)
-             const sp = els.scenes.prayer;
-             if (sp) {
+            const sp = els.scenes.prayer;
+            if (sp) {
                 sp.classList.remove('hidden-slide');
                 const prayerName = meta && meta.name ? meta.name : '';
 
                 if (type === 'PRAYER') {
                     sp.classList.add('theme-khusyu'); 
                     ensureOverlayClock(sp);
-                    if (meta && meta.isJumat) setupGenericOverlay('PRAYER_JUMAT', 'JUMAT');
-                    else setupGenericOverlay('PRAYER', prayerName);
+                    
+                    if (meta && meta.isJumat) {
+                        setupGenericOverlay('PRAYER_JUMAT', 'JUMAT');
+                    } else {
+                        setupGenericOverlay('PRAYER', prayerName);
+                    }
                 }
-                // (Hapus else if type === 'DZIKIR' yang lama karena sudah diganti diatas)
-                else if (type === 'KAJIAN') {
-                    sp.classList.add('theme-silver');
-                    setupGenericOverlay('KAJIAN', 'AHAD PAGI');
-                    ensureOverlayClock(sp);
-                }
-                else if (type === 'JUMAT') { 
-                    sp.classList.add('theme-gold');
-                    setupGenericOverlay('JUMAT', 'JUMAT');
-                    ensureOverlayClock(sp);
-                }
-             }
-        }
                 else if (type === 'KAJIAN') {
                     sp.classList.add('theme-silver');
                     setupGenericOverlay('KAJIAN', 'AHAD PAGI');
@@ -856,6 +823,7 @@ function applyMode(mode, type, target, meta) {
         }
     }
 }
+
 function updateOverlayTimer(diffMs) {
     if (!els.cdTimer) return;
     const secondsLeft = Math.floor(diffMs / 1000);
