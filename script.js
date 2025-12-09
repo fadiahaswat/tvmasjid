@@ -951,6 +951,7 @@ function renderFooter() {
 }
 
 // --- FUNGSI RENDER DZIKIR (UPDATE: UKURAN FONT LEBIH BESAR) ---
+// --- FUNGSI RENDER DZIKIR (UPDATE: UKURAN FONT MAKSIMAL) ---
 function renderDzikirItem() {
     if (!ACTIVE_DZIKIR_DATA || ACTIVE_DZIKIR_DATA.length === 0) return;
     
@@ -959,30 +960,31 @@ function renderDzikirItem() {
     if(els.dzikirArab) {
         els.dzikirArab.innerHTML = item.text;
         
-        // --- LOGIKA UKURAN FONT KHUSUS DZIKIR (AGRESIF) ---
-        // Kita hitung panjang teks untuk menentukan ukuran font yang pas
+        // --- LOGIKA UKURAN FONT DINAMIS (DZIKIR) ---
+        // Kita hitung panjang karakter untuk menentukan ukuran font terbesar yang aman
         const len = item.text.length;
         let fontClass = '';
 
         if (len < 50) {
             // Sangat Pendek (Misal: Subhanallah) -> RAKSASA
-            fontClass = 'text-[10vh] lg:text-[14vh] leading-[1.3]';
+            // Menggunakan 'vh' (Viewport Height) agar menyesuaikan tinggi TV
+            fontClass = 'text-[12vh] lg:text-[16vh] leading-[1.3]';
         } 
-        else if (len < 150) {
+        else if (len < 120) {
             // Pendek (Misal: Ayat Kursi / Al Ikhlas) -> SANGAT BESAR
-            fontClass = 'text-[7vh] lg:text-[10vh] leading-[1.4]';
+            fontClass = 'text-[8vh] lg:text-[11vh] leading-[1.4]';
         } 
-        else if (len < 300) {
+        else if (len < 250) {
             // Sedang (Misal: Doa Pagi standar) -> BESAR
-            fontClass = 'text-[5vh] lg:text-[7vh] leading-[1.5]';
+            fontClass = 'text-[6vh] lg:text-[8vh] leading-[1.5]';
         } 
-        else if (len < 500) {
+        else if (len < 450) {
             // Panjang (Misal: Sayyidul Istighfar) -> MENENGAH (Pas Layar)
-            fontClass = 'text-[4vh] lg:text-[5.5vh] leading-[1.6]';
+            fontClass = 'text-[4.5vh] lg:text-[6vh] leading-[1.6]';
         } 
         else {
-            // Sangat Panjang -> KECIL (Agar muat)
-            fontClass = 'text-[3vh] lg:text-[4vh] leading-[1.6]';
+            // Sangat Panjang -> KECIL (Agar muat 1 layar)
+            fontClass = 'text-[3.5vh] lg:text-[4.5vh] leading-[1.6]';
         }
 
         // Terapkan Class
