@@ -756,34 +756,46 @@ function ensureOverlayClock(parentScene) {
     requestAnimationFrame(updateThisClock);
 }
 
-function setupGenericOverlay(type) {
-    if (type === 'PRAYER') {
-        els.prayerTitle.innerText = "SHOLAT BERLANGSUNG";
-        els.prayerSub.innerText = "Luruskan Shaf"; 
-        els.prayerNote.innerText = "Mohon non-aktifkan HP & menjaga ketenangan";
-    } 
-    else if (type === 'PRAYER_JUMAT') { 
-        els.prayerTitle.innerText = "KHUTBAH JUMAT";
-        els.prayerSub.innerText = "Harap Menyimak";
-        els.prayerNote.innerText = "Barangsiapa berbicara saat khutbah, maka sia-sialah Jumatnya";
+// --- GANTI FUNGSI setupGenericOverlay DENGAN INI ---
+
+function setupGenericOverlay(type, name) {
+    // Default Text (Untuk Sholat Wajib)
+    let badgeText = "SEDANG BERLANGSUNG";
+    let titleText = name ? name.toUpperCase() : "SHOLAT";
+    let arabText = "سَوُّوا صُفُوفَكُمْ , فَإِنَّ تَسْوِيَةَ الصَّفِّ مِنْ تَمَامِ الصَّلاةِ";
+    let transText = '"Luruskanlah shaf kalian, karena lurusnya shaf adalah bagian dari kesempurnaan sholat"';
+
+    // Kustomisasi berdasarkan tipe event
+    if (type === 'PRAYER_JUMAT') { 
+        badgeText = "KHUTBAH JUMAT";
+        titleText = "JUMAT";
+        arabText = "إِذَا قُلْتَ لِصَاحِبِكَ يَوْمَ الْجُمُعَةِ أَنْصِتْ وَالإِمَامُ يَخْطُبُ فَقَدْ لَغَوْتَ";
+        transText = '"Jika engkau berkata pada temanmu \'Diamlah\' di hari Jumat saat imam berkhutbah, maka sia-sialah Jumatmu"';
     }
     else if (type === 'DZIKIR') {
-        els.prayerTitle.innerText = "DZIKIR BA'DA SHOLAT";
-        els.prayerSub.innerText = "Astaghfirullah...";
-        els.prayerNote.innerText = "Harap Tenang & Menjaga Kekhusyukan";
+        badgeText = "BA'DA SHOLAT";
+        titleText = "DZIKIR & DOA";
+        arabText = "أَسْتَغْفِرُ اللهَ... أَسْتَغْفِرُ اللهَ... أَسْتَغْفِرُ اللهَ";
+        transText = '"Harap Tenang & Menjaga Kekhusyukan Jamaah Lain"';
     }
     else if (type === 'KAJIAN') {
-        els.prayerTitle.innerText = DATA_CONTENT.kajianAhad.title;
-        els.prayerSub.innerText = DATA_CONTENT.kajianAhad.desc;
-        els.prayerNote.innerText = DATA_CONTENT.kajianAhad.sub;
+        badgeText = "KAJIAN RUTIN";
+        titleText = DATA_CONTENT.kajianAhad.title || "KAJIAN";
+        arabText = ""; // Kosongkan jika tidak ada
+        transText = DATA_CONTENT.kajianAhad.desc + " | " + DATA_CONTENT.kajianAhad.sub;
     }
-    else if (type === 'JUMAT') { 
-        els.prayerTitle.innerText = DATA_CONTENT.jumat.title;
-        els.prayerSub.innerText = DATA_CONTENT.jumat.desc;
-        els.prayerNote.innerText = DATA_CONTENT.jumat.sub;
-    }
-}
 
+    // Terapkan ke Elemen (Pakai pengecekan if(el) agar aman)
+    if(els.prayerBadge) els.prayerBadge.innerText = badgeText;
+    if(els.prayerTitle) els.prayerTitle.innerText = titleText;
+    
+    if(els.prayerArabic) {
+        els.prayerArabic.innerText = arabText;
+        els.prayerArabic.style.display = arabText ? 'block' : 'none';
+    }
+    
+    if(els.prayerTranslate) els.prayerTranslate.innerText = transText;
+}
 // --- 5. SLIDESHOW SYSTEM (NORMAL MODE) ---
 
 const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
