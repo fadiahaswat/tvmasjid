@@ -1,6 +1,6 @@
 /**
- * SMART MASJID DIGITAL SIGNAGE V2.4 (Final Tuned)
- * Fitur: Iqamah Dinamis, Scene Sholat Hening + Jam, Tema Warna Tegas
+ * SMART MASJID DIGITAL SIGNAGE V2.5 (Refactored)
+ * Fitur: Dzikir Pagi/Petang/Umum, Countdown Warna-warni, Mode Sholat Hening
  */
 
 // --- 1. CONFIGURATION ---
@@ -9,27 +9,27 @@ const CONFIG = {
     masjidName: "MASJID MU'ALLIMIN",
     address: "Yogyakarta, Indonesia",
     
-    // Durasi Slide Normal
-    // Tambahkan durasi donation
+    // Durasi Slide Normal (Detik)
     duration: { 
         home: 15, 
         nextDetail: 10, 
         ayat: 20, 
         hadits: 20,
-        asmaulHusna: 15, // <--- TAMBAHKAN INI (Durasi 15 detik)
-        donation: 20 // Durasi slide donasi
+        dzikir: 20, // Slide dzikir di mode normal
+        asmaulHusna: 15, 
+        donation: 20
     },
 
     timeRules: { 
         preAdzan: 15,    
-        preIqamah: 10,   // Default 10 menit (Akan di-override khusus Shubuh & Isya)
+        preIqamah: 10,   // Default (Override di logic)
         inPrayer: 15,    
-        dzikir: 6,      // Default 6 menit (Untuk Dzuhur, Maghrib, Isya)
+        dzikir: 6,       // Default 6 menit (Dzuhur, Maghrib, Isya)
         jumatPrep: 45,
         jumatPrayer: 60  
     },
     
-    // Jadwal Default (Jaga-jaga jika offline)
+    // Jadwal Default (Offline fallback)
     defaultPrayerTimes: {
         tahajjud: "03:00", imsak: "04:10", shubuh: "04:20", syuruq: "05:35",
         dhuha: "06:00", dzuhur: "11:45", ashar: "15:05", maghrib: "17:55", isya: "19:05"
@@ -39,11 +39,12 @@ const CONFIG = {
     currentHijriDate: "..." 
 };
 
-// Data Konten
+// --- 2. DATABASE KONTEN ---
+
 const DATA_CONTENT = {
     ayat: [],   
     hadits: [],
-    asmaulHusna: [], // <--- TAMBAHKAN INI
+    asmaulHusna: [],
     kajianAhad: {
         title: "KAJIAN RUTIN AHAD PAGI",
         desc: "Bersama Ust. Fulan | 05:30 - 07:00 WIB",
@@ -54,40 +55,35 @@ const DATA_CONTENT = {
         desc: "Persiapan Sholat Jumat",
         sub: "Mari menyegerakan datang ke masjid"
     },
-    // DATA DONASI FINAL (Sesuai Request)
     donations: [
         { 
-            // 1. BNI (Oranye)
             name: "LAZISMU MADRASAH MU'ALLIMIN MUHAMMADIYAH", 
             number: "3440000348", 
             qr: "qris-bni.png", 
             logo: "bank-bni.png",
-            color: "text-orange-500", // Class Tailwind untuk Oranye
-            glow: "bg-orange-500/20"  // Warna pendar background
+            color: "text-orange-500", 
+            glow: "bg-orange-500/20"
         },
         { 
-            // 2. BSI (Cyan)
             name: "LAZISMU MUALLIMIN YOGYAKARTA", 
             number: "7930030303", 
             qr: "qris-bsi.jpg", 
             logo: "bank-bsi.png",
-            color: "text-cyan-400",   // Class Tailwind untuk Cyan
+            color: "text-cyan-400",   
             glow: "bg-cyan-500/20"
         },
         { 
-            // 3. BPD DIY Syariah (Biru & Hijau)
-            // Kita pakai gradient text agar dapat nuansa Biru-Hijaunya
             name: "KL LAZISMU MADRASAH MUALLIMIN", 
             number: "801241004624", 
             qr: "qris-bpd.jpg", 
             logo: "bank-bpd.png",
-            color: "text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500", // Gradient Biru ke Hijau
+            color: "text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-green-500", 
             glow: "bg-emerald-500/20"
         }
     ]
 };
 
-// --- 1. DATA DZIKIR PAGI (KHUSUS SHUBUH) ---
+// A. DATA DZIKIR PAGI (KHUSUS SHUBUH)
 const DATA_DZIKIR = [
     { text: "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ<br>اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ", note: "Ayat Kursi - Dibaca 1x" },
     { text: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ<br>قُلْ هُوَ اللَّهُ أَحَدٌ ۞ اللَّهُ الصَّمَدُ ۞ لَمْ يَلِدْ وَلَمْ يُولَدْ ۞ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ", note: "QS. Al-Ikhlas - Dibaca 3x" },
@@ -106,7 +102,7 @@ const DATA_DZIKIR = [
     { text: "سُبْحَانَ اللهِ وَبِحَمْدِهِ : عَدَدَ خَلْقِهِ ، وَرِضَا نَفْسِهِ ، وَزِنَةَ عَرْشِهِ ، وَمِدَادَ كَلِمَاتِهِ", note: "Dibaca 3x" }
 ];
 
-// --- 2. DATA DZIKIR PETANG (KHUSUS ASHAR) ---
+// B. DATA DZIKIR PETANG (KHUSUS ASHAR)
 const DATA_DZIKIR_PETANG = [
     { text: "أَعُوذُ بِاللَّهِ مِنَ الشَّيْطَانِ الرَّجِيمِ<br>اللَّهُ لَا إِلَهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لَا تَأْخُذُهُ سِنَةٌ وَلَا نَوْمٌ لَهُ مَا فِي السَّمَاوَاتِ وَمَا فِي الْأَرْضِ مَنْ ذَا الَّذِي يَشْفَعُ عِنْدَهُ إِلَّا بِإِذْنِهِ يَعْلَمُ مَا بَيْنَ أَيْدِيهِمْ وَمَا خَلْفَهُمْ وَلَا يُحِيطُونَ بِشَيْءٍ مِنْ عِلْمِهِ إِلَّا بِمَا شَاءَ وَسِعَ كُرْسِيُّهُ السَّمَاوَاتِ وَالْأَرْضَ وَلَا يَئُودُهُ حِفْظُهُمَا وَهُوَ الْعَلِيُّ الْعَظِيمُ", note: "Ayat Kursi - Dibaca 1x" },
     { text: "بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ<br>قُلْ هُوَ اللَّهُ أَحَدٌ ۞ اللَّهُ الصَّمَدُ ۞ لَمْ يَلِدْ وَلَمْ يُولَدْ ۞ وَلَمْ يَكُنْ لَهُ كُفُوًا أَحَدٌ", note: "QS. Al-Ikhlas - Dibaca 3x" },
@@ -126,7 +122,7 @@ const DATA_DZIKIR_PETANG = [
     { text: "سُبْحَانَ اللهِ وَبِحَمْدِهِ", note: "Dibaca 100x" }
 ];
 
-// --- 3. DATA DZIKIR UMUM (DZUHUR, MAGHRIB, ISYA) ---
+// C. DATA DZIKIR UMUM (DZUHUR, MAGHRIB, ISYA)
 const DATA_DZIKIR_UMUM = [
     { text: "أَسْتَغْفِرُ اللهَ (٣x)<br>اللَّهُمَّ أَنْتَ السَّلَامُ وَمِنْكَ السَّلَامُ تَبَارَكْتَ يَا ذَا الْجَلَالِ وَالْإِكْرَامِ", note: "Istighfar & Doa Keselamatan" },
     { text: "اللَّهُمَّ لَا مَانِعَ لِمَا أَعْطَيْتَ وَلَا مُعْطِيَ لِمَا مَنَعْتَ وَلَا يَنْفَعُ ذَا الْجَدِّ مِنْكَ الْجَدُّ", note: "Doa Ketetapan Allah" },
@@ -142,7 +138,7 @@ const DATA_DZIKIR_UMUM = [
     { text: "سُبْحَانَ رَبِّكَ رَبِّ الْعِزَّةِ عَمَّا يَصِفُونَ وَسَلَامٌ عَلَى الْمُرْسَلِينَ وَالْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ", note: "Penutup" }
 ];
 
-// --- STATE SYSTEM (Gabungan Lama & Baru) ---
+// --- 3. STATE & VARIABLES ---
 let STATE = { 
     mode: 'NORMAL',      
     overrideType: null,  
@@ -154,15 +150,16 @@ let STATE = {
     activeEventTarget: null,
     donationIndex: 0,
     
-    // --- TAMBAHAN BARU UNTUK DZIKIR ---
-    dzikirIndex: 0,      // Untuk melacak urutan doa
-    dzikirInterval: null // Untuk menyimpan timer otomatis dzikir
+    // --- VARIABLES DZIKIR ---
+    dzikirIndex: 0,
+    dzikirInterval: null
 };
 
+let ACTIVE_DZIKIR_DATA = []; // Data Dzikir yang sedang aktif
 let els = {}; 
 let slideTimer = null; 
 
-// --- 2. HELPER FUNCTIONS ---
+// --- 4. HELPER FUNCTIONS ---
 
 function log(funcName, msg) {
     console.log(`[${new Date().toLocaleTimeString()}] [${funcName}] ${msg}`);
@@ -193,50 +190,39 @@ function addMinutes(timeStr, minutesToAdd) {
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
-// Fungsi untuk menentukan ukuran font secara adaptif
-// --- REVISI FUNGSI UKURAN FONT (Lebih Kecil & Proporsional) ---
+// Fungsi Ukuran Font Adaptif (Revisi: Lebih Kecil & Proporsional)
 function getAdaptiveClass(text, type) {
     if (!text) return '';
     const len = text.length;
 
     if (type === 'arab') {
-        // Logika Baru: Ukuran disesuaikan agar tidak memenuhi layar
-        // Pendek (< 60 karakter): Besar tapi wajar
         if (len < 60) return 'text-[7vh] lg:text-[9vh] leading-[1.6]'; 
-        
-        // Sedang (< 100 karakter): Menengah
         if (len < 100) return 'text-[5vh] lg:text-[7vh] leading-[1.8]';
-        
-        // Panjang (< 200 karakter): Kecil agar muat
         if (len < 200) return 'text-[4vh] lg:text-[5vh] leading-[2]';
-        
-        // Sangat Panjang: Lebih kecil lagi
         return 'text-[3vh] lg:text-[4vh] leading-[2.2]'; 
     } else {
-        // Untuk teks Latin
         if (len > 300) return 'text-lg leading-snug';
         if (len > 150) return 'text-xl leading-normal';
         return 'text-2xl lg:text-3xl leading-relaxed'; 
     }
 }
 
-// --- AUDIO SYSTEM (OFFLINE FRIENDLY) ---
-// Pastikan file audio ada di folder ./audio/
+// --- AUDIO SYSTEM ---
 const SFX = {
-    beep: new Audio('./audio/beep.mp3'), // Suara bip pendek
-    final: new Audio('./audio/gong.mp3'), // Suara masuk waktu
+    beep: new Audio('./audio/beep.mp3'), 
+    final: new Audio('./audio/gong.mp3'), 
     lastPlayed: -1 
 };
 
 function playCountdownSound(secondsLeft) {
     if (SFX.lastPlayed === secondsLeft) return;
 
-    if (secondsLeft <= 5 && secondsLeft > 0) { // Bunyi di 5,4,3,2,1
+    if (secondsLeft <= 5 && secondsLeft > 0) { 
         SFX.beep.currentTime = 0;
         SFX.beep.play().catch(() => {});
         SFX.lastPlayed = secondsLeft;
     } 
-    else if (secondsLeft === 0) { // Bunyi Gong di 0
+    else if (secondsLeft === 0) { 
         SFX.final.currentTime = 0;
         SFX.final.play().catch(() => {});
         SFX.lastPlayed = secondsLeft;
@@ -246,7 +232,7 @@ function playCountdownSound(secondsLeft) {
     }
 }
 
-// --- 3. DATA FETCHING ---
+// --- 5. DATA FETCHING ---
 
 async function fetchHijriDate() {
     if (!navigator.onLine) return;
@@ -265,10 +251,8 @@ async function loadContentData() {
     const cacheKey = 'smart_masjid_content_v5'; 
     let loadedFromNet = false;
 
-    // 1. COBA AMBIL DARI INTERNET
     if (navigator.onLine) {
         try {
-            // Fetch Ayat
             const tasksAyat = Array(5).fill(0).map(async () => {
                 try {
                     const r = await fetch("https://api.myquran.com/v2/quran/ayat/acak");
@@ -277,7 +261,6 @@ async function loadContentData() {
                 } catch { return null; }
             });
 
-            // Fetch Hadits
             const tasksHadits = Array(5).fill(0).map(async () => {
                 try {
                     const r = await fetch("https://api.myquran.com/v3/hadis/enc/random");
@@ -286,7 +269,6 @@ async function loadContentData() {
                 } catch { return null; }
             });
             
-            // Fetch Asmaul Husna
             const tasksHusna = Array(5).fill(0).map(async () => {
                 try {
                     const r = await fetch("https://api.myquran.com/v2/husna/acak");
@@ -295,7 +277,6 @@ async function loadContentData() {
                 } catch { return null; }
             });
 
-            // Tunggu Semua Selesai
             const [resAyat, resHadits, resHusna] = await Promise.all([
                 Promise.all(tasksAyat), 
                 Promise.all(tasksHadits),
@@ -311,7 +292,6 @@ async function loadContentData() {
                 DATA_CONTENT.hadits = validHadits;
                 DATA_CONTENT.asmaulHusna = validHusna;
                 
-                // Simpan ke Cache
                 localStorage.setItem(cacheKey, JSON.stringify({ 
                     ayat: validAyat, 
                     hadits: validHadits,
@@ -322,12 +302,9 @@ async function loadContentData() {
                 log('loadContent', 'Konten diperbarui dari internet');
             }
 
-        } catch (e) { 
-            console.warn("Fetch content failed", e); 
-        } // <--- BAGIAN INI YANG TADI HILANG (Penutup Try/Catch)
+        } catch (e) { console.warn("Fetch content failed", e); }
     }
 
-    // 2. JIKA GAGAL/OFFLINE, AMBIL DARI CACHE
     if (!loadedFromNet) {
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
@@ -376,10 +353,9 @@ async function loadSchedule() {
     }
 
     if (schedule) {
-        // --- LOGIKA KOREKSI WAKTU ---
         const rawShubuh = schedule.subuh;
-        const shubuhKoreksi = addMinutes(rawShubuh, 8); // Shubuh +8 menit
-        const imsakKoreksi = addMinutes(shubuhKoreksi, -10); // Imsak 10 menit sebelum shubuh
+        const shubuhKoreksi = addMinutes(rawShubuh, 8); 
+        const imsakKoreksi = addMinutes(shubuhKoreksi, -10); 
 
         CONFIG.prayerTimes = {
             tahajjud: calculateTahajjud(shubuhKoreksi),
@@ -401,7 +377,7 @@ async function loadSchedule() {
     fetchHijriDate();
 }
 
-// --- 4. CORE LOGIC ---
+// --- 6. CORE LOGIC ---
 
 function initElements() {
     els = {
@@ -423,36 +399,36 @@ function initElements() {
             nextDetail: document.getElementById('scene-next-detail'),
             ayat: document.getElementById('scene-ayat'),
             hadits: document.getElementById('scene-hadits'),
-            asmaulHusna: document.getElementById('scene-asmaulhusna'), // <--- Tambah scene ini
-            donation: document.getElementById('scene-donation'), // <-- Jangan lupa ini
+            asmaulHusna: document.getElementById('scene-asmaulhusna'),
+            donation: document.getElementById('scene-donation'),
             countdown: document.getElementById('scene-countdown'),
-            prayer: document.getElementById('scene-prayer')
+            prayer: document.getElementById('scene-prayer'),
+            dzikir: document.getElementById('scene-dzikir') // Scene Dzikir
         },
 
-        // Tambahkan selector elemen text Asmaul Husna
         ahArab: document.getElementById('ah-arab'),
         ahLatin: document.getElementById('ah-latin'),
         ahIndo: document.getElementById('ah-indo'),
 
-        // Elemen Donasi Baru
         donQr: document.getElementById('don-qr'),
         donLogo: document.getElementById('don-logo'),
         donNumber: document.getElementById('don-number'),
         donName: document.getElementById('don-name'),
-        donBgGlow: document.getElementById('don-bg-glow'), // Untuk efek pendar warna
+        donBgGlow: document.getElementById('don-bg-glow'),
 
-        // --- UPDATE ---
-        dzikirTitleBadge: document.getElementById('dzikir-title'), // Ambil ID Badge Dzikir
+        // DZIKIR ELEMENTS
+        dzikirTitleBadge: document.getElementById('dzikir-title'),
         dzikirArab: document.getElementById('dzikir-arabic'),
         dzikirNote: document.getElementById('dzikir-note'),
         dzikirCounter: document.getElementById('dzikir-counter'),
         
+        // COUNTDOWN ELEMENTS
         cdTitle: document.getElementById('countdown-title'),
         cdName: document.getElementById('countdown-name'),
         cdTimer: document.getElementById('countdown-timer'),
         cdRealtime: document.getElementById('countdown-realtime'),
         
-        // --- TAMBAHKAN / UPDATE BAGIAN PRAYER INI ---
+        // PRAYER ELEMENTS
         prayerBadge: document.getElementById('prayer-badge'),
         prayerTitle: document.getElementById('prayer-title'),
         prayerClock: document.getElementById('prayer-clock-big'),
@@ -478,13 +454,10 @@ function updateClockAndLogic() {
     const timeStr = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' }).replace(/\./g, ':');
     if(els.clock) els.clock.innerText = timeStr;
     
-    // Update Tanggal (Masehi) - KOREKSI HARI
+    // Update Tanggal
     if(els.dateMasehi) {
         let dateStr = now.toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-        
-        // Ganti kata 'Minggu' menjadi 'Ahad'
         dateStr = dateStr.replace('Minggu', 'Ahad');
-        
         els.dateMasehi.innerText = dateStr;
     }
     
@@ -531,13 +504,12 @@ function calculateNextPrayer(now) {
     const ss = Math.floor((diffMs % 60000) / 1000).toString().padStart(2,'0');
     const countdownString = `-${hh}:${mm}:${ss}`;
 
-    // Sound Effect Trigger
+    // Sound Effect
     playCountdownSound(Math.floor(diffMs / 1000));
 
     // Update UI
     if(els.nextName) els.nextName.innerText = found.name.toUpperCase();
     if(els.countdown) els.countdown.innerText = countdownString;
-    
     if(els.ndName) els.ndName.innerText = found.name.toUpperCase();
     if(els.ndCountdown) els.ndCountdown.innerText = countdownString;
     if(els.ndTarget) els.ndTarget.innerText = found.time; 
@@ -560,6 +532,7 @@ function updateFooterHighlight(activeKey) {
     }
 }
 
+// --- SYSTEM MODE CHECKER ---
 function checkSystemMode(now) {
     if (!STATE.nextPrayer) return;
 
@@ -601,33 +574,32 @@ function checkSystemMode(now) {
             const tAdzan = new Date(now);
             tAdzan.setHours(h, m, 0, 0);
             
-            // --- LOGIKA DURASI DINAMIS ---
-            let durIqamah = CONFIG.timeRules.preIqamah; // Default 10
-            if (name === 'shubuh') durIqamah = 13; // Shubuh 13 menit
-            if (name === 'isya') durIqamah = 5;    // Isya 5 menit
+            // Logika Durasi Dinamis
+            let durIqamah = CONFIG.timeRules.preIqamah;
+            if (name === 'shubuh') durIqamah = 13; 
+            if (name === 'isya') durIqamah = 5;
 
             let durPrayer = CONFIG.timeRules.inPrayer;
             if (now.getDay() === 5 && name === 'dzuhur') {
-                durPrayer = CONFIG.timeRules.jumatPrayer; // Jumat 60 menit
+                durPrayer = CONFIG.timeRules.jumatPrayer;
             }
 
-            // --- UPDATE LOGIKA DURASI DZIKIR ---
-            let durDzikir = CONFIG.timeRules.dzikir; // Default 6 menit (Dzuhur, Maghrib, Isya)
+            // Logika Durasi Dzikir Dinamis
+            let durDzikir = CONFIG.timeRules.dzikir; // Default 6 menit
             if (name === 'shubuh' || name === 'ashar') {
-                durDzikir = 15; // Khusus Shubuh & Ashar jadi 15 menit
+                durDzikir = 15; // Shubuh & Ashar: 15 Menit
             }
 
             const msPreAdzan = CONFIG.timeRules.preAdzan * 60000;
             const msPreIqamah = durIqamah * 60000;
             const msInPrayer = durPrayer * 60000;
-            const msDzikir = durDzikir * 60000; // Gunakan durasi dinamis
+            const msDzikir = durDzikir * 60000; 
 
             const tStartPreAdzan = tAdzan.getTime() - msPreAdzan;
             const tEndPreIqamah = tAdzan.getTime() + msPreIqamah;
             const tEndPrayer = tEndPreIqamah + msInPrayer;
             const tEndDzikir = tEndPrayer + msDzikir;
 
-            // 1. Cek Adzan
             if (curTime >= tStartPreAdzan && curTime < tAdzan.getTime()) {
                 newMode = 'OVERRIDE';
                 newType = 'ADZAN';
@@ -636,7 +608,6 @@ function checkSystemMode(now) {
                 break;
             }
             
-            // 2. Cek Iqamah
             if (curTime >= tAdzan.getTime() && curTime < tEndPreIqamah) {
                 newMode = 'OVERRIDE';
                 newType = 'IQAMAH';
@@ -645,26 +616,20 @@ function checkSystemMode(now) {
                 break;
             }
 
-            // 3. Cek Sholat Berlangsung
             if (curTime >= tEndPreIqamah && curTime < tEndPrayer) {
                 newMode = 'OVERRIDE';
                 newType = 'PRAYER';
                 if (now.getDay() === 5 && name === 'dzuhur') metaData.isJumat = true; 
-                metaData.name = name; // Kirim nama sholat ke metadata
+                metaData.name = name;
                 break;
             }
 
-            // 4. Cek Dzikir (UPDATE: Mencakup semua sholat)
+            // Cek Mode Dzikir
             if ((name === 'shubuh' || name === 'ashar' || name === 'dzuhur' || name === 'maghrib' || name === 'isya') && curTime >= tEndPrayer && curTime < tEndDzikir) {
                 newMode = 'OVERRIDE';
-                
-                if (name === 'shubuh') {
-                    newType = 'DZIKIR_PAGI';
-                } else if (name === 'ashar') {
-                    newType = 'DZIKIR_PETANG';
-                } else {
-                    newType = 'DZIKIR_UMUM';
-                }
+                if (name === 'shubuh') newType = 'DZIKIR_PAGI';
+                else if (name === 'ashar') newType = 'DZIKIR_PETANG';
+                else newType = 'DZIKIR_UMUM';
                 
                 metaData = { name };
                 break;
@@ -680,29 +645,23 @@ function checkSystemMode(now) {
         updateOverlayTimer(target - now);
     }
 }
-// --- GANTI FUNGSI applyMode DI SCRIPT.JS DENGAN INI ---
 
-// --- FUNGSI applyMode VERSI ANTI-ERROR ---
-
-// --- FUNGSI applyMode (UPDATE LENGKAP) ---
+// --- APPLY MODE (TAMPILAN) ---
 function applyMode(mode, type, target, meta) {
     STATE.mode = mode;
     STATE.overrideType = type;
     STATE.activeEventTarget = target;
 
-    // 1. CLEANUP (Bersihkan state sebelumnya)
     clearTimeout(slideTimer);
     
-    // Reset Interval Dzikir jika ada
+    // Reset Interval Dzikir
     if (STATE.dzikirInterval) {
         clearInterval(STATE.dzikirInterval);
         STATE.dzikirInterval = null;
     }
 
-    // Reset Progress Bar
     if(els.progress) els.progress.style.width = '0';
     
-    // Sembunyikan semua scene & reset tema
     Object.values(els.scenes).forEach(el => {
         if (el) { 
             el.classList.add('hidden-slide');
@@ -710,24 +669,19 @@ function applyMode(mode, type, target, meta) {
         }
     });
 
-    // --- LOGIKA UTAMA ---
-
     if (mode === 'NORMAL') {
-        // --- MODE NORMAL (SLIDESHOW) ---
         if(els.header) els.header.style.display = 'grid';
         if(els.footer) els.footer.style.display = 'grid';
-        
         if(els.scenes.home) els.scenes.home.classList.remove('hidden-slide');
         
         STATE.slideIndex = 0;
         renderSlide();
     } 
     else {
-        // --- MODE OVERRIDE (ADZAN, SHOLAT, DZIKIR) ---
         if(els.header) els.header.style.display = 'none';
         if(els.footer) els.footer.style.display = 'none';
 
-        // A. TAMPILAN ADZAN & IQAMAH
+        // 1. ADZAN & IQAMAH
         if (type === 'ADZAN' || type === 'IQAMAH') {
             const sc = els.scenes.countdown;
             const glow = document.getElementById('countdown-glow');
@@ -735,21 +689,16 @@ function applyMode(mode, type, target, meta) {
             if (sc) {
                 sc.classList.remove('hidden-slide');
 
-                // Helper: Reset warna teks & glow manual
                 if (els.cdTimer) els.cdTimer.classList.remove('text-red-500', 'text-yellow-400', 'text-white');
                 if (glow) glow.classList.remove('bg-red-600/30', 'bg-yellow-500/30', 'bg-white/10');
 
-                // Set Teks
                 if(els.cdTitle) els.cdTitle.innerText = type === 'ADZAN' ? 'MENUJU ADZAN' : 'MENUJU IQOMAH';
                 if(els.cdName) els.cdName.innerText = meta.name ? meta.name.toUpperCase() : 'SHOLAT';
                 
-                // Set Warna
                 if (type === 'ADZAN') {
-                    // Merah untuk Adzan
                     if(els.cdTimer) els.cdTimer.classList.add('text-red-500'); 
                     if(glow) glow.classList.add('bg-red-600/30'); 
                 } else {
-                    // Kuning untuk Iqamah
                     if(els.cdTimer) els.cdTimer.classList.add('text-yellow-400'); 
                     if(glow) glow.classList.add('bg-yellow-500/30'); 
                 }
@@ -759,18 +708,16 @@ function applyMode(mode, type, target, meta) {
             }
         } 
         
-        // B. TAMPILAN DZIKIR (PAGI / PETANG / UMUM)
+        // 2. DZIKIR (PAGI / PETANG / UMUM)
         else if (type === 'DZIKIR_PAGI' || type === 'DZIKIR_PETANG' || type === 'DZIKIR_UMUM') {
             const sd = els.scenes.dzikir;
             if (sd) {
                 sd.classList.remove('hidden-slide');
                 
-                // Reset styling badge ke warna emas default
                 if(els.dzikirTitleBadge) {
                     els.dzikirTitleBadge.className = "bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]";
                 }
 
-                // Pilih Data & Judul Badge
                 if (type === 'DZIKIR_PAGI') {
                     ACTIVE_DZIKIR_DATA = DATA_DZIKIR;
                     if(els.dzikirTitleBadge) els.dzikirTitleBadge.innerText = "DZIKIR PAGI";
@@ -784,15 +731,12 @@ function applyMode(mode, type, target, meta) {
                     if(els.dzikirTitleBadge) els.dzikirTitleBadge.innerText = "DZIKIR SHOLAT";
                 }
 
-                // Render Item Pertama
                 renderDzikirItem();
-                
-                // Mulai Interval Rotasi (Setiap 25 Detik)
                 STATE.dzikirInterval = setInterval(renderDzikirItem, 25000); 
             }
         }
         
-        // C. TAMPILAN LAINNYA (SHOLAT, KAJIAN, JUMAT)
+        // 3. LAINNYA
         else {
             const sp = els.scenes.prayer;
             if (sp) {
@@ -802,12 +746,8 @@ function applyMode(mode, type, target, meta) {
                 if (type === 'PRAYER') {
                     sp.classList.add('theme-khusyu'); 
                     ensureOverlayClock(sp);
-                    
-                    if (meta && meta.isJumat) {
-                        setupGenericOverlay('PRAYER_JUMAT', 'JUMAT');
-                    } else {
-                        setupGenericOverlay('PRAYER', prayerName);
-                    }
+                    if (meta && meta.isJumat) setupGenericOverlay('PRAYER_JUMAT', 'JUMAT');
+                    else setupGenericOverlay('PRAYER', prayerName);
                 }
                 else if (type === 'KAJIAN') {
                     sp.classList.add('theme-silver');
@@ -834,15 +774,10 @@ function updateOverlayTimer(diffMs) {
     els.cdTimer.innerText = `${m}:${s}`;
 }
 
-// Fungsi Update Jam saat Sholat
-// --- UPDATE FUNGSI INI ---
 function ensureOverlayClock(parentScene) {
     const bigClock = document.getElementById('prayer-clock-big');
-    
-    // Timer Realtime di Scene Countdown (YANG BARU)
     const countdownRealtime = els.cdRealtime; 
 
-    // Update Jam Kecil (Overlay Widget) - Untuk scene lain selain Countdown
     let overlayClock = parentScene.querySelector('.overlay-clock-widget');
     if (!overlayClock && parentScene.id !== 'scene-prayer' && parentScene.id !== 'scene-countdown') { 
         overlayClock = document.createElement('div');
@@ -855,69 +790,51 @@ function ensureOverlayClock(parentScene) {
         const timeStrWithSeconds = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit', second:'2-digit' }).replace(/\./g, ':');
         const timeStrSimple = now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }).replace(/\./g, ':');
 
-        // 1. Update Jam Besar (Scene Prayer)
         if (bigClock && document.body.contains(bigClock)) {
             bigClock.innerText = timeStrWithSeconds;
         }
-
-        // 2. Update Jam Realtime (Scene Countdown - BARU)
         if (countdownRealtime && document.body.contains(countdownRealtime)) {
             countdownRealtime.innerText = timeStrWithSeconds;
         }
-
-        // 3. Update Jam Overlay (Scene Lain)
         if (overlayClock && document.body.contains(overlayClock)) {
             overlayClock.innerText = timeStrSimple;
         }
-
         requestAnimationFrame(updateThisClock);
     };
     requestAnimationFrame(updateThisClock);
 }
 
-// --- GANTI FUNGSI setupGenericOverlay DENGAN INI ---
-
 function setupGenericOverlay(type, name) {
-    // Default Text (Untuk Sholat Wajib)
     let badgeText = "SEDANG BERLANGSUNG";
     let titleText = name ? name.toUpperCase() : "SHOLAT";
     let arabText = "سَوُّوا صُفُوفَكُمْ , فَإِنَّ تَسْوِيَةَ الصَّفِّ مِنْ تَمَامِ الصَّلاةِ";
     let transText = '"Luruskanlah shaf kalian, karena lurusnya shaf adalah bagian dari kesempurnaan sholat"';
 
-    // Kustomisasi berdasarkan tipe event
     if (type === 'PRAYER_JUMAT') { 
         badgeText = "KHUTBAH JUMAT";
         titleText = "JUMAT";
         arabText = "إِذَا قُلْتَ لِصَاحِبِكَ يَوْمَ الْجُمُعَةِ أَنْصِتْ وَالإِمَامُ يَخْطُبُ فَقَدْ لَغَوْتَ";
         transText = '"Jika engkau berkata pada temanmu \'Diamlah\' di hari Jumat saat imam berkhutbah, maka sia-sialah Jumatmu"';
     }
-    else if (type === 'DZIKIR') {
-        badgeText = "BA'DA SHOLAT";
-        titleText = "DZIKIR & DOA";
-        arabText = "أَسْتَغْفِرُ اللهَ... أَسْتَغْفِرُ اللهَ... أَسْتَغْفِرُ اللهَ";
-        transText = '"Harap Tenang & Menjaga Kekhusyukan Jamaah Lain"';
-    }
     else if (type === 'KAJIAN') {
         badgeText = "KAJIAN RUTIN";
         titleText = DATA_CONTENT.kajianAhad.title || "KAJIAN";
-        arabText = ""; // Kosongkan jika tidak ada
+        arabText = ""; 
         transText = DATA_CONTENT.kajianAhad.desc + " | " + DATA_CONTENT.kajianAhad.sub;
     }
 
-    // Terapkan ke Elemen (Pakai pengecekan if(el) agar aman)
     if(els.prayerBadge) els.prayerBadge.innerText = badgeText;
     if(els.prayerTitle) els.prayerTitle.innerText = titleText;
-    
     if(els.prayerArabic) {
         els.prayerArabic.innerText = arabText;
         els.prayerArabic.style.display = arabText ? 'block' : 'none';
     }
-    
     if(els.prayerTranslate) els.prayerTranslate.innerText = transText;
 }
-// --- 5. SLIDESHOW SYSTEM (NORMAL MODE) ---
 
-const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
+// --- 7. SLIDESHOW SYSTEM ---
+
+const SLIDE_ORDER = ['home', 'nextDetail', 'ayat', 'hadits', 'dzikir', 'asmaulHusna', 'donation'];
 
 function renderSlide() {
     if (STATE.mode !== 'NORMAL') return;
@@ -930,16 +847,10 @@ function renderSlide() {
         if (sceneKey === 'ayat') {
             if (DATA_CONTENT.ayat.length > 0) {
                 const item = DATA_CONTENT.ayat[STATE.ayatIndex % DATA_CONTENT.ayat.length];
-                
-                // 1. UPDATE: TEKS ARTI (TERJEMAHAN) DINAMIS
-                // Menggunakan getAdaptiveClass(..., 'latin') agar ukuran menyesuaikan panjang teks
                 els.ayatText.innerHTML = `"${item.text}"`;
                 els.ayatText.className = `font-sans font-light text-slate-200 italic transition-all duration-500 text-center ${getAdaptiveClass(item.text, 'latin')}`;
-
-                // 2. TEKS ARAB (Sudah Benar)
                 els.ayatArabic.innerText = item.arabic;
                 els.ayatArabic.className = `font-serif text-white text-center !text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-4 ${getAdaptiveClass(item.arabic, 'arab')}`;
-                
                 els.ayatSource.innerText = item.source;
                 STATE.ayatIndex++;
             } else skip = true;
@@ -947,65 +858,56 @@ function renderSlide() {
         else if (sceneKey === 'hadits') {
             if (DATA_CONTENT.hadits.length > 0) {
                 const item = DATA_CONTENT.hadits[STATE.haditsIndex % DATA_CONTENT.hadits.length];
-                
-                // 1. UPDATE: TEKS ARTI (TERJEMAHAN) DINAMIS
                 els.haditsText.innerHTML = `"${item.text}"`;
                 els.haditsText.className = `font-sans text-slate-300 italic transition-all duration-500 text-center ${getAdaptiveClass(item.text, 'latin')}`;
-                
-                // 2. TEKS ARAB (Sudah Benar)
                 els.haditsArabic.innerText = item.arabic;
                 els.haditsArabic.className = `font-serif text-gradient-gold text-center !text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-4 ${getAdaptiveClass(item.arabic, 'arab')}`;
-                
                 els.haditsSource.innerText = item.source;
                 STATE.haditsIndex++;
+            } else skip = true;
+        }
+        // DZIKIR DI MODE SLIDESHOW (Opsional, pakai data pagi)
+        else if (sceneKey === 'dzikir') {
+            if (DATA_DZIKIR.length > 0) {
+                ACTIVE_DZIKIR_DATA = DATA_DZIKIR; // Default ke dzikir pagi
+                if(els.dzikirTitleBadge) els.dzikirTitleBadge.innerText = "DZIKIR HARIAN";
+                renderDzikirItem();
             } else skip = true;
         }
         else if (sceneKey === 'asmaulHusna') {
             if (DATA_CONTENT.asmaulHusna && DATA_CONTENT.asmaulHusna.length > 0) {
                 const item = DATA_CONTENT.asmaulHusna[STATE.asmaulHusnaIndex % DATA_CONTENT.asmaulHusna.length];
-    
-                // Bagian ini sudah OK (Jarak & Tengah)
                 els.ahArab.innerText = item.arab;
                 els.ahArab.className = `font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl text-center !text-center transition-all duration-500 mt-24 ${getAdaptiveClass(item.arab, 'arab')}`;
-                
                 els.ahLatin.innerText = item.latin;
                 els.ahIndo.innerText = `"${item.indo}"`;
-    
                 STATE.asmaulHusnaIndex++;
-            } else {
-                skip = true;
-            }
+            } else skip = true;
         }
         else if (sceneKey === 'donation') {
             if (DATA_CONTENT.donations.length > 0) {
                 const item = DATA_CONTENT.donations[STATE.donationIndex % DATA_CONTENT.donations.length];
-                
                 els.donQr.src = item.qr;
                 els.donLogo.src = item.logo;
                 els.donNumber.innerText = item.number;
                 els.donName.innerText = item.name;
-                
                 els.donNumber.className = `text-6xl lg:text-7xl font-mono font-bold tracking-tighter mb-4 drop-shadow-lg transition-colors duration-500 ${item.color}`;
                 els.donBgGlow.className = `absolute top-0 right-0 w-[50vh] h-[50vh] rounded-full blur-[100px] animate-pulse transition-colors duration-1000 ${item.glow}`;
-
                 STATE.donationIndex++;
-            } else {
-                skip = true;
-            }
+            } else skip = true;
         }
     } catch(e) {
         console.error("Render Slide Error:", e);
         skip = true;
     }
 
-    const allScenes = ['home', 'nextDetail', 'ayat', 'hadits', 'asmaulHusna', 'donation'];
+    const allScenes = ['home', 'nextDetail', 'ayat', 'hadits', 'dzikir', 'asmaulHusna', 'donation'];
     allScenes.forEach(k => {
         if(els.scenes[k]) els.scenes[k].classList.add('hidden-slide');
     });
 
     if (!skip) {
         if(els.scenes[sceneKey]) els.scenes[sceneKey].classList.remove('hidden-slide');
-        
         if(els.progress) {
             els.progress.style.transition = 'none';
             els.progress.style.width = '0';
@@ -1014,7 +916,6 @@ function renderSlide() {
                 els.progress.style.width = '100%';
             }, 50);
         }
-
         slideTimer = setTimeout(() => {
             STATE.slideIndex = (STATE.slideIndex + 1) % SLIDE_ORDER.length;
             renderSlide();
@@ -1028,12 +929,10 @@ function renderSlide() {
 function renderFooter() {
     els.footer.innerHTML = '';
     const keys = ['imsak', 'shubuh', 'syuruq', 'dhuha', 'dzuhur', 'ashar', 'maghrib', 'isya'];
-    
     keys.forEach(k => {
         const div = document.createElement('div');
         div.dataset.key = k; 
         div.className = "flex flex-col items-center justify-center rounded-xl transition-all duration-500 relative overflow-hidden group border border-transparent";
-        
         div.innerHTML = `
             <div class="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
             <h3 class="relative z-10 text-[10px] lg:text-xs text-slate-400 uppercase tracking-[0.2em] font-cinzel font-bold mb-1 group-hover:text-gold-400">
@@ -1048,34 +947,25 @@ function renderFooter() {
 }
 
 function renderDzikirItem() {
-    // Pastikan ada data aktif
     if (!ACTIVE_DZIKIR_DATA || ACTIVE_DZIKIR_DATA.length === 0) return;
-    
     const item = ACTIVE_DZIKIR_DATA[STATE.dzikirIndex % ACTIVE_DZIKIR_DATA.length];
     
     if(els.dzikirArab) {
         els.dzikirArab.innerHTML = item.text;
-        // Gunakan getAdaptiveClass agar ukuran font menyesuaikan
         els.dzikirArab.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-8 leading-relaxed ${getAdaptiveClass(item.text, 'arab')}`;
     }
-    
     if(els.dzikirNote) els.dzikirNote.innerText = item.note;
-    
     if(els.dzikirCounter) {
         const currentNum = (STATE.dzikirIndex % ACTIVE_DZIKIR_DATA.length) + 1;
         els.dzikirCounter.innerText = `${currentNum} / ${ACTIVE_DZIKIR_DATA.length}`;
     }
-    
     STATE.dzikirIndex++;
 }
 
-// --- 6. INIT ---
-
+// --- 8. INIT ---
 document.addEventListener('DOMContentLoaded', async () => {
     log('INIT', 'System Start...');
     initElements();
-    
-    // Unlock Audio Context (Klik pertama kali untuk mengizinkan suara)
     document.addEventListener('click', function() {
         SFX.beep.play().then(() => { SFX.beep.pause(); SFX.beep.currentTime=0; }).catch(()=>{});
     }, { once: true });
