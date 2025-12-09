@@ -433,7 +433,6 @@ function initElements() {
         prayerTitle: document.getElementById('prayer-title'),
         prayerClock: document.getElementById('prayer-clock-big'),
         prayerArabic: document.getElementById('prayer-arabic'),
-        prayerTranslate: document.getElementById('prayer-translate'),
         
         footer: document.getElementById('footer-schedule'),
         progress: document.getElementById('slide-progress'),
