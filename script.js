@@ -803,32 +803,37 @@ function ensureOverlayClock(parentScene) {
     requestAnimationFrame(updateThisClock);
 }
 
+// --- UPDATE FUNGSI INI ---
 function setupGenericOverlay(type, name) {
+    // Default Text
     let badgeText = "SEDANG BERLANGSUNG";
     let titleText = name ? name.toUpperCase() : "SHOLAT";
+    // Text Arab Default (Hadits Shaf)
     let arabText = "سَوُّوا صُفُوفَكُمْ , فَإِنَّ تَسْوِيَةَ الصَّفِّ مِنْ تَمَامِ الصَّلاةِ";
-    let transText = '"Luruskanlah shaf kalian, karena lurusnya shaf adalah bagian dari kesempurnaan sholat"';
 
+    // Kustomisasi
     if (type === 'PRAYER_JUMAT') { 
         badgeText = "KHUTBAH JUMAT";
         titleText = "JUMAT";
         arabText = "إِذَا قُلْتَ لِصَاحِبِكَ يَوْمَ الْجُمُعَةِ أَنْصِتْ وَالإِمَامُ يَخْطُبُ فَقَدْ لَغَوْتَ";
-        transText = '"Jika engkau berkata pada temanmu \'Diamlah\' di hari Jumat saat imam berkhutbah, maka sia-sialah Jumatmu"';
     }
     else if (type === 'KAJIAN') {
         badgeText = "KAJIAN RUTIN";
         titleText = DATA_CONTENT.kajianAhad.title || "KAJIAN";
         arabText = ""; 
-        transText = DATA_CONTENT.kajianAhad.desc + " | " + DATA_CONTENT.kajianAhad.sub;
     }
 
+    // Terapkan ke Elemen
     if(els.prayerBadge) els.prayerBadge.innerText = badgeText;
     if(els.prayerTitle) els.prayerTitle.innerText = titleText;
+    
     if(els.prayerArabic) {
         els.prayerArabic.innerText = arabText;
+        // Sembunyikan jika text kosong
         els.prayerArabic.style.display = arabText ? 'block' : 'none';
     }
-    if(els.prayerTranslate) els.prayerTranslate.innerText = transText;
+    
+    // BAGIAN TRANSLATE SUDAH DIHAPUS
 }
 
 // --- 7. SLIDESHOW SYSTEM ---
