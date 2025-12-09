@@ -950,9 +950,7 @@ function renderFooter() {
     });
 }
 
-// --- FUNGSI RENDER DZIKIR (UPDATE: UKURAN FONT LEBIH BESAR) ---
-// --- FUNGSI RENDER DZIKIR (UPDATE: UKURAN FONT MAKSIMAL) ---
-// --- FUNGSI RENDER DZIKIR (REVISI UKURAN: PAS & PROPORSIONAL) ---
+// --- FUNGSI RENDER DZIKIR (SAFE MODE: Agar Note Tidak Hilang) ---
 function renderDzikirItem() {
     if (!ACTIVE_DZIKIR_DATA || ACTIVE_DZIKIR_DATA.length === 0) return;
     
@@ -961,34 +959,33 @@ function renderDzikirItem() {
     if(els.dzikirArab) {
         els.dzikirArab.innerHTML = item.text;
         
-        // --- LOGIKA UKURAN FONT BARU (Lebih Kalem) ---
+        // --- LOGIKA UKURAN FONT (DIKURANGI SEDIKIT AGAR AMAN) ---
         const len = item.text.length;
         let fontClass = '';
 
         if (len < 50) {
-            // Sangat Pendek (Misal: Subhanallah) -> Besar tapi tidak Raksasa
-            fontClass = 'text-[8vh] lg:text-[12vh] leading-[1.4]';
+            // Pendek: 10vh (Tadi 12vh)
+            fontClass = 'text-[8vh] lg:text-[10vh] leading-[1.4]';
         } 
         else if (len < 150) {
-            // Pendek (Misal: Ayat Kursi / Al Ikhlas)
-            fontClass = 'text-[6vh] lg:text-[9vh] leading-[1.5]';
+            // Sedang: 7vh (Tadi 9vh)
+            fontClass = 'text-[6vh] lg:text-[7vh] leading-[1.5]';
         } 
         else if (len < 300) {
-            // Sedang (Misal: Doa Pagi standar)
-            fontClass = 'text-[5vh] lg:text-[7vh] leading-[1.6]';
+            // Panjang: 5.5vh (Tadi 7vh)
+            fontClass = 'text-[4.5vh] lg:text-[5.5vh] leading-[1.6]';
         } 
         else if (len < 500) {
-            // Panjang (Misal: Sayyidul Istighfar)
-            fontClass = 'text-[4vh] lg:text-[5.5vh] leading-[1.7]';
+            // Sangat Panjang: 4.5vh (Tadi 5.5vh)
+            fontClass = 'text-[3.5vh] lg:text-[4.5vh] leading-[1.7]';
         } 
         else {
-            // Sangat Panjang
-            fontClass = 'text-[3.5vh] lg:text-[4.5vh] leading-[1.8]';
+            // Ekstra Panjang: 3.5vh (Tadi 4.5vh)
+            fontClass = 'text-[3vh] lg:text-[3.5vh] leading-[1.8]';
         }
 
-        // Terapkan Class
-        // Tambahkan max-w-7xl agar teks tidak terlalu melebar ke pinggir TV
-        els.dzikirArab.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_5px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full max-w-7xl mx-auto ${fontClass}`;
+        // Tambahkan pb-2 (padding bottom) agar tidak terlalu mepet Note
+        els.dzikirArab.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_5px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full max-w-7xl mx-auto pb-2 ${fontClass}`;
     }
     
     if(els.dzikirNote) els.dzikirNote.innerText = item.note;
