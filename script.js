@@ -386,9 +386,12 @@ function initElements() {
         cdTimer: document.getElementById('countdown-timer'),
         cdRealtime: document.getElementById('countdown-realtime'),
         
-        prayerTitle: document.querySelector('#scene-prayer h1'),
-        prayerSub: document.querySelector('#scene-prayer p:first-of-type'),
-        prayerNote: document.querySelector('#scene-prayer p:last-of-type'),
+        // --- TAMBAHKAN / UPDATE BAGIAN PRAYER INI ---
+        prayerBadge: document.getElementById('prayer-badge'),
+        prayerTitle: document.getElementById('prayer-title'),
+        prayerClock: document.getElementById('prayer-clock-big'),
+        prayerArabic: document.getElementById('prayer-arabic'),
+        prayerTranslate: document.getElementById('prayer-translate'),
         
         footer: document.getElementById('footer-schedule'),
         progress: document.getElementById('slide-progress'),
