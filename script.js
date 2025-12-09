@@ -950,19 +950,52 @@ function renderFooter() {
     });
 }
 
+// --- FUNGSI RENDER DZIKIR (UPDATE: UKURAN FONT LEBIH BESAR) ---
 function renderDzikirItem() {
     if (!ACTIVE_DZIKIR_DATA || ACTIVE_DZIKIR_DATA.length === 0) return;
+    
     const item = ACTIVE_DZIKIR_DATA[STATE.dzikirIndex % ACTIVE_DZIKIR_DATA.length];
     
     if(els.dzikirArab) {
         els.dzikirArab.innerHTML = item.text;
-        els.dzikirArab.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-8 leading-relaxed ${getAdaptiveClass(item.text, 'arab')}`;
+        
+        // --- LOGIKA UKURAN FONT KHUSUS DZIKIR (AGRESIF) ---
+        // Kita hitung panjang teks untuk menentukan ukuran font yang pas
+        const len = item.text.length;
+        let fontClass = '';
+
+        if (len < 50) {
+            // Sangat Pendek (Misal: Subhanallah) -> RAKSASA
+            fontClass = 'text-[10vh] lg:text-[14vh] leading-[1.3]';
+        } 
+        else if (len < 150) {
+            // Pendek (Misal: Ayat Kursi / Al Ikhlas) -> SANGAT BESAR
+            fontClass = 'text-[7vh] lg:text-[10vh] leading-[1.4]';
+        } 
+        else if (len < 300) {
+            // Sedang (Misal: Doa Pagi standar) -> BESAR
+            fontClass = 'text-[5vh] lg:text-[7vh] leading-[1.5]';
+        } 
+        else if (len < 500) {
+            // Panjang (Misal: Sayyidul Istighfar) -> MENENGAH (Pas Layar)
+            fontClass = 'text-[4vh] lg:text-[5.5vh] leading-[1.6]';
+        } 
+        else {
+            // Sangat Panjang -> KECIL (Agar muat)
+            fontClass = 'text-[3vh] lg:text-[4vh] leading-[1.6]';
+        }
+
+        // Terapkan Class
+        els.dzikirArab.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_5px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full ${fontClass}`;
     }
+    
     if(els.dzikirNote) els.dzikirNote.innerText = item.note;
+    
     if(els.dzikirCounter) {
         const currentNum = (STATE.dzikirIndex % ACTIVE_DZIKIR_DATA.length) + 1;
         els.dzikirCounter.innerText = `${currentNum} / ${ACTIVE_DZIKIR_DATA.length}`;
     }
+    
     STATE.dzikirIndex++;
 }
 
