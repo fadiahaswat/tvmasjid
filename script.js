@@ -762,11 +762,67 @@ function applyMode(mode, type, target, meta) {
                         setupGenericOverlay('PRAYER', prayerName);
                     }
                 }
-                else if (type === 'DZIKIR') {
-                    sp.classList.add('theme-blue');
-                    setupGenericOverlay('DZIKIR', prayerName);
+                // ... (di dalam fungsi applyMode bagian else mode != NORMAL) ...
+
+        // --- GANTI BLOK LOGIKA DZIKIR ---
+        else if (type === 'DZIKIR_PAGI' || type === 'DZIKIR_PETANG' || type === 'DZIKIR_UMUM') {
+            const sd = els.scenes.dzikir;
+            if (sd) {
+                sd.classList.remove('hidden-slide');
+                
+                // Reset styling badge
+                if(els.dzikirTitleBadge) {
+                    els.dzikirTitleBadge.className = "bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]";
+                }
+
+                // Pilih Data & Judul
+                if (type === 'DZIKIR_PAGI') {
+                    ACTIVE_DZIKIR_DATA = DATA_DZIKIR;
+                    if(els.dzikirTitleBadge) els.dzikirTitleBadge.innerText = "DZIKIR PAGI";
+                } 
+                else if (type === 'DZIKIR_PETANG') {
+                    ACTIVE_DZIKIR_DATA = DATA_DZIKIR_PETANG;
+                    if(els.dzikirTitleBadge) els.dzikirTitleBadge.innerText = "DZIKIR PETANG";
+                } 
+                else {
+                    ACTIVE_DZIKIR_DATA = DATA_DZIKIR_UMUM;
+                    if(els.dzikirTitleBadge) els.dzikirTitleBadge.innerText = "DZIKIR SHOLAT";
+                }
+
+                // Jalankan Render
+                renderDzikirItem();
+                
+                // Putar otomatis setiap 25 detik
+                STATE.dzikirInterval = setInterval(renderDzikirItem, 25000); 
+            }
+        }
+        
+        else {
+             // Sisa Prayer (Tinggal copy paste bagian prayer lama)
+             const sp = els.scenes.prayer;
+             if (sp) {
+                sp.classList.remove('hidden-slide');
+                const prayerName = meta && meta.name ? meta.name : '';
+
+                if (type === 'PRAYER') {
+                    sp.classList.add('theme-khusyu'); 
+                    ensureOverlayClock(sp);
+                    if (meta && meta.isJumat) setupGenericOverlay('PRAYER_JUMAT', 'JUMAT');
+                    else setupGenericOverlay('PRAYER', prayerName);
+                }
+                // (Hapus else if type === 'DZIKIR' yang lama karena sudah diganti diatas)
+                else if (type === 'KAJIAN') {
+                    sp.classList.add('theme-silver');
+                    setupGenericOverlay('KAJIAN', 'AHAD PAGI');
                     ensureOverlayClock(sp);
                 }
+                else if (type === 'JUMAT') { 
+                    sp.classList.add('theme-gold');
+                    setupGenericOverlay('JUMAT', 'JUMAT');
+                    ensureOverlayClock(sp);
+                }
+             }
+        }
                 else if (type === 'KAJIAN') {
                     sp.classList.add('theme-silver');
                     setupGenericOverlay('KAJIAN', 'AHAD PAGI');
