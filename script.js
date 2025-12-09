@@ -883,14 +883,22 @@ function renderSlide() {
         else if (sceneKey === 'asmaulHusna') {
             if (DATA_CONTENT.asmaulHusna && DATA_CONTENT.asmaulHusna.length > 0) {
                 const item = DATA_CONTENT.asmaulHusna[STATE.asmaulHusnaIndex % DATA_CONTENT.asmaulHusna.length];
+                
+                // ARAB: Gunakan adaptive class (biasanya masuk kategori pendek <60 char)
                 els.ahArab.innerText = item.arab;
-                els.ahArab.className = `font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl text-center !text-center transition-all duration-500 mt-24 ${getAdaptiveClass(item.arab, 'arab')}`;
+                els.ahArab.className = `font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl text-center transition-all duration-500 ${getAdaptiveClass(item.arab, 'arab')}`;
+                
+                // LATIN
                 els.ahLatin.innerText = item.latin;
+                
+                // ARTI: Tambahkan tanda kutip & pastikan font Cinzel via class di HTML
                 els.ahIndo.innerText = `"${item.indo}"`;
+
                 STATE.asmaulHusnaIndex++;
-            } else skip = true;
-        }
-        else if (sceneKey === 'donation') {
+            } else {
+                skip = true;
+            }
+        }else if (sceneKey === 'donation') {
             if (DATA_CONTENT.donations.length > 0) {
                 const item = DATA_CONTENT.donations[STATE.donationIndex % DATA_CONTENT.donations.length];
                 els.donQr.src = item.qr;
