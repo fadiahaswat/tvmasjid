@@ -674,31 +674,41 @@ function applyMode(mode, type, target, meta) {
                 ensureOverlayClock(sc);
             }
         } 
+        // ... (bagian atas applyMode sama)
+
         else {
             // Bagian Prayer, Dzikir, dll
             const sp = els.scenes.prayer;
             if (sp) {
                 sp.classList.remove('hidden-slide');
                 
+                // Ambil nama sholat dari meta data
+                const prayerName = meta && meta.name ? meta.name : '';
+
                 if (type === 'PRAYER') {
                     sp.classList.add('theme-khusyu'); 
                     ensureOverlayClock(sp);
-                    if (meta && meta.isJumat) setupGenericOverlay('PRAYER_JUMAT');
-                    else setupGenericOverlay('PRAYER');
+                    
+                    if (meta && meta.isJumat) {
+                        setupGenericOverlay('PRAYER_JUMAT', 'JUMAT');
+                    } else {
+                        // FIX: Kirim prayerName ke fungsi setup
+                        setupGenericOverlay('PRAYER', prayerName);
+                    }
                 }
                 else if (type === 'DZIKIR') {
                     sp.classList.add('theme-blue');
-                    setupGenericOverlay('DZIKIR');
+                    setupGenericOverlay('DZIKIR', prayerName);
                     ensureOverlayClock(sp);
                 }
                 else if (type === 'KAJIAN') {
                     sp.classList.add('theme-silver');
-                    setupGenericOverlay('KAJIAN');
+                    setupGenericOverlay('KAJIAN', 'AHAD PAGI');
                     ensureOverlayClock(sp);
                 }
                 else if (type === 'JUMAT') { 
                     sp.classList.add('theme-gold');
-                    setupGenericOverlay('JUMAT');
+                    setupGenericOverlay('JUMAT', 'JUMAT');
                     ensureOverlayClock(sp);
                 }
             }
