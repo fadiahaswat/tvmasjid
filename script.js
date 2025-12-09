@@ -23,8 +23,8 @@ const CONFIG = {
     timeRules: { 
         preAdzan: 15,    
         preIqamah: 10,   // Default 10 menit (Akan di-override khusus Shubuh & Isya)
-        inPrayer: 20,    
-        dzikir: 15,      
+        inPrayer: 15,    
+        dzikir: 6,      // Default 6 menit (Untuk Dzuhur, Maghrib, Isya)
         jumatPrep: 45,
         jumatPrayer: 60  
     },
@@ -440,6 +440,12 @@ function initElements() {
         donNumber: document.getElementById('don-number'),
         donName: document.getElementById('don-name'),
         donBgGlow: document.getElementById('don-bg-glow'), // Untuk efek pendar warna
+
+        // --- UPDATE ---
+        dzikirTitleBadge: document.getElementById('dzikir-title'), // Ambil ID Badge Dzikir
+        dzikirArab: document.getElementById('dzikir-arabic'),
+        dzikirNote: document.getElementById('dzikir-note'),
+        dzikirCounter: document.getElementById('dzikir-counter'),
         
         cdTitle: document.getElementById('countdown-title'),
         cdName: document.getElementById('countdown-name'),
@@ -996,6 +1002,28 @@ function renderFooter() {
         `;
         els.footer.appendChild(div);
     });
+}
+
+function renderDzikirItem() {
+    // Pastikan ada data aktif
+    if (!ACTIVE_DZIKIR_DATA || ACTIVE_DZIKIR_DATA.length === 0) return;
+    
+    const item = ACTIVE_DZIKIR_DATA[STATE.dzikirIndex % ACTIVE_DZIKIR_DATA.length];
+    
+    if(els.dzikirArab) {
+        els.dzikirArab.innerHTML = item.text;
+        // Gunakan getAdaptiveClass agar ukuran font menyesuaikan
+        els.dzikirArab.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-8 leading-relaxed ${getAdaptiveClass(item.text, 'arab')}`;
+    }
+    
+    if(els.dzikirNote) els.dzikirNote.innerText = item.note;
+    
+    if(els.dzikirCounter) {
+        const currentNum = (STATE.dzikirIndex % ACTIVE_DZIKIR_DATA.length) + 1;
+        els.dzikirCounter.innerText = `${currentNum} / ${ACTIVE_DZIKIR_DATA.length}`;
+    }
+    
+    STATE.dzikirIndex++;
 }
 
 // --- 6. INIT ---
