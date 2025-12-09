@@ -533,33 +533,45 @@
     </div>
 </div>
     
-    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] bg-black flex flex-col items-center justify-center text-center overflow-hidden">
+    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] w-full h-full bg-black flex flex-col items-center justify-center animate-fade-in overflow-hidden">
     
-    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-[0.02] pointer-events-none"></div>
+    <div class="absolute inset-0 z-0 pointer-events-none">
+        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-5 animate-float-slow mix-blend-overlay"></div>
+        <div class="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gold-600/5 rounded-full blur-[120px] animate-float-slow mix-blend-screen"></div>
+        <div class="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-cyan-900/10 rounded-full blur-[120px] animate-float-slow mix-blend-screen" style="animation-delay: -5s;"></div>
+    </div>
 
-    <div class="relative z-10 flex flex-col items-center justify-center w-full h-full">
+    <div class="relative z-10 flex flex-col items-center justify-center w-full h-full pb-10">
 
-        <h3 class="font-serif text-zinc-600 text-xl lg:text-3xl tracking-[0.1em] mb-4 capitalize">
-            Sedang Berlangsung
-        </h3>
+        <div class="bg-gold-900/20 border border-gold-500/20 px-8 py-2 rounded-full mb-8 backdrop-blur-md shadow-[0_0_30px_rgba(212,175,55,0.1)] animate-pulse-glow">
+            <span id="prayer-badge" class="text-gold-400 font-bold tracking-[0.3em] uppercase text-xs lg:text-sm font-cinzel">
+                SEDANG BERLANGSUNG
+            </span>
+        </div>
 
-        <h1 id="prayer-title" class="font-serif font-bold text-zinc-500 text-[12vh] lg:text-[18vh] leading-none uppercase tracking-wider mb-2">
+        <h1 id="prayer-title" class="text-[10vh] lg:text-[14vh] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 leading-none mb-4 uppercase tracking-tight drop-shadow-2xl">
             ...
         </h1>
 
-        <div id="prayer-clock-big" class="font-mono font-bold text-zinc-600 text-[8vh] lg:text-[10vh] tracking-widest tabular-nums my-4 opacity-80">
-            00:00:00
+        <div class="relative mb-10">
+            <div class="absolute inset-0 bg-cyan-500/5 blur-3xl rounded-full"></div>
+            <div id="prayer-clock-big" class="relative z-10 font-mono font-bold text-cyan-400 text-[16vh] lg:text-[20vh] tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(34,211,238,0.3)] leading-none">
+                00:00
+            </div>
         </div>
 
-        <div class="mt-12 px-10">
-            <p class="font-serif text-zinc-600 text-4xl lg:text-5xl leading-[2.5] dir-rtl" style="direction: rtl;">
-                سَوُّوا صُفُوفَكُمْ، فَإِنَّ تَسْوِيَةَ الصَّفِّ مِنْ تَمَامِ الصَّلاةِ
+        <div class="w-full max-w-6xl px-4 text-center border-t border-white/5 pt-10 mt-4">
+            <p id="prayer-arabic" class="font-serif text-white text-4xl lg:text-6xl leading-[1.8] dir-rtl drop-shadow-md opacity-90" style="direction: rtl;">
+                سَوُّوا صُفُوفَكُمْ , فَإِنَّ تَسْوِيَةَ الصَّفِّ مِنْ تَمَامِ الصَّلاةِ
+            </p>
+            <p id="prayer-translate" class="font-sans text-slate-400 text-lg lg:text-xl mt-4 italic tracking-wide">
+                "Luruskanlah shaf kalian, karena lurusnya shaf adalah bagian dari kesempurnaan sholat"
             </p>
         </div>
 
     </div>
 </div>
-
+    
     <script src="script.js"></script>
     
     <script>
