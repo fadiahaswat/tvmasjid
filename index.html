@@ -16,25 +16,22 @@
         tailwind.config = {
             theme: {
                 extend: {
-                    // Daftar Font Keluarga
                     fontFamily: { 
-                        sans: ['Outfit', 'sans-serif'],        // Font utama UI
-                        serif: ['Amiri', 'serif'],             // Font Arab/Quran
-                        mono: ['JetBrains Mono', 'monospace'], // Font Jam/Angka
-                        cinzel: ['Cinzel', 'serif']            // Font Judul Mewah
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Amiri', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        cinzel: ['Cinzel', 'serif']
                     },
-                    // Daftar Warna Kustom (Emas & Cyan)
                     colors: { 
                         gold: { 100: '#FDF7D8', 300: '#EBD27A', 400: '#D4AF37', 500: '#B59223', 600: '#8A6D12', glow: '#F5D76E' },
                         cyan: { 400: '#22d3ee', 500: '#06b6d4', 900: '#083344', glow: '#67e8f9' },
                         dark: { 950: '#020202', card: '#0a0a0a' }
                     },
-                    // Animasi Kustom (Gerakan lambat background)
                     animation: {
                         'fade-in': 'fadeIn 1s cubic-bezier(0.2, 0.8, 0.2, 1) forwards',
-                        'float-slow': 'float 15s ease-in-out infinite', // Gerakan mengapung
-                        'spin-slow': 'spin 40s linear infinite',        // Putaran lambat ornamen
-                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite', // Kedip bercahaya
+                        'float-slow': 'float 15s ease-in-out infinite',
+                        'spin-slow': 'spin 40s linear infinite',
+                        'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
                     },
                     keyframes: {
                         fadeIn: { '0%': { opacity: '0', transform: 'scale(0.98) translateY(10px)' }, '100%': { opacity: '1', transform: 'scale(1) translateY(0)' } },
@@ -47,28 +44,24 @@
     </script>
 
     <style>
-        /* Reset & Base Setting */
+        /* Base Styles */
         body { background-color: #000; color: #fff; overflow: hidden; font-family: 'Outfit', sans-serif; }
-        .hidden-slide { display: none !important; } /* Class helper untuk menyembunyikan scene */
-        .dir-rtl { direction: rtl; } /* Untuk teks Arab */
+        .hidden-slide { display: none !important; }
+        .dir-rtl { direction: rtl; }
+        
+        zoom: 0.25; /* Zoom adjustment for TV usually */
 
-        zoom: 0.25;
-
-        /* GLASSMORPHISM (Efek Kaca)
-           Membuat panel transparan dengan blur di belakangnya.
-        */
+        /* Glassmorphism */
         .glass-panel {
-            background: rgba(18, 18, 18, 0.65); /* Hitam transparan */
-            backdrop-filter: blur(20px) saturate(180%); /* Efek blur kuat */
+            background: rgba(18, 18, 18, 0.65);
+            backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.08); /* Border tipis */
-            border-top: 1px solid rgba(255, 255, 255, 0.15); /* Highlight atas agar terlihat 3D */
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
             box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
         }
 
-        /* METALLIC TEXT (Efek Teks Logam)
-           Menggunakan background gradient yang "dipotong" (clip) mengikuti bentuk teks.
-        */
+        /* Gradient Texts */
         .text-gradient-gold {
             background: linear-gradient(180deg, #fff 0%, #D4AF37 40%, #B59223 100%);
             -webkit-background-clip: text;
@@ -80,17 +73,12 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        /* --- TAMBAHAN DI BAWAH .text-gradient-gold --- */
-
-        /* Efek Merah Delima (Ruby) Metallic untuk Adzan */
         .text-gradient-ruby {
             background: linear-gradient(180deg, #ffffff 0%, #ff4d4d 40%, #991b1b 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.6)); /* Glow merah */
+            filter: drop-shadow(0 0 20px rgba(220, 38, 38, 0.6));
         }
-        
-        /* Efek Putih Silver Bersinar untuk opsi lain */
         .text-gradient-white {
             background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%);
             -webkit-background-clip: text;
@@ -98,9 +86,7 @@
             text-shadow: 0 0 20px rgba(255,255,255,0.5);
         }
 
-        /* FOOTER CARD STYLES
-           Ini akan dipakai oleh JavaScript saat generate jadwal sholat.
-        */
+        /* Footer Styles */
         .schedule-card-base {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: linear-gradient(180deg, rgba(255,255,255,0.03) 0%, rgba(0,0,0,0.2) 100%);
@@ -110,66 +96,45 @@
             position: relative;
             overflow: hidden;
         }
-        
-        /* State Aktif (Saat waktu sholat tiba) - Menggunakan !important untuk menimpa style bawaan JS lama */
         .schedule-active {
             background: linear-gradient(180deg, rgba(6, 182, 212, 0.15) 0%, rgba(8, 51, 68, 0.8) 100%) !important;
             border: 1px solid rgba(34, 211, 238, 0.6) !important;
             box-shadow: 0 0 30px rgba(34, 211, 238, 0.3) !important;
-            transform: translateY(-15px) scale(1.1) !important; /* Efek "Pop Up" */
+            transform: translateY(-15px) scale(1.1) !important;
             z-index: 50;
         }
-        /* Override warna teks saat aktif */
         .schedule-active h3 { color: #22d3ee !important; text-shadow: 0 0 10px rgba(34, 211, 238, 0.8); }
         .schedule-active p { color: #fff !important; text-shadow: 0 0 15px rgba(34, 211, 238, 0.8); }
 
-        /* --- THEME SYSTEM (WARNA-WARNI TEGAS) --- */
-        /* --- THEME SYSTEM (WARNA-WARNI TEGAS + FONT DINAMIS) --- */
+        /* Theme System */
         .dynamic-bg { 
             transition: background 1s ease, color 1s ease; 
             background-size: 200% 200%; 
-            /* Warna Default (Putih) jika tidak ada tema aktif */
             --theme-text: #ffffff; 
             --theme-border: rgba(255, 255, 255, 0.2);
         }
-        
-        /* ADZAN: Merah (Background Merah Gelap, Teks Merah Terang) */
         .theme-red { 
             background: radial-gradient(circle at center, #7f1d1d 0%, #000 90%); 
-            --theme-text: #ef4444; /* Merah menyala */
+            --theme-text: #ef4444; 
             --theme-border: rgba(239, 68, 68, 0.3);
         } 
-        
-        /* IQAMAH: Kuning (Background Emas Gelap, Teks Kuning Terang) */
         .theme-yellow { 
             background: radial-gradient(circle at center, #713f12 0%, #000 90%); 
-            --theme-text: #facc15; /* Kuning menyala */
+            --theme-text: #facc15; 
             --theme-border: rgba(250, 204, 21, 0.3);
         }
-        
-        /* DZIKIR: Biru */
         .theme-blue { 
             background: radial-gradient(circle at center, #0c4a6e 0%, #000 90%); 
-            --theme-text: #22d3ee; /* Cyan */
+            --theme-text: #22d3ee; 
             --theme-border: rgba(34, 211, 238, 0.3);
         }
-        
-        /* JUMAT & KAJIAN: Emas/Silver Mewah */
         .theme-gold { background: radial-gradient(circle at center, #451a03 0%, #000 90%); }
         .theme-silver { background: radial-gradient(circle at center, #1e293b 0%, #000 90%); }
-
-        /* KHUSUS SHOLAT: BLACKOUT (HENING) */
-        .theme-khusyu { 
-            background-color: #000000 !important; 
-            background-image: none !important; 
-        }
+        .theme-khusyu { background-color: #000000 !important; background-image: none !important; }
         
-        /* Animasi Nafas Pelan untuk Teks Sholat */
         @keyframes breathe-dim { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.7; } }
         .text-dim-breath { animation: breathe-dim 6s ease-in-out infinite; }
-
-        /* UTILS */
-        .vignette { background: radial-gradient(circle, transparent 40%, #000 100%); } /* Gelap di pojokan layar */
+        .vignette { background: radial-gradient(circle, transparent 40%, #000 100%); }
     </style>
 </head>
 <body>
@@ -179,9 +144,7 @@
     <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-black">
         <div class="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-gold-600/10 rounded-full blur-[100px] animate-float-slow mix-blend-screen"></div>
         <div class="absolute bottom-[-20%] right-[-10%] w-[60vw] h-[60vw] bg-cyan-900/20 rounded-full blur-[100px] animate-float-slow mix-blend-screen" style="animation-delay: -5s;"></div>
-        
         <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10 mix-blend-overlay"></div>
-        
         <div class="absolute inset-0 vignette"></div>
     </div>
 
@@ -193,25 +156,16 @@
         
         <header class="glass-panel h-[14vh] px-8 grid grid-cols-12 gap-4 items-center rounded-2xl relative overflow-hidden">
             <div class="col-span-3 flex items-center gap-4 h-full border-r border-white/5 pr-6">
-    
-    <div class="relative w-48 h-16 flex items-center justify-start">
-        
-        <div class="absolute inset-0 bg-gold-500/20 rounded-lg blur-md animate-pulse"></div>
-        
-        <img src="logo-putih-muallimin.webp" 
-             alt="Logo" 
-             class="w-full h-full object-contain relative z-10 drop-shadow-md" 
-             onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
-             
-        <i class="ri-mosque-fill text-4xl text-gold-400 hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10"></i>
-    </div>
-
-    <div class="flex flex-col justify-center">
-        <h1 id="masjid-name" class="font-cinzel font-bold text-lg lg:text-xl text-gradient-gold tracking-widest uppercase leading-none mb-1">Masjid Jami'</h1>
-        <span id="masjid-address" class="text-slate-400 text-[10px] tracking-[0.4em] uppercase font-bold">Mu'allimin</span>
-    </div>
-
-</div>
+                <div class="relative w-48 h-16 flex items-center justify-start">
+                    <div class="absolute inset-0 bg-gold-500/20 rounded-lg blur-md animate-pulse"></div>
+                    <img src="logo-putih-muallimin.webp" alt="Logo" class="w-full h-full object-contain relative z-10 drop-shadow-md" onerror="this.style.display='none'; this.nextElementSibling.style.display='block'">
+                    <i class="ri-mosque-fill text-4xl text-gold-400 hidden absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10"></i>
+                </div>
+                <div class="flex flex-col justify-center">
+                    <h1 id="masjid-name" class="font-cinzel font-bold text-lg lg:text-xl text-gradient-gold tracking-widest uppercase leading-none mb-1">Masjid Jami'</h1>
+                    <span id="masjid-address" class="text-slate-400 text-[10px] tracking-[0.4em] uppercase font-bold">Mu'allimin</span>
+                </div>
+            </div>
 
             <div class="col-span-6 flex flex-col items-center justify-center relative">
                 <div class="absolute top-0 w-32 h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
@@ -224,34 +178,27 @@
             </div>
 
             <div class="col-span-3 flex flex-col justify-center h-full pl-6 border-l border-white/5 relative group">
-    
-    <div class="absolute right-10 top-1/2 -translate-y-1/2 w-32 h-32 bg-cyan-900/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-
-    <div class="relative z-10 flex items-center justify-end gap-3 mb-3">
-        <div class="flex flex-col items-end">
-            <span class="text-[9px] font-bold tracking-[0.3em] text-cyan-500/70 uppercase mb-[2px]">Masehi</span>
-            <span id="header-date-masehi" class="font-sans font-bold text-lg lg:text-xl text-slate-100 tracking-wide text-right drop-shadow-sm leading-none">...</span>
-        </div>
-        
-        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center shadow-[inset_0_0_10px_rgba(34,211,238,0.1)]">
-            <i class="ri-calendar-check-line text-cyan-400 text-lg"></i>
-        </div>
-    </div>
-
-    <div class="w-full h-[1px] bg-gradient-to-l from-gold-500/30 via-white/5 to-transparent"></div>
-
-    <div class="relative z-10 flex items-center justify-end gap-3 mt-3">
-        <div class="flex flex-col items-end">
-            <span class="text-[9px] font-bold tracking-[0.3em] text-gold-500/70 uppercase mb-[2px]">Hijriyah</span>
-            <span id="header-date-hijri" class="font-cinzel font-bold text-lg lg:text-xl text-gradient-gold tracking-wide text-right drop-shadow-sm leading-none">...</span>
-        </div>
-
-        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-900/20 to-transparent border border-gold-500/20 flex items-center justify-center shadow-[inset_0_0_10px_rgba(212,175,55,0.1)]">
-            <i class="ri-moon-clear-line text-gold-400 text-lg"></i>
-        </div>
-    </div>
-
-</div>
+                <div class="absolute right-10 top-1/2 -translate-y-1/2 w-32 h-32 bg-cyan-900/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                <div class="relative z-10 flex items-center justify-end gap-3 mb-3">
+                    <div class="flex flex-col items-end">
+                        <span class="text-[9px] font-bold tracking-[0.3em] text-cyan-500/70 uppercase mb-[2px]">Masehi</span>
+                        <span id="header-date-masehi" class="font-sans font-bold text-lg lg:text-xl text-slate-100 tracking-wide text-right drop-shadow-sm leading-none">...</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-white/10 to-transparent border border-white/10 flex items-center justify-center shadow-[inset_0_0_10px_rgba(34,211,238,0.1)]">
+                        <i class="ri-calendar-check-line text-cyan-400 text-lg"></i>
+                    </div>
+                </div>
+                <div class="w-full h-[1px] bg-gradient-to-l from-gold-500/30 via-white/5 to-transparent"></div>
+                <div class="relative z-10 flex items-center justify-end gap-3 mt-3">
+                    <div class="flex flex-col items-end">
+                        <span class="text-[9px] font-bold tracking-[0.3em] text-gold-500/70 uppercase mb-[2px]">Hijriyah</span>
+                        <span id="header-date-hijri" class="font-cinzel font-bold text-lg lg:text-xl text-gradient-gold tracking-wide text-right drop-shadow-sm leading-none">...</span>
+                    </div>
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-900/20 to-transparent border border-gold-500/20 flex items-center justify-center shadow-[inset_0_0_10px_rgba(212,175,55,0.1)]">
+                        <i class="ri-moon-clear-line text-gold-400 text-lg"></i>
+                    </div>
+                </div>
+            </div>
         </header>
 
         <main class="relative w-full h-full overflow-hidden glass-panel rounded-2xl flex flex-col justify-center items-center">
@@ -261,7 +208,6 @@
                     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-gold-400 rounded-full shadow-[0_0_15px_#d4af37]"></div>
                 </div>
                 <div class="absolute w-[50vh] h-[50vh] border border-cyan-500/10 rounded-full animate-[spin_40s_linear_infinite_reverse]"></div>
-
                 <div class="relative z-10 text-center">
                     <div class="flex items-center justify-center gap-4 mb-6 opacity-80">
                          <div class="h-[1px] w-16 bg-gradient-to-r from-transparent to-gold-400"></div>
@@ -279,203 +225,106 @@
             </div>
 
             <div id="scene-next-detail" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in relative">
-
-    
-
-    <div class="bg-cyan-950/40 border border-cyan-500/30 px-8 py-2 rounded-full mb-6 backdrop-blur-md shadow-[0_0_30px_rgba(34,211,238,0.15)] animate-pulse-glow">
-
-        <span class="text-cyan-400 font-bold tracking-[0.4em] uppercase text-xs lg:text-sm font-cinzel">Persiapan Menuju</span>
-
-    </div>
-
-    
-
-    <h1 id="next-detail-name" class="text-[10vh] lg:text-[12vh] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 leading-none mb-2 uppercase tracking-tight drop-shadow-xl">...</h1>
-
-    
-
-    <div class="flex flex-col items-center relative z-10">
-
-        
-
-        <div class="relative">
-
-            <div class="absolute inset-0 bg-gold-500/10 blur-3xl rounded-full"></div>
-
-            
-
-            <span id="next-detail-countdown" class="relative z-10 text-[18vh] lg:text-[22vh] font-mono font-bold text-gold-400 tracking-tighter tabular-nums drop-shadow-[0_0_40px_rgba(212,175,55,0.4)] leading-none">
-
-                -00:00:00
-
-            </span>
-
-        </div>
-
-
-
-        <div class="mt-6 flex items-center gap-5 bg-white/5 border border-white/10 pl-6 pr-8 py-3 rounded-full backdrop-blur-md">
-
-            <span class="text-slate-400 text-sm uppercase tracking-[0.3em] font-sans font-semibold">Pukul</span>
-
-            <div class="w-[1px] h-6 bg-white/10"></div>
-
-            <span id="next-detail-target" class="text-4xl lg:text-5xl font-mono font-bold text-cyan-400 tracking-tight tabular-nums text-glow">
-
-                00:00
-
-            </span>
-
-        </div>
-
-        
-
-    </div>
-
-</div>
+                <div class="bg-cyan-950/40 border border-cyan-500/30 px-8 py-2 rounded-full mb-6 backdrop-blur-md shadow-[0_0_30px_rgba(34,211,238,0.15)] animate-pulse-glow">
+                    <span class="text-cyan-400 font-bold tracking-[0.4em] uppercase text-xs lg:text-sm font-cinzel">Persiapan Menuju</span>
+                </div>
+                <h1 id="next-detail-name" class="text-[10vh] lg:text-[12vh] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 leading-none mb-2 uppercase tracking-tight drop-shadow-xl">...</h1>
+                <div class="flex flex-col items-center relative z-10">
+                    <div class="relative">
+                        <div class="absolute inset-0 bg-gold-500/10 blur-3xl rounded-full"></div>
+                        <span id="next-detail-countdown" class="relative z-10 text-[18vh] lg:text-[22vh] font-mono font-bold text-gold-400 tracking-tighter tabular-nums drop-shadow-[0_0_40px_rgba(212,175,55,0.4)] leading-none">-00:00:00</span>
+                    </div>
+                    <div class="mt-6 flex items-center gap-5 bg-white/5 border border-white/10 pl-6 pr-8 py-3 rounded-full backdrop-blur-md">
+                        <span class="text-slate-400 text-sm uppercase tracking-[0.3em] font-sans font-semibold">Pukul</span>
+                        <div class="w-[1px] h-6 bg-white/10"></div>
+                        <span id="next-detail-target" class="text-4xl lg:text-5xl font-mono font-bold text-cyan-400 tracking-tight tabular-nums text-glow">00:00</span>
+                    </div>
+                </div>
+            </div>
 
             <div id="scene-ayat" class="hidden-slide w-full h-full flex flex-col items-center justify-between animate-fade-in px-4 pb-10 pt-6 relative">
-                
                 <div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
                      <img src="https://upload.wikimedia.org/wikipedia/commons/6/62/Rub_El_Hizb.svg" class="w-[90vh] h-[90vh] invert animate-spin-slow">
                 </div>
-
                 <div class="relative z-10 w-full h-full flex flex-col items-center">
-                    
                     <div class="flex-none mb-4">
-                        <span class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                            KALAM ILAHI
-                        </span>
+                        <span class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">KALAM ILAHI</span>
                     </div>
-
                     <div class="flex-grow w-full flex items-center justify-center px-4 overflow-hidden">
-                        <p id="ayat-arabic" class="font-serif text-white text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full leading-relaxed" style="direction: rtl;">
-                            ...
-                        </p>
+                        <p id="ayat-arabic" class="font-serif text-white text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full leading-relaxed" style="direction: rtl;">...</p>
                     </div>
-
                     <div class="flex-none w-full max-w-[80vw] text-center mt-4">
-                        <p id="ayat-text" class="font-sans font-light text-slate-200 italic transition-all duration-500 text-2xl lg:text-3xl leading-relaxed">
-                            ...
-                        </p>
+                        <p id="ayat-text" class="font-sans font-light text-slate-200 italic transition-all duration-500 text-2xl lg:text-3xl leading-relaxed">...</p>
                     </div>
-
                     <div class="flex-none mt-4">
-                        <p id="ayat-source" class="text-gold-400 font-cinzel font-bold text-xl lg:text-2xl tracking-[0.2em] uppercase">
-                            ...
-                        </p>
+                        <p id="ayat-source" class="text-gold-400 font-cinzel font-bold text-xl lg:text-2xl tracking-[0.2em] uppercase">...</p>
                     </div>
                 </div>
             </div>
 
             <div id="scene-hadits" class="hidden-slide w-full h-full flex flex-col items-center justify-between animate-fade-in px-4 pb-10 pt-6 relative overflow-hidden">
-                
                 <div class="absolute top-10 left-10 opacity-10 pointer-events-none">
                     <i class="ri-double-quotes-l text-[20rem] text-cyan-500 leading-none"></i>
                 </div>
                 <div class="absolute bottom-10 right-10 opacity-10 pointer-events-none">
                     <i class="ri-double-quotes-r text-[20rem] text-cyan-500 leading-none"></i>
                 </div>
-
                 <div class="relative z-10 w-full h-full flex flex-col items-center">
-                    
                     <div class="flex-none mb-4">
-                         <span class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                            SABDA NABI
-                        </span>
+                         <span class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">SABDA NABI</span>
                     </div>
-
                     <div class="flex-grow w-full flex items-center justify-center px-4 overflow-hidden"> 
-                        <p id="hadits-arabic" class="font-serif text-gradient-gold dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full leading-relaxed" style="direction: rtl;">
-                            ...
-                        </p>
+                        <p id="hadits-arabic" class="font-serif text-gradient-gold dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full leading-relaxed" style="direction: rtl;">...</p>
                     </div>
-
                     <div class="flex-none w-full max-w-[80vw] text-center mt-4 border-t border-cyan-500/30 pt-6">
-                        <p id="hadits-text" class="font-sans text-slate-300 italic transition-all duration-500 text-2xl lg:text-3xl leading-relaxed">
-                            ...
-                        </p>
+                        <p id="hadits-text" class="font-sans text-slate-300 italic transition-all duration-500 text-2xl lg:text-3xl leading-relaxed">...</p>
                     </div>
-
                     <div class="flex-none mt-4">
-                        <p id="hadits-source" class="text-cyan-500 font-cinzel font-bold text-xl lg:text-2xl tracking-[0.3em] uppercase">
-                            ...
-                        </p>
+                        <p id="hadits-source" class="text-cyan-500 font-cinzel font-bold text-xl lg:text-2xl tracking-[0.3em] uppercase">...</p>
                     </div>
                 </div>
             </div>
 
             <div id="scene-asmaulhusna" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-10 relative">
-    
-    <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Allah-Ph_01.png" class="w-[90vh] h-[90vh] object-contain invert scale-110">
-    </div>
-
-    <div class="relative z-10 text-center flex flex-col items-center justify-center h-full w-full">
-        
-        <div class="absolute top-12 lg:top-16">
-            <span class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-                Asmaul Husna
-            </span>
-        </div>
-
-        <div class="flex-grow flex items-center justify-center w-full px-4">
-            <h1 id="ah-arab" class="font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl transition-all duration-500">
-                ...
-            </h1>
-        </div>
-
-        <div class="flex-none mb-12">
-            <h2 id="ah-latin" class="text-xl lg:text-3xl font-mono text-slate-500 tracking-[0.4em] mb-4 uppercase inline-block border-b border-slate-800 pb-2">
-                ...
-            </h2>
-
-            <p id="ah-indo" class="text-4xl lg:text-6xl font-sans font-bold text-white tracking-tight leading-none drop-shadow-2xl px-4">
-                ...
-            </p>
-        </div>
-
-    </div>
-</div>
-
-            <div id="scene-donation" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-10 relative">
-                
-                <div id="don-bg-glow" class="absolute top-0 right-0 w-[50vh] h-[50vh] bg-white/5 rounded-full blur-[100px] animate-pulse transition-colors duration-1000"></div>
-
-                <div class="mb-8 text-center z-10">
-                    <div class="inline-block bg-black/40 border border-gold-500/30 px-12 py-3 rounded-full backdrop-blur-md shadow-[0_0_30px_rgba(212,175,55,0.15)] animate-pulse-glow">
-                        <span class="text-gold-400 font-cinzel font-bold tracking-[0.3em] uppercase text-xl lg:text-2xl">
-                            Infaq & Shodaqoh
-                        </span>
+                <div class="absolute inset-0 flex items-center justify-center opacity-5 pointer-events-none">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Allah-Ph_01.png" class="w-[90vh] h-[90vh] object-contain invert scale-110">
+                </div>
+                <div class="relative z-10 text-center flex flex-col items-center justify-center h-full w-full">
+                    <div class="absolute top-12 lg:top-16">
+                        <span class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">Asmaul Husna</span>
+                    </div>
+                    <div class="flex-grow flex items-center justify-center w-full px-4">
+                        <h1 id="ah-arab" class="font-serif text-transparent bg-clip-text bg-gradient-to-b from-gold-100 via-gold-400 to-gold-600 drop-shadow-[0_10px_20px_rgba(0,0,0,0.5)] dir-rtl transition-all duration-500">...</h1>
+                    </div>
+                    <div class="flex-none mb-12">
+                        <h2 id="ah-latin" class="text-xl lg:text-3xl font-mono text-slate-500 tracking-[0.4em] mb-4 uppercase inline-block border-b border-slate-800 pb-2">...</h2>
+                        <p id="ah-indo" class="text-4xl lg:text-6xl font-sans font-bold text-white tracking-tight leading-none drop-shadow-2xl px-4">...</p>
                     </div>
                 </div>
+            </div>
 
+            <div id="scene-donation" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-10 relative">
+                <div id="don-bg-glow" class="absolute top-0 right-0 w-[50vh] h-[50vh] bg-white/5 rounded-full blur-[100px] animate-pulse transition-colors duration-1000"></div>
+                <div class="mb-8 text-center z-10">
+                    <div class="inline-block bg-black/40 border border-gold-500/30 px-12 py-3 rounded-full backdrop-blur-md shadow-[0_0_30px_rgba(212,175,55,0.15)] animate-pulse-glow">
+                        <span class="text-gold-400 font-cinzel font-bold tracking-[0.3em] uppercase text-xl lg:text-2xl">Infaq & Shodaqoh</span>
+                    </div>
+                </div>
                 <div class="grid grid-cols-12 gap-8 w-full max-w-7xl items-center z-10">
-                    
                     <div class="col-span-5 flex justify-end">
                         <div class="p-3 bg-white rounded-2xl shadow-[0_0_40px_rgba(255,255,255,0.1)] transform rotate-1 hover:rotate-0 transition-transform duration-500">
                             <img id="don-qr" src="" alt="QRIS" class="w-72 h-72 lg:w-96 lg:h-96 object-contain">
                         </div>
                     </div>
-
                     <div class="col-span-7 text-left pl-8 border-l border-white/10">
                         <div class="glass-panel p-10 rounded-3xl border border-white/5 bg-black/20 backdrop-blur-xl">
-                            
                             <div class="h-20 mb-6 flex items-center justify-start">
                                 <img id="don-logo" src="" alt="Bank Logo" class="h-full w-auto object-contain brightness-0 invert opacity-90">
                             </div>
-                            
                             <p class="text-slate-400 uppercase tracking-widest text-sm font-bold mb-2">Nomor Rekening:</p>
-                            
-                            <h3 id="don-number" class="text-6xl lg:text-7xl font-mono font-bold tracking-tighter mb-4 drop-shadow-lg transition-colors duration-500">
-                                ...
-                            </h3>
-                            
+                            <h3 id="don-number" class="text-6xl lg:text-7xl font-mono font-bold tracking-tighter mb-4 drop-shadow-lg transition-colors duration-500">...</h3>
                             <p class="text-slate-500 uppercase tracking-widest text-xs font-bold mb-1">Atas Nama:</p>
-                            <h4 id="don-name" class="text-2xl lg:text-3xl font-sans font-bold text-white leading-tight">
-                                ...
-                            </h4>
-                            
+                            <h4 id="don-name" class="text-2xl lg:text-3xl font-sans font-bold text-white leading-tight">...</h4>
                             <div class="mt-8 flex items-center gap-3 bg-white/5 border border-white/10 w-fit px-5 py-3 rounded-full">
                                 <i class="ri-qr-scan-line text-xl"></i>
                                 <span class="text-sm font-sans tracking-wide text-slate-300">Scan QRIS menggunakan E-Wallet / Mobile Banking</span>
@@ -485,123 +334,73 @@
                 </div>
             </div>
 
+            <div id="scene-dzikir" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-6 relative">
+                <div class="absolute top-10 right-10 opacity-10 pointer-events-none">
+                    <i class="ri-sun-foggy-fill text-[15rem] text-gold-400"></i>
+                </div>
+                <div class="flex-none mb-6 z-10">
+                     <span id="dzikir-title" class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">DZIKIR</span>
+                </div>
+                <div class="flex-grow w-full flex flex-col items-center justify-center relative z-10">
+                    <p id="dzikir-arabic" class="font-serif text-white text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full leading-relaxed px-4">...</p>
+                    <p id="dzikir-note" class="mt-6 text-cyan-400 font-sans font-bold text-xl tracking-widest uppercase animate-pulse">...</p>
+                </div>
+                <div class="flex-none h-16 w-full flex items-center justify-center gap-2">
+                    <span id="dzikir-counter" class="text-slate-500 font-mono text-sm tracking-widest">1 / 10</span>
+                </div>
+            </div>
+
         </main>
 
         <footer class="glass-panel h-[16vh] p-3 z-30 rounded-2xl">
-            <div id="footer-schedule" class="grid grid-cols-8 gap-3 h-full w-full">
-                </div>
+            <div id="footer-schedule" class="grid grid-cols-8 gap-3 h-full w-full"></div>
         </footer>
     </div>
 
-    <div id="scene-dzikir" class="hidden-slide w-full h-full flex flex-col items-center justify-center animate-fade-in px-6 relative">
-    
-    <div class="absolute top-10 right-10 opacity-10 pointer-events-none">
-        <i class="ri-sun-foggy-fill text-[15rem] text-gold-400"></i>
-    </div>
-
-    <div class="flex-none mb-6 z-10">
-         <span id="dzikir-title" class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]">
-            DZIKIR
-        </span>
-    </div>
-
-    <div class="flex-grow w-full flex flex-col items-center justify-center relative z-10">
-        
-        <p id="dzikir-arabic" class="font-serif text-white text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full leading-relaxed px-4">
-            ...
-        </p>
-
-        <p id="dzikir-note" class="mt-6 text-cyan-400 font-sans font-bold text-xl tracking-widest uppercase animate-pulse">
-            ...
-        </p>
-
-    </div>
-
-    <div class="flex-none h-16 w-full flex items-center justify-center gap-2">
-        <span id="dzikir-counter" class="text-slate-500 font-mono text-sm tracking-widest">
-            1 / 10
-        </span>
-    </div>
-</div>
-
     <div id="scene-countdown" class="hidden-slide fixed inset-0 z-50 w-full h-full bg-black flex flex-col items-center justify-center animate-fade-in overflow-hidden">
-    
-    <div class="absolute inset-0 z-0 pointer-events-none">
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10 animate-float-slow mix-blend-overlay"></div>
-        
-        <div class="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gold-600/10 rounded-full blur-[120px] animate-float-slow mix-blend-screen"></div>
-        
-        <div class="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-cyan-900/20 rounded-full blur-[120px] animate-float-slow mix-blend-screen" style="animation-delay: -5s;"></div>
-    </div>
-
-    <div class="relative z-10 flex flex-col items-center">
-        
-        <div class="bg-cyan-950/40 border border-cyan-500/30 px-8 py-2 rounded-full mb-6 backdrop-blur-md shadow-[0_0_30px_rgba(34,211,238,0.15)] animate-pulse-glow">
-            <span id="countdown-title" class="text-cyan-400 font-bold tracking-[0.4em] uppercase text-xs lg:text-sm font-cinzel">
-                ...
-            </span>
+        <div class="absolute inset-0 z-0 pointer-events-none">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-10 animate-float-slow mix-blend-overlay"></div>
+            <div class="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gold-600/10 rounded-full blur-[120px] animate-float-slow mix-blend-screen"></div>
+            <div class="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-cyan-900/20 rounded-full blur-[120px] animate-float-slow mix-blend-screen" style="animation-delay: -5s;"></div>
         </div>
-
-        <h1 id="countdown-name" class="text-[10vh] lg:text-[12vh] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 leading-none mb-2 uppercase tracking-tight drop-shadow-xl">
-            ...
-        </h1>
-
-        <div class="relative mb-8">
-            <div id="countdown-glow" class="absolute inset-0 blur-3xl rounded-full transition-colors duration-500 bg-white/5"></div>
-            <span id="countdown-timer" class="relative z-10 text-[18vh] lg:text-[22vh] font-mono font-bold tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(0,0,0,0.5)] leading-none transition-colors duration-500">
-                00:00
-            </span>
-        </div>
-
-        <div class="flex items-center gap-5 bg-white/5 border border-white/10 pl-6 pr-8 py-3 rounded-full backdrop-blur-md shadow-lg">
-            <span class="text-slate-400 text-sm uppercase tracking-[0.3em] font-sans font-semibold">Pukul</span>
-            <div class="w-[1px] h-6 bg-white/10"></div>
-            <span id="countdown-realtime" class="text-3xl lg:text-4xl font-mono font-bold text-cyan-400 tracking-tight tabular-nums text-glow">
-                00:00:00
-            </span>
-        </div>
-
-    </div>
-</div>
-    
-    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] w-full h-full bg-black flex flex-col items-center justify-center animate-fade-in overflow-hidden">
-    
-    <div class="absolute inset-0 z-0 pointer-events-none">
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-5 animate-float-slow mix-blend-overlay"></div>
-        <div class="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gold-600/5 rounded-full blur-[120px] animate-float-slow mix-blend-screen"></div>
-        <div class="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-cyan-900/10 rounded-full blur-[120px] animate-float-slow mix-blend-screen" style="animation-delay: -5s;"></div>
-    </div>
-
-    <div class="relative z-10 flex flex-col items-center justify-center w-full h-full pb-10">
-
-        <div class="bg-gold-900/20 border border-gold-500/20 px-8 py-2 rounded-full mb-8 backdrop-blur-md shadow-[0_0_30px_rgba(212,175,55,0.1)] animate-pulse-glow">
-            <span id="prayer-badge" class="text-gold-400 font-bold tracking-[0.3em] uppercase text-xs lg:text-sm font-cinzel">
-                SEDANG BERLANGSUNG
-            </span>
-        </div>
-
-        <h1 id="prayer-title" class="text-[10vh] lg:text-[14vh] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 leading-none mb-4 uppercase tracking-tight drop-shadow-2xl">
-            ...
-        </h1>
-
-        <div class="relative mb-10">
-            <div class="absolute inset-0 bg-cyan-500/5 blur-3xl rounded-full"></div>
-            <div id="prayer-clock-big" class="relative z-10 font-mono font-bold text-cyan-400 text-[16vh] lg:text-[20vh] tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(34,211,238,0.3)] leading-none">
-                00:00
+        <div class="relative z-10 flex flex-col items-center">
+            <div class="bg-cyan-950/40 border border-cyan-500/30 px-8 py-2 rounded-full mb-6 backdrop-blur-md shadow-[0_0_30px_rgba(34,211,238,0.15)] animate-pulse-glow">
+                <span id="countdown-title" class="text-cyan-400 font-bold tracking-[0.4em] uppercase text-xs lg:text-sm font-cinzel">...</span>
+            </div>
+            <h1 id="countdown-name" class="text-[10vh] lg:text-[12vh] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 leading-none mb-2 uppercase tracking-tight drop-shadow-xl">...</h1>
+            <div class="relative mb-8">
+                <div id="countdown-glow" class="absolute inset-0 blur-3xl rounded-full transition-colors duration-500 bg-white/5"></div>
+                <span id="countdown-timer" class="relative z-10 text-[18vh] lg:text-[22vh] font-mono font-bold tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(0,0,0,0.5)] leading-none transition-colors duration-500">00:00</span>
+            </div>
+            <div class="flex items-center gap-5 bg-white/5 border border-white/10 pl-6 pr-8 py-3 rounded-full backdrop-blur-md shadow-lg">
+                <span class="text-slate-400 text-sm uppercase tracking-[0.3em] font-sans font-semibold">Pukul</span>
+                <div class="w-[1px] h-6 bg-white/10"></div>
+                <span id="countdown-realtime" class="text-3xl lg:text-4xl font-mono font-bold text-cyan-400 tracking-tight tabular-nums text-glow">00:00:00</span>
             </div>
         </div>
-
-        <div class="w-full max-w-6xl px-4 text-center border-t border-white/5 pt-10 mt-4">
-            <p id="prayer-arabic" class="font-serif text-white text-4xl lg:text-6xl leading-[1.8] dir-rtl drop-shadow-md opacity-90" style="direction: rtl;">
-                سَوُّوا صُفُوفَكُمْ , فَإِنَّ تَسْوِيَةَ الصَّفِّ مِنْ تَمَامِ الصَّلاةِ
-            </p>
-            <p id="prayer-translate" class="font-sans text-slate-400 text-lg lg:text-xl mt-4 italic tracking-wide">
-                "Luruskanlah shaf kalian, karena lurusnya shaf adalah bagian dari kesempurnaan sholat"
-            </p>
-        </div>
-
     </div>
-</div>
+    
+    <div id="scene-prayer" class="hidden-slide fixed inset-0 z-[60] w-full h-full bg-black flex flex-col items-center justify-center animate-fade-in overflow-hidden">
+        <div class="absolute inset-0 z-0 pointer-events-none">
+            <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/arabesque.png')] opacity-5 animate-float-slow mix-blend-overlay"></div>
+            <div class="absolute top-[-20%] left-[-10%] w-[80vw] h-[80vw] bg-gold-600/5 rounded-full blur-[120px] animate-float-slow mix-blend-screen"></div>
+            <div class="absolute bottom-[-20%] right-[-10%] w-[70vw] h-[70vw] bg-cyan-900/10 rounded-full blur-[120px] animate-float-slow mix-blend-screen" style="animation-delay: -5s;"></div>
+        </div>
+        <div class="relative z-10 flex flex-col items-center justify-center w-full h-full pb-10">
+            <div class="bg-gold-900/20 border border-gold-500/20 px-8 py-2 rounded-full mb-8 backdrop-blur-md shadow-[0_0_30px_rgba(212,175,55,0.1)] animate-pulse-glow">
+                <span id="prayer-badge" class="text-gold-400 font-bold tracking-[0.3em] uppercase text-xs lg:text-sm font-cinzel">SEDANG BERLANGSUNG</span>
+            </div>
+            <h1 id="prayer-title" class="text-[10vh] lg:text-[14vh] font-cinzel font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 leading-none mb-4 uppercase tracking-tight drop-shadow-2xl">...</h1>
+            <div class="relative mb-10">
+                <div class="absolute inset-0 bg-cyan-500/5 blur-3xl rounded-full"></div>
+                <div id="prayer-clock-big" class="relative z-10 font-mono font-bold text-cyan-400 text-[16vh] lg:text-[20vh] tracking-tighter tabular-nums drop-shadow-[0_0_30px_rgba(34,211,238,0.3)] leading-none">00:00</div>
+            </div>
+            <div class="w-full max-w-6xl px-4 text-center border-t border-white/5 pt-10 mt-4">
+                <p id="prayer-arabic" class="font-serif text-white text-4xl lg:text-6xl leading-[1.8] dir-rtl drop-shadow-md opacity-90" style="direction: rtl;">سَوُّوا صُفُوفَكُمْ , فَإِنَّ تَسْوِيَةَ الصَّفِّ مِنْ تَمَامِ الصَّلاةِ</p>
+                <p id="prayer-translate" class="font-sans text-slate-400 text-lg lg:text-xl mt-4 italic tracking-wide">"Luruskanlah shaf kalian, karena lurusnya shaf adalah bagian dari kesempurnaan sholat"</p>
+            </div>
+        </div>
+    </div>
     
     <script src="script.js"></script>
     
