@@ -603,24 +603,31 @@ function checkSystemMode(now) {
             
             // --- LOGIKA DURASI DINAMIS ---
             let durIqamah = CONFIG.timeRules.preIqamah; // Default 10
-            if (name === 'shubuh') durIqamah = 13; // Request: Shubuh 13 menit
-            if (name === 'isya') durIqamah = 5;    // Request: Isya 5 menit
+            if (name === 'shubuh') durIqamah = 13; // Shubuh 13 menit
+            if (name === 'isya') durIqamah = 5;    // Isya 5 menit
 
             let durPrayer = CONFIG.timeRules.inPrayer;
             if (now.getDay() === 5 && name === 'dzuhur') {
                 durPrayer = CONFIG.timeRules.jumatPrayer; // Jumat 60 menit
             }
 
+            // --- UPDATE LOGIKA DURASI DZIKIR ---
+            let durDzikir = CONFIG.timeRules.dzikir; // Default 6 menit (Dzuhur, Maghrib, Isya)
+            if (name === 'shubuh' || name === 'ashar') {
+                durDzikir = 15; // Khusus Shubuh & Ashar jadi 15 menit
+            }
+
             const msPreAdzan = CONFIG.timeRules.preAdzan * 60000;
             const msPreIqamah = durIqamah * 60000;
             const msInPrayer = durPrayer * 60000;
-            const msDzikir = CONFIG.timeRules.dzikir * 60000;
+            const msDzikir = durDzikir * 60000; // Gunakan durasi dinamis
 
             const tStartPreAdzan = tAdzan.getTime() - msPreAdzan;
             const tEndPreIqamah = tAdzan.getTime() + msPreIqamah;
             const tEndPrayer = tEndPreIqamah + msInPrayer;
             const tEndDzikir = tEndPrayer + msDzikir;
 
+            // 1. Cek Adzan
             if (curTime >= tStartPreAdzan && curTime < tAdzan.getTime()) {
                 newMode = 'OVERRIDE';
                 newType = 'ADZAN';
@@ -629,6 +636,7 @@ function checkSystemMode(now) {
                 break;
             }
             
+            // 2. Cek Iqamah
             if (curTime >= tAdzan.getTime() && curTime < tEndPreIqamah) {
                 newMode = 'OVERRIDE';
                 newType = 'IQAMAH';
@@ -637,16 +645,28 @@ function checkSystemMode(now) {
                 break;
             }
 
+            // 3. Cek Sholat Berlangsung
             if (curTime >= tEndPreIqamah && curTime < tEndPrayer) {
                 newMode = 'OVERRIDE';
                 newType = 'PRAYER';
                 if (now.getDay() === 5 && name === 'dzuhur') metaData.isJumat = true; 
+                metaData.name = name; // Kirim nama sholat ke metadata
                 break;
             }
 
-            if ((name === 'shubuh' || name === 'ashar') && curTime >= tEndPrayer && curTime < tEndDzikir) {
+            // 4. Cek Dzikir (UPDATE: Mencakup semua sholat)
+            if ((name === 'shubuh' || name === 'ashar' || name === 'dzuhur' || name === 'maghrib' || name === 'isya') && curTime >= tEndPrayer && curTime < tEndDzikir) {
                 newMode = 'OVERRIDE';
-                newType = 'DZIKIR';
+                
+                if (name === 'shubuh') {
+                    newType = 'DZIKIR_PAGI';
+                } else if (name === 'ashar') {
+                    newType = 'DZIKIR_PETANG';
+                } else {
+                    newType = 'DZIKIR_UMUM';
+                }
+                
+                metaData = { name };
                 break;
             }
         }
@@ -660,7 +680,6 @@ function checkSystemMode(now) {
         updateOverlayTimer(target - now);
     }
 }
-
 // --- GANTI FUNGSI applyMode DI SCRIPT.JS DENGAN INI ---
 
 // --- FUNGSI applyMode VERSI ANTI-ERROR ---
