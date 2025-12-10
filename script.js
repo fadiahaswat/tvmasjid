@@ -362,74 +362,111 @@ async function fetchHijriDate() {
     } catch (e) { console.warn("Hijri Fetch Error"); }
 }
 
+// --- FUNGSI LOAD DATA (VERSI STOK BANYAK / OFFLINE READY) ---
 async function loadContentData() {
-    const cacheKey = 'smart_masjid_content_v5'; 
+    const cacheKey = 'smart_masjid_content_v7'; // Versi cache baru
     let loadedFromNet = false;
 
+    // 1. JIKA ONLINE: DOWNLOAD STOK BANYAK
     if (navigator.onLine) {
         try {
-            const tasksAyat = Array(5).fill(0).map(async () => {
+            // Kita ambil 150 item (Cukup untuk stok seminggu tanpa ulang)
+            // Karena diputar acak (shuffle), pengulangan setelah seminggu tidak akan terasa
+            const FETCH_LIMIT = 150; 
+            log('loadContent', `Online: Mencoba mengambil ${FETCH_LIMIT} data baru...`);
+
+            // --- A. FETCH AYAT (Batching Request) ---
+            const tasksAyat = Array(FETCH_LIMIT).fill(0).map(async (_, i) => {
+                // Beri jeda sedikit agar tidak dianggap SPAM oleh server
+                await new Promise(r => setTimeout(r, i * 10)); 
                 try {
                     const r = await fetch("https://api.myquran.com/v2/quran/ayat/acak");
+                    if (!r.ok) return null;
                     const j = await r.json();
-                    return j.status ? { text: j.data.ayat.text.replace(/\n/g, "<br>"), arabic: j.data.ayat.arab, source: `QS. ${j.data.info.surat.nama.id}: ${j.data.ayat.ayah}` } : null;
+                    return j.status ? { 
+                        text: j.data.ayat.text.replace(/\n/g, "<br>"), 
+                        arabic: j.data.ayat.arab, 
+                        source: `QS. ${j.data.info.surat.nama.id}: ${j.data.ayat.ayah}` 
+                    } : null;
                 } catch { return null; }
             });
 
-            const tasksHadits = Array(5).fill(0).map(async () => {
+            // --- B. FETCH HADITS ---
+            const tasksHadits = Array(FETCH_LIMIT).fill(0).map(async (_, i) => {
+                await new Promise(r => setTimeout(r, i * 10)); 
                 try {
                     const r = await fetch("https://api.myquran.com/v3/hadis/enc/random");
+                    if (!r.ok) return null;
                     const j = await r.json();
-                    return j.status ? { text: j.data.text.id.replace(/\n/g, "<br>"), arabic: j.data.text.ar, source: j.data.takhrij } : null;
+                    return j.status ? { 
+                        text: j.data.text.id.replace(/\n/g, "<br>"), 
+                        arabic: j.data.text.ar, 
+                        source: j.data.takhrij 
+                    } : null;
                 } catch { return null; }
             });
             
-            const tasksHusna = Array(5).fill(0).map(async () => {
-                try {
-                    const r = await fetch("https://api.myquran.com/v2/husna/acak");
-                    const j = await r.json();
-                    return j.status ? j.data : null;
-                } catch { return null; }
-            });
+            // --- C. ASMAUL HUSNA (Dari Data Lokal) ---
+            // Kita acak urutannya agar setiap hari beda tampilannya
+            const shuffledHusna = shuffleArray([...DATA_ASMAUL_HUSNA_FULL]); 
 
-            const [resAyat, resHadits, resHusna] = await Promise.all([
+            // TUNGGU SEMUA DOWNLOAD SELESAI
+            const [resAyat, resHadits] = await Promise.all([
                 Promise.all(tasksAyat), 
-                Promise.all(tasksHadits),
-                Promise.all(tasksHusna)
+                Promise.all(tasksHadits)
             ]);
             
+            // Bersihkan yang gagal download (null)
             const validAyat = resAyat.filter(x => x);
             const validHadits = resHadits.filter(x => x);
-            const validHusna = resHusna.filter(x => x);
 
-            if (validAyat.length > 0) {
+            console.log(`Download Selesai: ${validAyat.length} Ayat, ${validHadits.length} Hadits`);
+
+            // Jika berhasil dapat data banyak, SIMPAN KE CACHE
+            if (validAyat.length > 20 && validHadits.length > 20) {
                 DATA_CONTENT.ayat = validAyat;
                 DATA_CONTENT.hadits = validHadits;
-                DATA_CONTENT.asmaulHusna = validHusna;
+                DATA_CONTENT.asmaulHusna = shuffledHusna;
                 
+                // Simpan ke LocalStorage (Cache Abadi sampai online lagi)
                 localStorage.setItem(cacheKey, JSON.stringify({ 
                     ayat: validAyat, 
                     hadits: validHadits,
-                    asmaulHusna: validHusna 
+                    asmaulHusna: shuffledHusna 
                 }));
                 
                 loadedFromNet = true;
-                log('loadContent', 'Konten diperbarui dari internet');
+                log('loadContent', 'Sukses! Stok data sebulan tersimpan.');
+            } else {
+                log('loadContent', 'Gagal ambil data banyak, coba pakai cache lama.');
             }
 
         } catch (e) { console.warn("Fetch content failed", e); }
     }
 
+    // 2. JIKA OFFLINE / GAGAL DOWNLOAD: PAKAI CACHE
     if (!loadedFromNet) {
         const cached = localStorage.getItem(cacheKey);
         if (cached) {
             try {
                 const parsed = JSON.parse(cached);
-                DATA_CONTENT.ayat = parsed.ayat || [];
-                DATA_CONTENT.hadits = parsed.hadits || [];
-                DATA_CONTENT.asmaulHusna = parsed.asmaulHusna || [];
-                log('loadContent', 'Konten dimuat dari cache');
-            } catch(e) { localStorage.removeItem(cacheKey); }
+                // Validasi isi cache
+                if (parsed.ayat && parsed.ayat.length > 0) DATA_CONTENT.ayat = parsed.ayat;
+                if (parsed.hadits && parsed.hadits.length > 0) DATA_CONTENT.hadits = parsed.hadits;
+                
+                // Asmaul Husna tetap diacak ulang dari data lokal biar fresh
+                DATA_CONTENT.asmaulHusna = shuffleArray([...DATA_ASMAUL_HUSNA_FULL]);
+                
+                log('loadContent', `Offline Mode: Memutar stok ${DATA_CONTENT.ayat.length} Ayat & ${DATA_CONTENT.hadits.length} Hadits.`);
+            } catch(e) { 
+                console.error("Cache Error", e);
+                // Jika cache rusak, minimal isi Asmaul Husna
+                DATA_CONTENT.asmaulHusna = shuffleArray([...DATA_ASMAUL_HUSNA_FULL]);
+            }
+        } else {
+            // Cache Kosong & Offline -> Hanya bisa tampilkan Asmaul Husna
+            log('loadContent', 'Cache Kosong & Offline. Mode Darurat (Hanya Asmaul Husna).');
+            DATA_CONTENT.asmaulHusna = shuffleArray([...DATA_ASMAUL_HUSNA_FULL]);
         }
     }
 }
