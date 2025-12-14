@@ -1112,51 +1112,81 @@ function renderFooter() {
     });
 }
 
-// --- FUNGSI RENDER DZIKIR (SAFE MODE: Agar Note Tidak Hilang) ---
+// --- FUNGSI RENDER DZIKIR (REVISI: STOP SAAT OVERRIDE, LOOP SAAT NORMAL) ---
 function renderDzikirItem() {
+    // 1. Cek Ketersediaan Data
     if (!ACTIVE_DZIKIR_DATA || ACTIVE_DZIKIR_DATA.length === 0) return;
     
-    const item = ACTIVE_DZIKIR_DATA[STATE.dzikirIndex % ACTIVE_DZIKIR_DATA.length];
+    // 2. LOGIKA KONTROL ALUR (FLOW CONTROL)
+    // Kondisi A: Mode OVERRIDE (Habis Sholat) -> Mainkan SEKALI saja lalu STOP
+    if (STATE.mode === 'OVERRIDE') {
+        // Jika index sudah mencapai atau melebihi jumlah data (artinya sudah selesai 1 putaran)
+        if (STATE.dzikirIndex >= ACTIVE_DZIKIR_DATA.length) {
+            // Hentikan interval agar tidak ganti-ganti lagi (Freeze di slide terakhir)
+            if (STATE.dzikirInterval) {
+                clearInterval(STATE.dzikirInterval);
+                STATE.dzikirInterval = null;
+            }
+            return; // Keluar fungsi, jangan update tampilan lagi
+        }
+    }
     
-    if(els.dzikirArab) {
+    // Kondisi B: Mode NORMAL (Slideshow) -> Biarkan jalan terus (Looping otomatis via Modulo di bawah)
+
+    // 3. AMBIL DATA (DENGAN MODULO)
+    // Gunakan modulo (%) agar saat mode NORMAL, index 10 kembali ke 0 (Looping)
+    const currentIndex = STATE.dzikirIndex % ACTIVE_DZIKIR_DATA.length;
+    const item = ACTIVE_DZIKIR_DATA[currentIndex];
+    
+    // 4. RENDER KE HTML
+    // A. Render Teks Arab
+    if (els.dzikirArab) {
         els.dzikirArab.innerHTML = item.text;
         
-        // --- LOGIKA UKURAN FONT (DIKURANGI SEDIKIT AGAR AMAN) ---
+        // --- LOGIKA UKURAN FONT ADAPTIF (SMART TYPOGRAPHY) ---
         const len = item.text.length;
         let fontClass = '';
 
         if (len < 50) {
-            // Pendek: 10vh (Tadi 12vh)
+            // Pendek (misal: Tasbih/Tahmid) -> Sangat Besar
             fontClass = 'text-[8vh] lg:text-[10vh] leading-[1.4]';
         } 
         else if (len < 150) {
-            // Sedang: 7vh (Tadi 9vh)
+            // Sedang -> Besar
             fontClass = 'text-[6vh] lg:text-[7vh] leading-[1.5]';
         } 
         else if (len < 300) {
-            // Panjang: 5.5vh (Tadi 7vh)
+            // Panjang (misal: Al-Ikhlas) -> Sedang
             fontClass = 'text-[4.5vh] lg:text-[5.5vh] leading-[1.6]';
         } 
         else if (len < 500) {
-            // Sangat Panjang: 4.5vh (Tadi 5.5vh)
+            // Sangat Panjang (misal: Sayyidul Istighfar) -> Kecil
             fontClass = 'text-[3.5vh] lg:text-[4.5vh] leading-[1.7]';
         } 
         else {
-            // Ekstra Panjang: 3.5vh (Tadi 4.5vh)
+            // Ekstra Panjang (misal: Ayat Kursi) -> Sangat Kecil
             fontClass = 'text-[3vh] lg:text-[3.5vh] leading-[1.8]';
         }
 
-        // Tambahkan pb-2 (padding bottom) agar tidak terlalu mepet Note
+        // Terapkan class CSS
         els.dzikirArab.className = `font-serif text-white text-center dir-rtl drop-shadow-[0_5px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full max-w-7xl mx-auto pb-2 ${fontClass}`;
     }
     
-    if(els.dzikirNote) els.dzikirNote.innerText = item.note;
-    
-    if(els.dzikirCounter) {
-        const currentNum = (STATE.dzikirIndex % ACTIVE_DZIKIR_DATA.length) + 1;
-        els.dzikirCounter.innerText = `${currentNum} / ${ACTIVE_DZIKIR_DATA.length}`;
+    // B. Render Terjemahan/Note
+    if (els.dzikirNote) {
+        els.dzikirNote.innerText = item.note;
     }
     
+    // C. Render Counter (Contoh: 1 / 33)
+    if (els.dzikirCounter) {
+        const displayNum = currentIndex + 1;
+        els.dzikirCounter.innerText = `${displayNum} / ${ACTIVE_DZIKIR_DATA.length}`;
+    }
+    
+    // 5. NAIKKAN INDEX
+    // Kita biarkan index terus bertambah. 
+    // - Di mode OVERRIDE: akan di-stop oleh logika di poin 2 saat mencapai max.
+    // - Di mode NORMAL: akan terus naik tapi aman karena diambil pakai Modulo (%) di poin 3.
     STATE.dzikirIndex++;
 }
 
