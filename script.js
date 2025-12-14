@@ -1016,14 +1016,25 @@ function renderSlide() {
         else if (sceneKey === 'hadits') {
             if (DATA_CONTENT.hadits.length > 0) {
                 const item = DATA_CONTENT.hadits[STATE.haditsIndex % DATA_CONTENT.hadits.length];
+                
+                // 1. Render Teks Terjemahan
                 els.haditsText.innerHTML = `"${item.text}"`;
-                els.haditsText.className = `font-sans text-slate-300 italic transition-all duration-500 text-center ${getAdaptiveClass(item.text, 'latin')}`;
-                els.haditsArabic.innerText = item.arabic;
-                els.haditsArabic.className = `font-serif text-gradient-gold text-center !text-center dir-rtl drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)] transition-all duration-500 w-full px-4 ${getAdaptiveClass(item.arabic, 'arab')}`;
+                
+                // Ganti style CSS di sini:
+                // - Hapus 'text-slate-300 italic' (kecil & miring)
+                // - Ganti jadi 'text-white font-medium' (putih, tegas)
+                // - Gunakan ukuran font besar (text-3xl lg:text-5xl)
+                els.haditsText.className = `font-sans text-white font-medium transition-all duration-500 text-center text-3xl lg:text-5xl leading-relaxed px-10`;
+
+                // 2. Render Perawi
                 els.haditsSource.innerText = item.source;
+                
+                // Catatan: Tidak perlu update els.haditsArabic karena sudah di-hidden di HTML
+                
                 STATE.haditsIndex++;
             } else skip = true;
         }
+            
         // DZIKIR DI MODE SLIDESHOW (Opsional, pakai data pagi)
         else if (sceneKey === 'dzikir') {
             if (DATA_DZIKIR.length > 0) {
