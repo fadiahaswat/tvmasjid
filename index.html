@@ -297,28 +297,37 @@
                 </div>
             </div>
 
-            <div id="scene-dzikir" class="hidden-slide w-full h-full flex flex-col justify-center items-center animate-fade-in px-4 lg:px-10 relative overflow-hidden">
-                <div class="absolute top-10 right-10 opacity-10 pointer-events-none">
-                    <i class="ri-sun-foggy-fill text-9xl text-gold-400"></i>
-                </div>
-                
-                <div class="absolute top-0 left-0 w-full flex justify-center pt-8 z-20">
-                     <span id="dzikir-title" class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md">
-                        DZIKIR
-                    </span>
-                </div>
+            <div id="scene-dzikir" class="hidden-slide w-full h-full flex flex-col animate-fade-in px-4 relative overflow-hidden">
+    
+    <div class="absolute top-10 right-10 opacity-10 pointer-events-none">
+        <i class="ri-sun-foggy-fill text-9xl text-gold-400"></i>
+    </div>
 
-                <div class="relative z-10 w-full flex flex-col items-center justify-center">
-                    <div class="w-full flex items-center justify-center">
-                        <p id="dzikir-arabic" class="font-serif text-white text-center dir-rtl drop-shadow-md transition-all duration-500 leading-[1.6] w-full">...</p>
-                    </div>
-                    <p id="dzikir-note" class="mt-8 text-cyan-400 font-sans font-bold text-2xl text-center tracking-widest uppercase animate-pulse px-8 max-w-5xl">...</p>
-                </div>
+    <div class="flex-none w-full flex justify-center items-end py-6 z-20 h-[15vh]">
+         <span id="dzikir-title" class="bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-lg">
+            DZIKIR
+        </span>
+    </div>
 
-                <div class="absolute bottom-0 left-0 w-full flex justify-center pb-6 z-20">
-                    <span id="dzikir-counter" class="text-slate-500 font-mono text-xl tracking-[0.3em] font-bold">1 / 10</span>
-                </div>
-            </div>
+    <div class="flex-grow w-full flex flex-col items-center justify-center relative z-10">
+        
+        <div class="w-full flex items-center justify-center px-4">
+            <p id="dzikir-arabic" class="font-serif text-white text-center dir-rtl drop-shadow-md transition-all duration-500 leading-[1.6] w-full pb-4">
+                ...
+            </p>
+        </div>
+
+        <p id="dzikir-note" class="mt-4 text-cyan-400 font-sans font-bold text-2xl text-center tracking-widest uppercase animate-pulse px-8 max-w-5xl">
+            ...
+        </p>
+    </div>
+
+    <div class="flex-none w-full flex justify-center items-start pb-6 z-20 h-[10vh]">
+        <span id="dzikir-counter" class="text-slate-500 font-mono text-xl tracking-[0.3em] font-bold">
+            1 / 10
+        </span>
+    </div>
+</div>
 
         </main>
 
