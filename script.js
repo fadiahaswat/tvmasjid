@@ -864,6 +864,8 @@ function applyMode(mode, type, target, meta) {
             const sd = els.scenes.dzikir;
             if (sd) {
                 sd.classList.remove('hidden-slide');
+
+                STATE.dzikirIndex = 0;
                 
                 if(els.dzikirTitleBadge) {
                     els.dzikirTitleBadge.className = "bg-gold-500/20 border border-gold-500/40 text-gold-300 px-8 py-2 rounded-full text-lg lg:text-xl font-cinzel font-bold uppercase tracking-widest backdrop-blur-md shadow-[0_0_20px_rgba(212,175,55,0.2)]";
